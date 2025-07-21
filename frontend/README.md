@@ -25,7 +25,9 @@ frontend/
 │   │   │   ├── LoginPage.jsx         
 │   │   │   └── SignupPage.jsx        
 │   │   ├── dashboard/                 # 메인/지도 대시보드 관련 페이지
-│   │   │   ├── MainPage.jsx          
+│   │   │   ├── MainPage.jsx 
+│   │   │   ├── InfoPanel.jsx 
+│   │   │   ├── MapPage.jsx          
 │   │   │   └── DashboardPage.jsx     
 │   │   ├── report/                    # 신고 및 리포트 관련 페이지
 │   │   │   ├── ReportPage.jsx        
