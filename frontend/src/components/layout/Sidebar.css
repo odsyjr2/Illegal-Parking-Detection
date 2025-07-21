@@ -10,6 +10,7 @@
   padding: 1.5rem;
   transition: transform 0.3s ease;
   z-index: 1000;
+  box-sizing: border-box;
   transform: translateX(0);
   overflow-y: auto;
 }

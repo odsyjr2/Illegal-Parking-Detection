@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/layout/Layout'
 import LoginPage from './pages/auth/LoginPage'
 import SignupPage from './pages/auth/SignupPage'
+import Main from './pages/dashboard/MainPage'
 // 필요한 페이지들 import
 
 function App() {
@@ -10,6 +11,7 @@ function App() {
     <Router>
       <Layout>
           <Routes>
+            <Route path="/" element={<Main />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             {/* 나중에 다른 페이지 추가 */}
