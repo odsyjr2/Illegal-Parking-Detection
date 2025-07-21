@@ -1,22 +1,54 @@
+/* ✅ 기본 sidebar 스타일 */
 .sidebar {
-  width: 220px;
-  height: 100vh;
   position: fixed;
+  top: 60px;         /* Header 아래에 시작 */
   left: 0;
-  top: 0;
-  background-color: #1e1e2f;
+  width: 220px;
+  height: calc(100vh - 60px);
+  background-color: #1C3D90;
   color: white;
   padding: 1.5rem;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+  transform: translateX(0);
+  overflow-y: auto;
 }
 
+/* 숨겨진 상태 */
+.sidebar.hidden {
+  transform: translateX(-100%);
+  pointer-events: none;
+}
+
+/* 열림 상태 */
+.sidebar.open {
+  transform: translateX(0);
+}
+
+/* 햄버거 버튼 */
+.hamburger {
+  position: fixed;
+  top: 15px;
+  left: 1rem;
+  font-size: 2rem;
+  color: white;
+  background: none;
+  border: none;
+  z-index: 1300;
+  cursor: pointer;
+}
+
+/* 제목 */
 .sidebar h2 {
   font-size: 1.5rem;
   margin-bottom: 2rem;
 }
 
+/* 메뉴 리스트 */
 .sidebar ul {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .sidebar li {

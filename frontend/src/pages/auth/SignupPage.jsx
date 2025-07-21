@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import './AuthForm.css';
 
 function SignupPage() {
   const [name, setName] = useState('');
@@ -18,9 +20,9 @@ function SignupPage() {
   };
 
   return (
-    <div>
-      <h2>회원가입</h2>
-      <form onSubmit={handleSignup}>
+    <div className="auth-container">
+      <form className="auth-box" onSubmit={handleSignup}>
+        <h2>회원가입</h2>
         <div>
           <label>이름:</label>
           <input
@@ -32,14 +34,16 @@ function SignupPage() {
         </div>
         <div>
           <label>아이디:</label>
-          <input
-            type="text"
-            value={id}
-            onChange={(e) => setId(e.target.value)}
-            required
-          />
-          {/* TODO: 중복 확인 버튼 추가 가능 */}
-        </div>
+          <div className="input-row">
+            <input
+              type="text"
+              value={id}
+              onChange={(e) => setId(e.target.value)}
+              required
+            />
+            <button id="CheckUsername" type="button">중복확인</button>
+          </div>
+          </div>
         <div>
           <label>비밀번호:</label>
           <input
@@ -66,7 +70,10 @@ function SignupPage() {
             onChange={(e) => setAdminCode(e.target.value)}
           />
         </div>
-        <button type="submit">회원가입</button>
+        <button type="submit" className="auth-button">회원가입</button>
+        <div className="auth-link">
+          계정이 있나요? <Link to="/login">로그인</Link>
+        </div>
       </form>
     </div>
   );

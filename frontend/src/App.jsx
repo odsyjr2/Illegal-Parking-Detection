@@ -9,13 +9,11 @@ function App() {
   return (
     <Router>
       <Layout>
-        <div style={{ marginLeft: '220px', padding: '1rem' }}>
           <Routes>
-            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
             {/* 나중에 다른 페이지 추가 */}
           </Routes>
-        </div>
       </Layout>
     </Router>
   )
