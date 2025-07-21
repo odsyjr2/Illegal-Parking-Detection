@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom';
+import './AuthForm.css'; // 스타일 파일 import
 
 function LoginPage() {
   const [id, setId] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -13,12 +14,13 @@ function LoginPage() {
   };
 
   return (
-    <div>
-      <h2>로그인</h2>
-      <form onSubmit={handleLogin}>
+    <div className="auth-container">
+      <form className="auth-box" onSubmit={handleLogin}>
+        <h2>로그인</h2>
         <div>
-          <label>아이디:</label>
+          <label htmlFor="id">아이디</label>
           <input
+            id="id"
             type="text"
             value={id}
             onChange={(e) => setId(e.target.value)}
@@ -26,18 +28,19 @@ function LoginPage() {
           />
         </div>
         <div>
-          <label>비밀번호:</label>
+          <label htmlFor="password">비밀번호</label>
           <input
+            id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <button type="submit">로그인</button>
-        <p style={{ marginTop: 10 }}>
+        <button type="submit" className="auth-button">로그인</button>
+        <div className="auth-link">
           계정이 없나요? <Link to="/signup">회원가입</Link>
-        </p>
+        </div>
       </form>
     </div>
   );
