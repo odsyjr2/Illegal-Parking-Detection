@@ -1,0 +1,107 @@
+/* AuthForm.css */
+
+/* 전체 wrapper: 항상 창 가운데 */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 60px); /* 헤더 제외한 높이 */
+  background-color: #f8f9fa;
+  padding: 0; /* 여백 제거 */
+  box-sizing: border-box;
+}
+
+/* 로그인/회원가입 폼 */
+.auth-box {
+  background-color: #fff;
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  width: 600px;       /* 고정 너비 지정 */
+  max-width: 80%;     /* 혹시 모를 브라우저끼리 여유 */
+}
+
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.auth-box label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  margin-bottom: 18px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #0066cc;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.auth-button:hover {
+  background-color: #004c99;
+}
+
+.auth-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+
+.input-with-button label {
+  display: block;
+  margin-bottom: 18px;
+  font-weight: bold;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px; /* input과 버튼 사이 간격 조절 */
+}
+
+.input-row input {
+  flex: 1; /* 넓게 늘어남 */
+}
+
+.input-row button {
+  white-space: nowrap;
+  padding: 10px 20px;
+  background-color: #0066cc;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 18px;
+}
+
+.input-row button:hover {
+  background-color: #004c99;
+}
