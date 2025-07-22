@@ -102,7 +102,7 @@ function SearchPage({ reports }) {
       justifyContent: 'center'
     }}>
       <div style={{
-        maxWidth: 600,
+        maxWidth: 1000,
         width: '100%',
         backgroundColor: '#fff',
         padding: 24,
