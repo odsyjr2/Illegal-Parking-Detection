@@ -30,8 +30,8 @@ function NavBar({ isOpen, toggle }) {
             <li className={isActive('/report')}>
               <Link to="/report" onClick={toggle}>신고</Link>
             </li>
-            <li className={isActive('/dashboard')}>
-              <Link to="/dashboard" onClick={toggle}>지도</Link>
+            <li className={isActive('/map')}>
+              <Link to="/map" onClick={toggle}>지도</Link>
             </li>
             <li className={isActive('/status')}>
               <Link to="/status" onClick={toggle}>현황</Link>
