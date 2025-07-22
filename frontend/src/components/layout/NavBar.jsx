@@ -21,7 +21,7 @@ function NavBar({ isOpen, toggle }) {
       </button>
 
       <div className={`sidebar ${isOpen ? 'open' : 'hidden'}`}>
-        <h2>CCPark</h2>
+        <h2>로고</h2>
         <nav>
           <ul>
             <li className={isActive('/')}>
@@ -32,9 +32,6 @@ function NavBar({ isOpen, toggle }) {
             </li>
             <li className={isActive('/map')}>
               <Link to="/map" onClick={toggle}>지도</Link>
-            </li>
-            <li className={isActive('/status')}>
-              <Link to="/status" onClick={toggle}>현황</Link>
             </li>
             <li className={isActive('/search')}>
               <Link to="/search" onClick={toggle}>검색</Link>
