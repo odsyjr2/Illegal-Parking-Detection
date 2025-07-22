@@ -11,8 +11,8 @@ function MapPage({ selectedLocation, onLocationChange }) {
       }}
       style={{
         width: '100%',
-        height: '100%',
-        backgroundColor: '#cce6ff',
+        height: '94vh',
+        backgroundColor: '#c0e2d7ff',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
