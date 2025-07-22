@@ -18,7 +18,8 @@ const headerStyle = {
 const logoStyle = {
   color: 'white',
   fontSize: '1.25rem',
-  fontWeight: 'bold'
+  fontWeight: 'bold',
+  textDecoration: 'none',
 };
 
 function Header() {
