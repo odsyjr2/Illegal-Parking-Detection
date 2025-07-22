@@ -6,6 +6,7 @@ import SignupPage from './pages/auth/SignupPage'
 import Main from './pages/dashboard/MainPage'
 import MapPage from './pages/dashboard/MapPage'
 import SearchPage from './pages/search/SearchPage'
+import ReportPage from './pages/report/ReportPage'
 // 필요한 페이지들 import
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/report" element={<ReportPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
