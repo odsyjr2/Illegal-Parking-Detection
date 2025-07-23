@@ -54,7 +54,7 @@ public class DetectionServiceImpl implements DetectionService {
                 .location(detection.getLocation())
                 .detectedAt(detection.getDetectedAt())
                 .vehicleType(detection.getVehicleType())
-                .isIllegal(detection.isIllegal())
+                .illegal(detection.isIllegal())
                 .build();
     }
 }
