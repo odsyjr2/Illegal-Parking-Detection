@@ -1,0 +1,11 @@
+com/aivle/parkingdetection/service/DetectionService.class
+com/aivle/parkingdetection/dto/DetectionRequestDto$DetectionRequestDtoBuilder.class
+com/aivle/parkingdetection/entity/Detection.class
+com/aivle/parkingdetection/repository/DetectionRepository.class
+com/aivle/parkingdetection/controller/DetectionController.class
+com/aivle/parkingdetection/service/DetectionServiceImpl.class
+com/aivle/parkingdetection/dto/DetectionRequestDto.class
+com/aivle/parkingdetection/dto/DetectionResponseDto$DetectionResponseDtoBuilder.class
+com/aivle/parkingdetection/ParkingDetectionApplication.class
+com/aivle/parkingdetection/dto/DetectionResponseDto.class
+com/aivle/parkingdetection/entity/Detection$DetectionBuilder.class
