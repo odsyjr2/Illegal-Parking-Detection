@@ -82,6 +82,6 @@ def process_dataset(dataset_path):
 
 if __name__ == '__main__':
     # custom_dataset 경로 설정
-    root_path = "C:/Users/chobh/Desktop/빅프로젝트"
+    root_path = "C:/Users/User/Project_Big"
     dataset_base_path = os.path.join(root_path, "custom_dataset")
     process_dataset(dataset_base_path)

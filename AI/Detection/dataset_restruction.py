@@ -55,8 +55,8 @@ def move_files(src_root, dst_root, data_type, split_name):
 
 def main():
     parser = argparse.ArgumentParser(description="데이터셋 디렉터리 구조 개선 스크립트")
-    parser.add_argument("--src", default="C:\Users\chobh\Desktop\빅프로젝트\Data\138.종합 민원 이미지 AI데이터\01.데이터", help="원본 데이터셋 루트 디렉터리 경로")
-    parser.add_argument("--dst", default="C:\Users\chobh\Desktop\빅프로젝트\custom_dataset", help="새로 만들 디렉터리(타겟) 경로")
+    parser.add_argument("--src", default="C:/Users/User/Project_Big/Data/138.종합 민원 이미지 AI데이터/01.데이터", help="원본 데이터셋 루트 디렉터리 경로")
+    parser.add_argument("--dst", default="C:/Users/User/Project_Big/custom_dataset", help="새로 만들 디렉터리(타겟) 경로")
     args = parser.parse_args()
 
     # Training → train(TL3/TS3), Validation → val(VL3/VS3)
