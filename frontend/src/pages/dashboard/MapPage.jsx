@@ -1,83 +1,37 @@
 import { useEffect, useRef } from 'react'
 
-// 📍 지도에 표시할 위치 목록
+// 🗺️ 지도에 표시할 위치 목록 예시
 const locations = [
   { label: '강남구1', lat: 37.5172, lng: 127.0473 },
   { label: '강남구2', lat: 37.5171, lng: 127.0470 },
   { label: '관악구', lat: 37.4784, lng: 126.9516 },
-  { label: '송파구', lat: 37.5145, lng: 127.1056 }
+  { label: '송파구', lat: 37.5145, lng: 127.1056 },
 ]
 
 function MapPage({ selectedLocation, onLocationChange }) {
-  const mapRef = useRef(null) // 🗺️ 실제 지도를 삽입할 DOM ref
-  const mapInstance = useRef(null) // 🗺️ Map 객체를 저장할 ref (초기화 후 유지)
-  const markerRefs = useRef([]) // 📍 마커 객체 배열을 저장하여 재사용 관리
+  const mapRef = useRef(null)
+  const mapInstance = useRef(null)
+  // 🚩 { [label]: Marker } 구조. label은 유니크해야 함
+  const markerRefs = useRef({})
 
-  const kakaoApiKey ='6586ab08c67a4dbc213f8a1e22f22adf'
-
+  const kakaoApiKey = '6586ab08c67a4dbc213f8a1e22f22adf'
   //const kakaoApiKey = import.meta.env.VITE_KAKAOMAP_KEY
 
-  // ✅ map 객체는 한 번만 만들고 저장
+  // ✅ 최초 1회: Kakao Map 객체만 생성
   useEffect(() => {
     if (!kakaoApiKey) return
 
-    const renderMarkers = () => {
-      const map = mapInstance.current
-      if (!map) return
-
-      // 🔁 기존 마커 제거
-      markerRefs.current.forEach(m => m.setMap(null))
-      markerRefs.current = []
-
-      // 📍 마커 생성
-      locations.forEach((loc) => {
-        // ✅ 현재 선택된 마커와 비교
-        const isSelected = selectedLocation?.label === loc.label
-
-        // 🖼️ 마커 이미지 설정 (선택된 마커는 빨간색)
-        const markerImage = new window.kakao.maps.MarkerImage(
-          isSelected
-            ? '../public/MapPin1.png.png'
-            : '../public/MapPin2.png.png',
-          new window.kakao.maps.Size(36, 36)
-        )
-
-        // 📍 마커 생성
-        const marker = new window.kakao.maps.Marker({
-          map,
-          position: new window.kakao.maps.LatLng(loc.lat, loc.lng),
-          title: loc.label,
-          image: markerImage
-        })
-
-        // 📌 마커 저장
-        markerRefs.current.push(marker)
-
-        // 💬 마커 클릭시 위치 선택 이벤트
-        window.kakao.maps.event.addListener(marker, 'click', () => {
-          onLocationChange?.({ ...loc, label: loc.label })
-        })
-      })
-    }
-
-    // ✅ 최초 1회 지도 생성
     const initMap = () => {
       window.kakao.maps.load(() => {
-        const defaultCenter = new window.kakao.maps.LatLng(37.5665, 126.9780) // 서울 중심 기본값
-
+        const defaultCenter = new window.kakao.maps.LatLng(37.5665, 126.9780)
         const map = new window.kakao.maps.Map(mapRef.current, {
           center: defaultCenter,
-          level: 7 // ✅ 줌 레벨은 여기서만 설정됨
+          level: 7,
         })
-
         mapInstance.current = map
-
-        // 📍 초기 마커 그리기
-        renderMarkers()
       })
     }
 
-    // 📦 스크립트 동적 삽입 + map 생성
     if (!window.kakao || !window.kakao.maps) {
       const script = document.createElement('script')
       script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoApiKey}&autoload=false`
@@ -87,53 +41,60 @@ function MapPage({ selectedLocation, onLocationChange }) {
     } else {
       initMap()
     }
+  }, [kakaoApiKey])
 
-    // 📌 selectedLocation 변경 시 마커 다시 렌더링
-  }, [kakaoApiKey]) // 🚨 스크립트와 지도는 한 번만 생성되므로 selectedLocation은 여기서 분리
-
-  // 🎯 선택된 위치가 바뀔 때 → panTo + 마커 갱신
+  // 🔄 locations가 변할 때만 마커 추가, 삭제, 위치/이미지 갱신
   useEffect(() => {
     const map = mapInstance.current
-    if (!map) return
+    if (!map || !window.kakao || !window.kakao.maps) return
 
-    if (selectedLocation) {
-      const newCenter = new window.kakao.maps.LatLng(selectedLocation.lat, selectedLocation.lng)
-      map.panTo(newCenter)
-    }
+    const markerMap = markerRefs.current
+    const nextLabels = locations.map(loc => loc.label)
 
-    // 마커 스타일 (선택된 마커 빨간색으로) 갱신
-    if (window.kakao && window.kakao.maps) {
-      // 해당 시점에 Kakao 객체가 로딩되어 있다면 마커 다시 그림
-      const renderMarkers = () => {
-        markerRefs.current.forEach(m => m.setMap(null))
-        markerRefs.current = []
+    // 1. 기존에 있었지만, locations에 없는 마커 setMap(null) 후 제거
+    Object.keys(markerMap).forEach(label => {
+      if (!nextLabels.includes(label)) {
+        markerMap[label].setMap(null)
+        delete markerMap[label]
+      }
+    })
 
-        locations.forEach((loc) => {
-          const isSelected = selectedLocation?.label === loc.label
-          const markerImage = new window.kakao.maps.MarkerImage(
-            isSelected
-              ? '../public/MapPin1.png'
-              : '../public/MapPin2.png',
-            new window.kakao.maps.Size(36, 36)
-          )
-
-          const marker = new window.kakao.maps.Marker({
-            map,
-            position: new window.kakao.maps.LatLng(loc.lat, loc.lng),
-            title: loc.label,
-            image: markerImage
-          })
-
-          markerRefs.current.push(marker)
-
-          window.kakao.maps.event.addListener(marker, 'click', () => {
-            onLocationChange?.({ ...loc, label: loc.label })
-          })
+    // 2. 추가 & 위치/이미지 갱신
+    locations.forEach((loc) => {
+      const isSelected = selectedLocation?.label === loc.label
+      const markerImage = new window.kakao.maps.MarkerImage(
+        isSelected
+          ? '../public/MapPin1.png'
+          : '../public/MapPin2.png',
+        new window.kakao.maps.Size(36, 36)
+      )
+      if (markerMap[loc.label]) {
+        // 위치가 바뀌었으면 setPosition
+        markerMap[loc.label].setPosition(new window.kakao.maps.LatLng(loc.lat, loc.lng))
+        // 선택 마커 여부에 따라 이미지 갱신
+        markerMap[loc.label].setImage(markerImage)
+      } else {
+        // 신규 마커 생성
+        const marker = new window.kakao.maps.Marker({
+          map,
+          position: new window.kakao.maps.LatLng(loc.lat, loc.lng),
+          title: loc.label,
+          image: markerImage,
+        })
+        markerMap[loc.label] = marker
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          onLocationChange?.({ ...loc, label: loc.label })
         })
       }
+    })
+  }, [locations, selectedLocation])
 
-      renderMarkers()
-    }
+  // 선택된 위치가 바뀌면 지도 중심 이동만 처리
+  useEffect(() => {
+    const map = mapInstance.current
+    if (!map || !selectedLocation) return
+    const newCenter = new window.kakao.maps.LatLng(selectedLocation.lat, selectedLocation.lng)
+    map.panTo(newCenter)
   }, [selectedLocation])
 
   return (
