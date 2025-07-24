@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 Test set: com.aivle.ParkingDetection.ParkingDetectionApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.229 s <<< FAILURE! -- in com.aivle.ParkingDetection.ParkingDetectionApplicationTests
-com.aivle.ParkingDetection.ParkingDetectionApplicationTests -- Time elapsed: 0.229 s <<< ERROR!
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.291 s <<< FAILURE! -- in com.aivle.ParkingDetection.ParkingDetectionApplicationTests
+com.aivle.ParkingDetection.ParkingDetectionApplicationTests -- Time elapsed: 0.291 s <<< ERROR!
 java.lang.IllegalStateException: Unable to find a @SpringBootConfiguration, you need to use @ContextConfiguration or @SpringBootTest(classes=...) with your test
 	at org.springframework.util.Assert.state(Assert.java:76)
 	at org.springframework.boot.test.context.SpringBootTestContextBootstrapper.findConfigurationClass(SpringBootTestContextBootstrapper.java:246)
