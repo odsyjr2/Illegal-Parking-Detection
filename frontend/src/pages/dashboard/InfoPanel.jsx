@@ -1,15 +1,20 @@
 function InfoPanel({ selectedLocation, onLocationChange }) {
   // 각 지역별로 상태 정보 준비
   const locationStatus = {
-    '강남구': [
+    '강남구1': [
       { label: '감지 차량 수', value: 11 },
       { label: '비정상 주차', value: 2 },
       { label: '최근 알림', value: 0 },
     ],
-    '관악구': [
-      { label: '감지 차량 수', value: 9 },
+    '강남구2': [
+      { label: '감지 차량 수', value: 4 },
       { label: '비정상 주차', value: 1 },
       { label: '최근 알림', value: 3 },
+    ],
+    '관악구': [
+      { label: '감지 차량 수', value: 1 },
+      { label: '비정상 주차', value: 1 },
+      { label: '최근 알림', value: 2 },
     ],
     '송파구': [
       { label: '감지 차량 수', value: 16 },
@@ -20,9 +25,10 @@ function InfoPanel({ selectedLocation, onLocationChange }) {
 
   // 셀렉트 옵션용 위치 목록
   const locations = [
-    { label: '강남구', lat: 37.5172, lng: 127.0473 },
+    { label: '강남구1', lat: 37.5172, lng: 127.0473 },
+    { label: '강남구2', lat: 37.5171, lng: 127.0470 },
     { label: '관악구', lat: 37.4784, lng: 126.9516 },
-    { label: '송파구', lat: 37.5145, lng: 127.1056 },
+    { label: '송파구', lat: 37.5145, lng: 127.1056 }
   ];
 
   // 현황 표시할 지역
