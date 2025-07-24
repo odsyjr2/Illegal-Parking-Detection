@@ -108,7 +108,7 @@ function MapPage({ selectedLocation, onLocationChange }) {
     map.panTo(newCenter)
   }, [selectedLocation])
 
-  // 불법 주차 시뮬레이션 데이터 추가 (5초 간격)
+  // 불법 주차 시뮬레이션 데이터 추가
   useEffect(() => {
     const timestamp = Date.now()
 
@@ -139,7 +139,7 @@ function MapPage({ selectedLocation, onLocationChange }) {
         map,
         position: new window.kakao.maps.LatLng(violation.lat, violation.lng),
         image: markerImage,
-        title: '불법 주차 차량',
+        title: violation.id,
       })
 
       carMarkersRef.current[violation.id] = marker
