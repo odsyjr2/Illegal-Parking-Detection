@@ -1,8 +1,16 @@
 /workspace/Illegal-Parking-Detection/backend/src/main/java/com/repository/DetectionRepository.java
-/workspace/Illegal-Parking-Detection/backend/src/main/java/com/aivle/entity/Detection.java
-/workspace/Illegal-Parking-Detection/backend/src/main/java/com/Application/ParkingDetectionApplication.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/service/UserServiceImpl.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/repository/UserRepository.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/dto/UserResponseDto.java
 /workspace/Illegal-Parking-Detection/backend/src/main/java/com/dto/DetectionRequestDto.java
 /workspace/Illegal-Parking-Detection/backend/src/main/java/com/service/DetectionServiceImpl.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/controller/DetectionController.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/controller/UserController.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/ config/AppConfig.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/dto/UserRequestDto.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/service/UserService.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/Application/ParkingDetectionApplication.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/aivle/entity/Detection.java
+/workspace/Illegal-Parking-Detection/backend/src/main/java/com/aivle/entity/User.java
 /workspace/Illegal-Parking-Detection/backend/src/main/java/com/dto/DetectionResponseDto.java
 /workspace/Illegal-Parking-Detection/backend/src/main/java/com/service/DetectionService.java
-/workspace/Illegal-Parking-Detection/backend/src/main/java/com/controller/DetectionController.java
