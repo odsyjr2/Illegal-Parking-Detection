@@ -13,7 +13,9 @@ function MapPage({ selectedLocation, onLocationChange }) {
   const mapInstance = useRef(null) // 🗺️ Map 객체를 저장할 ref (초기화 후 유지)
   const markerRefs = useRef([]) // 📍 마커 객체 배열을 저장하여 재사용 관리
 
-  const kakaoApiKey = import.meta.env.VITE_KAKAOMAP_KEY
+  const kakaoApiKey ='6586ab08c67a4dbc213f8a1e22f22adf'
+
+  //const kakaoApiKey = import.meta.env.VITE_KAKAOMAP_KEY
 
   // ✅ map 객체는 한 번만 만들고 저장
   useEffect(() => {
@@ -35,8 +37,8 @@ function MapPage({ selectedLocation, onLocationChange }) {
         // 🖼️ 마커 이미지 설정 (선택된 마커는 빨간색)
         const markerImage = new window.kakao.maps.MarkerImage(
           isSelected
-            ? 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'
-            : 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png',
+            ? '../public/MapPin1.png.png'
+            : '../public/MapPin2.png.png',
           new window.kakao.maps.Size(36, 36)
         )
 
