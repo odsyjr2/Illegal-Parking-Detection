@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:illegalparkingdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 1234
+  jpa:
+    hibernate:
+      ddl-auto: update  # 개발 중 스키마 변경 자동 반영
+    show-sql: true
+  h2:
+    console:
+      enabled: true    # H2 콘솔 활성화
+      path: /h2-console
