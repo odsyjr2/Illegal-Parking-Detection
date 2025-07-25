@@ -1,77 +1,80 @@
-// src/components/layout/NavBar.jsx
-
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import './Sidebar.css'
 
-const HIDDEN_PATHS = ['/login', '/signup'] // 이 경로들에서는 네비바와 햄버거 모두 숨김
+const HIDDEN_PATHS = ['/login', '/signup']
 
-function NavBar() {
+function NavBar({ isOpen, toggle }) {
   const location = useLocation()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
 
-  // 1. 경로별 초기 닫힘 상태
-  useEffect(() => {
-    if (['/dashboard', '/report'].includes(location.pathname)) {
-      setIsSidebarOpen(false)
-    }
-  }, [location.pathname])
+  if (HIDDEN_PATHS.includes(location.pathname)) return null
 
-  // 2. 화면 작아질 때 자동 닫힘
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 900) {
-        setIsSidebarOpen(false)
-      }
-    }
-    handleResize() // mount 시 한번 실행
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  const isActive = (path) => (location.pathname === path ? 'active' : '')
 
-  // 3. 로그인/회원가입 페이지에서는 사이드바와 버튼 아예 안 보이게
-  if (HIDDEN_PATHS.includes(location.pathname)) {
-    return null
+  // 🧑 임시 관리자 정보
+  const adminInfo = {
+    name: '홍길동',
+    email: 'admin@example.com'
   }
-
-  const isActive = (path) =>
-    location.pathname === path ? 'active' : ''
 
   return (
     <>
-      {/* ☰ 햄버거 버튼 */}
-      <button className="hamburger" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+      <button className="hamburger" onClick={toggle}>
         ☰
       </button>
 
-      {/* 사이드바 */}
-      <div className={`sidebar ${isSidebarOpen ? 'open' : 'hidden'}`}>
-        <h2>CCPark</h2>
-        <nav>
-          <ul>
-            <li className={isActive('/')}>
-              <Link to="/" onClick={() => setIsSidebarOpen(false)}>홈</Link>
-            </li>
-            <li className={isActive('/report')}>
-              <Link to="/report" onClick={() => setIsSidebarOpen(false)}>신고</Link>
-            </li>
-            <li className={isActive('/dashboard')}>
-              <Link to="/dashboard" onClick={() => setIsSidebarOpen(false)}>지도</Link>
-            </li>
-            <li className={isActive('/status')}>
-              <Link to="/status" onClick={() => setIsSidebarOpen(false)}>신고</Link>
-            </li>
-            <li className={isActive('/search')}>
-              <Link to="/search" onClick={() => setIsSidebarOpen(false)}>검색</Link>
-            </li>
-            <li className={isActive('/admin')}>
-              <Link to="/admin" onClick={() => setIsSidebarOpen(false)}>관리자</Link>
-            </li>
-            <li>
-              <button onClick={() => alert('로그아웃 클릭됨')}>로그아웃</button>
-            </li>
-          </ul>
-        </nav>
+      <div className={`sidebar ${isOpen ? 'open' : 'hidden'}`}>
+        <div>
+          <h2>로고</h2>
+
+          {/* 관리자 정보 */}
+          <div className="admin-info" style={{
+            padding: '10px 14px',
+            borderRadius: 8,
+            marginBottom: 16,
+            fontSize: '14px'
+          }}>
+            <div><strong>{adminInfo.name}</strong></div>
+            <div style={{ color: '#fff' }}>{adminInfo.email}</div>
+          </div>
+
+          {/* 메뉴 목록 */}
+          <nav>
+            <ul>
+              <li className={isActive('/')}>
+                <Link to="/" onClick={toggle}>홈</Link>
+              </li>
+              <li className={isActive('/report')}>
+                <Link to="/report" onClick={toggle}>신고</Link>
+              </li>
+              <li className={isActive('/map')}>
+                <Link to="/map" onClick={toggle}>지도</Link>
+              </li>
+              <li className={isActive('/search')}>
+                <Link to="/search" onClick={toggle}>검색</Link>
+              </li>
+              <li className={isActive('/admin')}>
+                <Link to="/admin" onClick={toggle}>관리자</Link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        {/* 👇 맨 아래 로그아웃 버튼 영역 */}
+        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
+          <Link to="/login" onClick={toggle}
+            style={{
+              fontSize: 13,
+              color: '#ccc',
+              display: 'block',
+              textAlign: 'center',
+              padding: '8px 0',
+              borderTop: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            로그아웃
+          </Link>
+        </div>
       </div>
     </>
   )

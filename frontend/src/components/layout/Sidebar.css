@@ -1,7 +1,7 @@
 /* ✅ 기본 sidebar 스타일 */
 .sidebar {
   position: fixed;
-  top: 60px;         /* Header 아래에 시작 */
+  top: 60px;
   left: 0;
   width: 220px;
   height: calc(100vh - 60px);
@@ -10,8 +10,12 @@
   padding: 1.5rem;
   transition: transform 0.3s ease;
   z-index: 1000;
+  box-sizing: border-box;
   transform: translateX(0);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* 숨겨진 상태 */

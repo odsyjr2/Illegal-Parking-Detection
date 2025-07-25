@@ -1,4 +1,5 @@
 // src/components/layout/Header.jsx
+import { Link } from "react-router-dom";
 const headerStyle = {
   position: 'fixed',         // 항상 상단 고정
   top: 0,
@@ -17,15 +18,16 @@ const headerStyle = {
 const logoStyle = {
   color: 'white',
   fontSize: '1.25rem',
-  fontWeight: 'bold'
+  fontWeight: 'bold',
+  textDecoration: 'none',
 };
 
 function Header() {
   return (
     <header style={headerStyle}>
-      <div style={logoStyle}>
+      <Link to="/" style={logoStyle}>
         로고
-      </div>
+      </Link>
     </header>
   );
 }
