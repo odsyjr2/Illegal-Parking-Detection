@@ -1,6 +1,0 @@
-path: /workspace/Illegal-Parking-Detection/custom_dataset_sample
-train: train/images
-val: val/images
-
-names:
-  0: illegal_parking
