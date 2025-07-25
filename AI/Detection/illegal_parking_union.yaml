@@ -1,0 +1,10 @@
+# illegal_parking.yaml
+
+path: C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_all  # dataset root
+
+train: images/train  # relative to 'path'
+val: images/val      # relative to 'path'
+
+# Class names
+names:
+  0: illegal_parking
