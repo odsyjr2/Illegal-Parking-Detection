@@ -9,6 +9,7 @@ import MapPage from './pages/dashboard/MapPage'
 import SearchPage from './pages/search/SearchPage'
 import ReportPage from './pages/report/ReportPage'
 import AdminPage from './pages/admin/AdminPage'
+import AdminRoutes from './pages/admin/AdminRoutes'
 
 function App() {
   const [role, setRole] = useState(null)
@@ -48,6 +49,7 @@ function App() {
           <Route path="/search" element={isUser ? <Navigate to="/report" replace /> : <SearchPage />} />
           <Route path="/admin" element={isUser ? <Navigate to="/report" replace /> : <AdminPage />} />
           <Route path="/map" element={isUser ? <Navigate to="/report" replace /> : <MapPage />} />
+          <Route path="/admin/*" element={<AdminRoutes />} />
 
           {/* 인증 관련 */}
           <Route path="/login" element={<LoginPage />} />
