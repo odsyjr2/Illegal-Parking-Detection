@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 // 상태 색상 매핑
 const statusColorMap = {
   접수: '#f59e0b',
-  처리중: '#3b82f6',
+  진행중: '#3b82f6',
   완료: '#10b981'
 };
 
 // 필터 옵션들
-const STATUS_OPTIONS = ['전체', '접수', '처리중', '완료'];
+const STATUS_OPTIONS = ['전체', '접수', '진행중', '완료'];
 const REGION_OPTIONS = ['전체', '강남', '관악', '송파', '기타'];
 const DATE_OPTIONS = ['전체', '오늘', '이번주', '이번달'];
 
@@ -59,35 +59,67 @@ function SearchPage() {
   const [date, setDate] = useState('전체');
 
   // 서버에서 신고 목록 가져오기
+  // 백앤드 연동 이후 사용
+  // useEffect(() => {
+  //   setLoading(true);
+  //   setError(null);
+  //   fetch('/api/human-reports')
+  //     .then(res => {
+  //       if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
+  //       return res.json();
+  //     })
+  //     .then(data => {
+  //       // Backend에서 받은 데이터에 title, status, region, location, date 이름 맞춰 변환 필요하면 아래처럼 처리
+  //       // 여기서는 date가 없으면 createdAt을 date로 매핑 예시도 가능
+  //       const mapped = data.map(item => ({
+  //         id: item.id,
+  //         title: item.title || '',
+  //         content: item.reason || '',
+  //         status: item.status || '',
+  //         region: item.region || '기타',
+  //         location: item.location || '',
+  //         date: item.createdAt ? item.createdAt.slice(0, 10) : '' // 날짜 문자열 (YYYY-MM-DD)만 추출
+  //       }));
+  //       setReports(mapped);
+  //     })
+  //     .catch(err => {
+  //       console.error(err);
+  //       setError('신고 목록을 불러오는데 실패했습니다.');
+  //       setReports([]); // fallback 데이터 쓸 수도 있음
+  //     })
+  //     .finally(() => setLoading(false));
+  // }, []);
+
+  // 서버에서 신고 목록 가져오기
   useEffect(() => {
-    setLoading(true);
-    setError(null);
-    fetch('/api/human-reports')
-      .then(res => {
-        if (!res.ok) throw new Error(`서버 오류: ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        // Backend에서 받은 데이터에 title, status, region, location, date 이름 맞춰 변환 필요하면 아래처럼 처리
-        // 여기서는 date가 없으면 createdAt을 date로 매핑 예시도 가능
-        const mapped = data.map(item => ({
-          id: item.id,
-          title: item.title || '',
-          content: item.reason || '',
-          status: item.status || '',
-          region: item.region || '기타',
-          location: item.location || '',
-          date: item.createdAt ? item.createdAt.slice(0, 10) : '' // 날짜 문자열 (YYYY-MM-DD)만 추출
-        }));
-        setReports(mapped);
-      })
-      .catch(err => {
-        console.error(err);
-        setError('신고 목록을 불러오는데 실패했습니다.');
-        setReports([]); // fallback 데이터 쓸 수도 있음
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  setLoading(true);
+  setError(null);
+
+  try {
+    const saved = localStorage.getItem('humanReports');
+    const data = saved ? JSON.parse(saved) : [];
+
+    const mapped = data.map(item => ({
+      id: item.id,
+      title: item.title || '',
+      content: item.reason || '',
+      status: item.status || '접수',
+      region: item.region || '기타',
+      location: item.roadAddress || '',
+      date: item.date || ''
+    }));
+
+    setReports(mapped);
+  } catch (err) {
+    console.error(err);
+    setError('신고 목록을 불러오는데 실패했습니다.');
+    setReports([]);
+  } finally {
+    setLoading(false);
+  }
+}, []);
+
+
 
   // 필터링 적용
   const filteredReports = reports.filter(report =>
