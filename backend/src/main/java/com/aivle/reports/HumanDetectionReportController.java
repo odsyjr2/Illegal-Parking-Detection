@@ -1,13 +1,22 @@
 package com.aivle.reports;
 
+import org.springframework.http.MediaType;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.io.IOException;
+
+
 
 @RestController
 @RequestMapping("/api/human-reports")
+@CrossOrigin(origins = "*") // 또는 필요한 도메인 지정
 public class HumanDetectionReportController {
 
     private final HumanDetectionReportService service;
@@ -17,10 +26,42 @@ public class HumanDetectionReportController {
     }
 
     // 신고 등록
-    @PostMapping
-    public ResponseEntity<HumanDetectionReport> createReport(@RequestBody HumanDetectionReport report) {
-        HumanDetectionReport savedReport = service.createReport(report);
-        return ResponseEntity.ok(savedReport);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<HumanDetectionReport> createReport(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userID") String userID,
+            @RequestParam("title") String title,
+            @RequestParam("reason") String reason,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude,
+            @RequestParam("location") String location,
+            @RequestParam("region") String region,
+            @RequestParam("status") String status
+    ) {
+        String imagePath = "/uploads/" + file.getOriginalFilename();
+        // 파일 저장 로직
+        Path path = Paths.get("uploads", file.getOriginalFilename());
+        try {
+            Files.createDirectories(path.getParent());
+            Files.write(path, file.getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+
+        HumanDetectionReport report = new HumanDetectionReport();
+        report.setUserID(userID);
+        report.setTitle(title);
+        report.setReason(reason);
+        report.setLatitude(latitude);
+        report.setLongitude(longitude);
+        report.setLocation(location);
+        report.setRegion(region);
+        report.setStatus(status);
+        report.setImageURL(imagePath);
+
+        HumanDetectionReport saved = service.createReport(report);
+        return ResponseEntity.ok(saved);
     }
 
     // 회원별 신고 목록 조회

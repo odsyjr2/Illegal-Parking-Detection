@@ -3,6 +3,7 @@ package com.aivle.reports;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.sql.Timestamp;
 
 @Entity
@@ -34,6 +35,7 @@ public class HumanDetectionReport {
     private String status = "접수"; // ex: "접수", "진행중", "완료"
 
     @CreationTimestamp
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private Timestamp createdAt;
 
     private String region; // 선택 사항, 예: "강남"
