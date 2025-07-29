@@ -1,5 +1,6 @@
 package com.aivle.ParkingDetection.dto;
 
+import com.aivle.ParkingDetection.domain.Role;
 import com.aivle.ParkingDetection.domain.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,6 +17,7 @@ public class UserDTO {
     private String email;
     private String password;
     private String adminCode;
+    private Role role;
 
     // 사용자가 로그인에 성공하면 서버가 발급하는 JWT
     // accessToken을 통해 로그인 상태 유지, API 요청 보내기 가능
@@ -31,6 +33,7 @@ public class UserDTO {
                 .email(user.getEmail())
                 .name(user.getName())
                 .adminCode(user.getAdminCode()) // optional
+                .role(user.getRole())
                 .build();
     }
 }

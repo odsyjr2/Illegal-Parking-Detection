@@ -1,5 +1,6 @@
 package com.aivle.ParkingDetection.dto;
 
+import com.aivle.ParkingDetection.domain.Role;
 import lombok.Data;
 
 @Data

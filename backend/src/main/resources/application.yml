@@ -8,7 +8,7 @@ spring:
         generate-unique-name: false
     jpa:
         hibernate:
-            ddl-auto: update
+            ddl-auto: create
         show-sql: true
         properties:
             hibernate:
@@ -20,8 +20,6 @@ spring:
 
     application:
         name: ParkingDetection
-    main:
-        allow-bean-definition-overriding: true   # 추가
 
 server:
     port: 8080
@@ -34,4 +32,3 @@ logging:
         com.aivle.ParkingDetection: DEBUG
 jwt:
     secret: bXlzZWNyZXRrZXlmb3JzaWduaW5ndG9rZW5zMTIzNDU2
-    

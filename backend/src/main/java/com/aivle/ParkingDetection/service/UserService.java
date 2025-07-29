@@ -12,4 +12,6 @@ public interface UserService {
     void logoutUser(Long userId, String accessToken);
     UserDTO convertToDtoWithTokens(User user, String accessToken, String refreshToken);
     Authentication authenticate(LoginRequestDTO request);
+    void deleteUserById(Long id);   // 탈퇴
+
 }

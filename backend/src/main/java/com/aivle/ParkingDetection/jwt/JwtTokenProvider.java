@@ -41,14 +41,11 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + ACCESS_TOKEN_VALIDITY);
-
         return Jwts.builder()
-                .setSubject(authentication.getName()) // username(email)
-                .claim("auth", authorities)
-                .setIssuedAt(now)
-                .setExpiration(expiry)
+                .setSubject(authentication.getName()) // email
+                .claim("auth", authorities)            // <-- 필수!
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_VALIDITY))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -74,12 +71,14 @@ public class JwtTokenProvider {
     public Authentication getAuthentication(String token) {
         Claims claims = parseClaims(token);
 
-        if (claims.get("auth") == null) {
+        if (claims.get("auth") == null || claims.get("auth").toString().trim().isEmpty()) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
 
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get("auth").toString().split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty()) // ✅ 빈 문자열 방지
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 

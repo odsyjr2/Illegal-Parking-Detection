@@ -28,4 +28,9 @@ public class User {
 
     @Column(nullable = true)
     private String adminCode;// 관리자 코드 -> 0000
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;// 관리자 코드 -> AAAA / 단속 담당자 코드 -> BBBB
+
 }
