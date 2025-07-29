@@ -1,7 +1,7 @@
 # data.yaml for two-class illegal parking dataset
 
-train: C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_intersect/images/train
-val: C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_intersect/images/val
+train: C:/Users/chobh/Desktop/bigProject/Data/twoclass_illegal_parking_dataset_intersect/images/train
+val: C:/Users/chobh/Desktop/bigProject/Data/twoclass_illegal_parking_dataset_intersect/images/val
 
 nc: 2
 names: ['normal', 'illegal_parking']

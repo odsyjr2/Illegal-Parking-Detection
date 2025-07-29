@@ -7,9 +7,9 @@ from tqdm import tqdm
 from ultralytics import YOLO
 
 # 설정
-IMAGE_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_intersect/images/'
-LABEL_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_intersect/labels/'
-OUTPUT_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_intersect/two_class_pseudo_label'
+IMAGE_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_all/images/'
+LABEL_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_all/labels/'
+OUTPUT_ROOT = 'C:/Users/chobh/Desktop/bigProject/Data/oneclass_illegal_parking_dataset_all/two_class_pseudo_label'
 MODEL_PATH = 'C:/Users/chobh/Desktop/bigProject/Illegal-Parking-Detection/AI/Experiments/coco_custom_vehicle_seg/25.07.23/weights/best.pt'
 
 CONF_THRESHOLD = 0.5
