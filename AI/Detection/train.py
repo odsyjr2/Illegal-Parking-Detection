@@ -3,23 +3,23 @@ from ultralytics import YOLO
 
 def main():
     #  Load a model
-    # model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
-    
+    model = YOLO("yolo11n.pt")  # load a pretrained model (recommended for training)
+
     # results = model.train(
     #     data='coco.yaml',
     #     epochs=1,
     #     imgsz=640
     # )
     
-    # Train the model
+    # # Train the model
     # results = model.train(
-    #     data="illegal_parking_intersect.yaml", 
+    #     data="illegal_parking_intersect_two_class.yaml", 
     #     epochs=100, 
     #     batch=16,
     #     imgsz=640,
     #     device=0,
-    #     project="../Experiments/illegal_parking_union_det",
-    #     name="25.07.24",
+    #     project="../Experiments/illegal_parking_intersect_2class_det",
+    #     name="25.07.25",
     #     seed=42,
     #     multi_scale=True,
 
@@ -42,8 +42,8 @@ def main():
 
 
 
-    # # resume version
-    model = YOLO("../Experiments/illegal_parking_union_det/25.07.24/weights/last.pt")
+    # resume version
+    model = YOLO("./../Experiments/illegal_parking_all_2class_det/25.07.28/weights/last.pt")
 
     results = model.train(resume=True)
 if __name__ == "__main__":
