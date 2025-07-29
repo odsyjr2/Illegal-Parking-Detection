@@ -14,7 +14,7 @@ public class ApiResponse<T> {
 
     // 성공 응답 (데이터 포함)
     public static <T> ApiResponse<T> success(String message, T data) {
-        return ApiResponse.of("success", message, data);
+        return ApiResponse.of("SUCCESS", message, data);
     }
 
     // 성공 응답 (데이터 없음)
@@ -26,4 +26,9 @@ public class ApiResponse<T> {
     public static <T> ApiResponse<T> error(String message) {
         return ApiResponse.of("error", message, null);
     }
+
+    public static <T> ApiResponse<T> fail(String message) {
+        return new ApiResponse<>("FAIL", message, null);
+    }
+
 }

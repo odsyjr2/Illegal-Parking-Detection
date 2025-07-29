@@ -68,6 +68,8 @@ public class UserController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails,
             HttpServletRequest request) {
 
+        log.debug("🧪 로그아웃 요청 사용자: {}", customUserDetails != null ? customUserDetails.getEmail() : "null");
+
         if (customUserDetails == null) {
             return new ResponseEntity<>(
                     ApiResponse.error("로그인된 사용자가 없습니다."),
