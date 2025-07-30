@@ -82,3 +82,10 @@ custom_dataset/
 ## 🚀 YOLOv8 Fine-tuning
 
 fine_tuning_baseline.ipynb에서 `custom_dataset`을 사용하여 YOLOv8 모델을 파인튜닝하는 과정을 안내합니다.
+
+
+
+## 변경 사항
+data.yaml -> original_cctv_dataset.yaml
+
+line detection filter annotation : 미완성

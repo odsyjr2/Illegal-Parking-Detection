@@ -1,0 +1,10 @@
+path: C:/Users/chobh/Desktop/bigProject/Data/coco_custom_vehicle_seg # dataset root dir
+train: train2017.txt # train images (relative to 'path') 118287 images
+val: val2017.txt # val images (relative to 'path') 5000 images
+
+# Classes
+names:
+  0: car
+  1: motorcycle
+  2: bus
+  3: truck
