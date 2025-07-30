@@ -17,6 +17,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
+import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.List;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -32,6 +39,7 @@ public class SecurityConfig {
                 new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate); // ✅ 두 인자 전달
 
         http
+                .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
 
@@ -41,6 +49,8 @@ public class SecurityConfig {
                                 "/api/users/signup",
                                 "/api/users/login",
                                 "/api/users/logout",
+                                "/api/human-reports/**",    // 임시 허용
+                                "/uploads/**",              // 임시 허용
                                 "/h2-console/**"
                         ).permitAll()
 
@@ -63,6 +73,19 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173")); 
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+    return source;
     }
 }
 
