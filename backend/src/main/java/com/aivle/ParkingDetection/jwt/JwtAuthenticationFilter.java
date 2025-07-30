@@ -40,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // ** 임시 uploads 파일 필터 적용 제외 //  // ** 임시 report 필터 적용 제외 //
+        if (requestURI.startsWith("/api/human-reports") || requestURI.startsWith("/uploads")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = resolveToken(request);
 
         // ✅ 토큰 존재 및 유효성 검사
