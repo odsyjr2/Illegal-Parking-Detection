@@ -76,11 +76,12 @@ function AddressSearch({ onSelect, placeholder = "도로명주소 검색", style
 }
 
 function ZonesManagement() {
+  // [1] 상태 정의
   const [zones, setZones] = useState([
     {
       id: 1,
       name: '관악구',
-      allowedTime: '08:00 ~ 20:00',
+      allowedTime: '08:00~20:00',
       sections: [
         { id: 100, start: '봉천동', end: '신림동', time: '09:00~12:00', allowed: true },
         { id: 101, start: '청룡동', end: '대학동', time: '15:00~18:00', allowed: false },
@@ -108,12 +109,13 @@ function ZonesManagement() {
       alert('구역명과 허용 시간대를 입력하세요.');
       return;
     }
+    const allowedTime = `${newAllowedStartTime}~${newAllowedEndTime}`
     setZones([
       ...zones,
       {
         id: Date.now(),
         name: newZoneName.trim(),
-        allowedTime: newAllowedTime.trim(),
+        allowedTime,
         sections: [],
       },
     ]);
@@ -149,7 +151,8 @@ function ZonesManagement() {
     setEditingSectionInput({
       start: section.start,
       end: section.end,
-      time: section.time,
+      startTime: startT || '',
+      endTime: endT || '',
       allowed: section.allowed,
       zoneId,
     });
@@ -224,6 +227,22 @@ function ZonesManagement() {
           onChange={e => setNewZoneName(e.target.value)}
           style={{ padding: 7, border: '1px solid #364599ff', borderRadius: 6, background: '#f7fafd', width: 160 }}
         />
+
+        {/* 허용시간 시작 */}
+        <input
+          type="time"
+          value={newAllowedStartTime}
+          onChange={e => setNewAllowedStartTime(e.target.value)}
+          style={{
+            padding: 6,
+            width: 110,
+            border: '1px solid #bfd6f2',
+            borderRadius: 6,
+            background: '#f7fafd',
+          }}
+        />
+        <span style={{ alignSelf: 'center' }}>~</span>
+        {/* 허용시간 종료 */}
         <input
           placeholder="허용시간 (예: 08:00 ~ 20:00)"
           value={newAllowedTime}
@@ -409,15 +428,44 @@ function ZonesManagement() {
                     style={{ maxWidth: 150 }}
                     inputStyle={{ padding: 6, width: 150, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => openAddressPopup(zone.id, 'end')}
+                    style={{ ...mutedBtn('#B3BCF2'), padding: '6px 11px' }}
+                  >
+                    주소검색
+                  </button>
+
+                  {/* 허용시간 시작 */}
                   <input
-                    placeholder="허용 시간대 (예: 09:00~12:00)"
-                    value={selectedZoneId === zone.id ? newSection.time : ''}
+                    type="time"
+                    ref={refs.startTime}
+                    value={selectedZoneId === zone.id ? newSection.startTime : ''}
+                    onChange={e => {
+                      setSelectedZoneId(zone.id)
+                      setNewSection(ns => ({ ...ns, startTime: e.target.value }))
+                    }}
+                    style={{
+                      padding: 6,
+                      width: 110,
+                      border: '1px solid #bfd6f2',
+                      borderRadius: 6,
+                      background: '#f7fafd',
+                    }}
+                  />
+                  <span style={{ alignSelf: 'center' }}>~</span>
+                  {/* 허용시간 종료 */}
+                  <input
+                    type="time"
+                    ref={refs.endTime}
+                    value={selectedZoneId === zone.id ? newSection.endTime : ''}
                     onChange={e => {
                       setSelectedZoneId(zone.id);
                       setNewSection(ns => ({ ...ns, time: e.target.value }));
                     }}
                     style={{ padding: 6, width: 150, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
                   />
+
                   <select
                     value={selectedZoneId === zone.id ? (newSection.allowed ? 'true' : 'false') : 'true'}
                     onChange={e => {
@@ -434,8 +482,8 @@ function ZonesManagement() {
                   </button>
                 </div>
               </div>
-            </div>
-          ))
+            )
+          })
         )}
       </section>
     </div>

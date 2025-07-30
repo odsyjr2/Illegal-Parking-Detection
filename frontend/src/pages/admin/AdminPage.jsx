@@ -29,13 +29,13 @@ function AdminPage() {
           to="/admin/reports"
           style={({ isActive }) => (isActive ? { ...buttonStyle, ...activeButtonStyle } : buttonStyle)}
         >
-          🧾 신고현황 보기
+          신고현황 보기
         </NavLink>
         <NavLink
           to="/admin/zones"
           style={({ isActive }) => (isActive ? { ...buttonStyle, ...activeButtonStyle } : buttonStyle)}
         >
-          🕒 구역별 주정차 허용시간/구간정보 수정
+          구역별 주정차 허용시간/구간정보 수정
         </NavLink>
       </nav>
 
