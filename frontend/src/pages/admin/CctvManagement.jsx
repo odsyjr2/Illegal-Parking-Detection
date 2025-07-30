@@ -65,7 +65,7 @@ function CctvManagement() {
 
   const handleAddCctv = () => {
     if (!newCctv.trim()) return
-    setCctvs([...cctvs, { id: Date.now(), location: newCctv, installedAt: new Date().toISOString().slice(0,10) }])
+    setCctvs([...cctvs, { id: Date.now(), location: newCctv, installedAt: new Date().toISOString().slice(0, 10) }])
     setNewCctv('')
   }
 
@@ -81,84 +81,145 @@ function CctvManagement() {
     }
   }
 
+  // 페이지 이동 함수
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return
+    setCurrentPage(page)
+    setSelectedIds([])
+  }
+
+  // 페이지네이션 UI (번호 및 이전/다음 버튼)
+  const Pagination = () => {
+    // 항상 렌더링 (페이지가 1개여도 표시)
+    const pages = [...Array(totalPages || 1).keys()].map(i => i + 1)
+
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 20, gap: 8 }}>
+        <button
+          onClick={() => goToPage(currentPage - 1)}
+          disabled={currentPage === 1}
+          style={pagBtnStyle(currentPage === 1)}
+          aria-label="이전 페이지"
+        >
+          &lt;
+        </button>
+
+        {pages.map(page => (
+          <button
+            key={page}
+            onClick={() => goToPage(page)}
+            style={pagBtnStyle(page === currentPage)}
+            aria-current={page === currentPage ? 'page' : undefined}
+          >
+            {page}
+          </button>
+        ))}
+
+        <button
+          onClick={() => goToPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          style={pagBtnStyle(currentPage === totalPages)}
+          aria-label="다음 페이지"
+        >
+          &gt;
+        </button>
+      </div>
+    )
+  }
+
+  // 페이지네이션 버튼 스타일
+  const pagBtnStyle = (active) => ({
+    padding: '6px 12px',
+    fontWeight: active ? 'bold' : 'normal',
+    borderRadius: 4,
+    border: active ? '2px solid #354185ff' : '1px solid #ccc',
+    backgroundColor: active ? '#354185ff' : 'transparent',
+    color: active ? '#fff' : '#333',
+    cursor: active ? 'default' : 'pointer',
+    userSelect: 'none',
+  })
+
   return (
     <div style={{ background: '#fff', padding: 20, borderRadius: 10 }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 16,
-        gap: 12
-      }}>
-      <h2>📹 CCTV 관리</h2>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+          gap: 12
+        }}
+      >
+        <h2>📹 CCTV 관리</h2>
 
         {/* 검색 및 구역 선택 */}
         <div>
-        <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-          <input
-            type="text"
-            placeholder="위치명으로 검색"
-            value={searchText}
-            onChange={e => setSearchText(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: 200,
-              padding: '8px 12px',
-              borderRadius: 6,
-              border: '1px solid #ccc',
-              fontSize: 14,
-              boxSizing: 'border-box'
-            }}
-          />
-          <select
-            value={filterZone}
-            onChange={e => setFilterZone(e.target.value)}
-            style={{
-              minWidth: 120,
-              padding: '8px 12px',
-              borderRadius: 6,
-              border: '1px solid #ccc',
-              fontSize: 14,
-              boxSizing: 'border-box'
-            }}
-          >
-            {ZONES.map(zone => (
-              <option key={zone} value={zone}>{zone}</option>
-            ))}
-          </select>
-        </div>
+          <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+            <input
+              type="text"
+              placeholder="위치명으로 검색"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              style={{
+                flex: 1,
+                minWidth: 200,
+                padding: '8px 12px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
+                fontSize: 14,
+                boxSizing: 'border-box'
+              }}
+            />
+            <select
+              value={filterZone}
+              onChange={e => setFilterZone(e.target.value)}
+              style={{
+                minWidth: 120,
+                padding: '8px 12px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
+                fontSize: 14,
+                boxSizing: 'border-box'
+              }}
+            >
+              {ZONES.map(zone => (
+                <option key={zone} value={zone}>{zone}</option>
+              ))}
+            </select>
+          </div>
 
-        {/* 위치 입력 및 추가 */}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            type="text"
-            value={newCctv}
-            onChange={e => setNewCctv(e.target.value)}
-            placeholder="CCTV 위치 입력"
-            style={{
-              flex: 1,
-              padding: '8px 12px',
-              borderRadius: 6,
-              border: '1px solid #ccc',
-              fontSize: 14,
-              boxSizing: 'border-box'
-            }}
-          />
-          <button
-            onClick={handleAddCctv}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#364599ff',
-              color: '#fff',
-              border: 'none',
-              borderRadius: 6,
-              fontWeight: '600',
-              cursor: 'pointer',
-              userSelect: 'none'
-            }}>
-            + 추가
-          </button>
-        </div>
+          {/* 위치 입력 및 추가 */}
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              value={newCctv}
+              onChange={e => setNewCctv(e.target.value)}
+              placeholder="CCTV 위치 입력"
+              style={{
+                flex: 1,
+                padding: '8px 12px',
+                borderRadius: 6,
+                border: '1px solid #ccc',
+                fontSize: 14,
+                boxSizing: 'border-box'
+              }}
+            />
+            <button
+              onClick={handleAddCctv}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#364599ff',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                fontWeight: '600',
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
+            >
+              + 추가
+            </button>
+          </div>
         </div>
       </div>
 
@@ -182,8 +243,13 @@ function CctvManagement() {
           ) : (
             pagedCctvs.map((cctv, idx) => {
               const isChecked = selectedIds.includes(cctv.id)
-              // 위치와 설치일 영역 클릭 시 체크박스 토글
-              const handleRowClick = () => toggleRowSelection(cctv.id)
+              const handleRowClick = () => {
+                if (isChecked) {
+                  setSelectedIds(selectedIds.filter(sel => sel !== cctv.id))
+                } else {
+                  setSelectedIds([...selectedIds, cctv.id])
+                }
+              }
               return (
                 <tr key={cctv.id} style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '8px', verticalAlign: 'middle' }}>
@@ -195,7 +261,7 @@ function CctvManagement() {
                     />
                   </td>
                   <td style={{ padding: '8px 12px', verticalAlign: 'middle' }}>
-                    {(currentPage -1) * PAGE_SIZE + idx + 1}
+                    {(currentPage - 1) * PAGE_SIZE + idx + 1}
                   </td>
                   <td
                     style={{ padding: '8px 12px', cursor: 'pointer', userSelect: 'none', verticalAlign: 'middle' }}
@@ -217,40 +283,8 @@ function CctvManagement() {
       </table>
 
       {/* 페이지네이션 및 선택 삭제 버튼 */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-        <div>
-          <button
-            onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-            style={{
-              padding: '6px 12px',
-              marginRight: 8,
-              borderRadius: 6,
-              border: '1px solid #ccc',
-              backgroundColor: currentPage === 1 ? '#eee' : '#fff',
-              cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-              userSelect: 'none'
-            }}
-          >
-            이전
-          </button>
-          <span style={{ fontWeight: 'bold', userSelect: 'none' }}>{currentPage} / {totalPages || 1}</span>
-          <button
-            onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages || totalPages === 0}
-            style={{
-              padding: '6px 12px',
-              marginLeft: 8,
-              borderRadius: 6,
-              border: '1px solid #ccc',
-              backgroundColor: (currentPage === totalPages || totalPages === 0) ? '#eee' : '#fff',
-              cursor: (currentPage === totalPages || totalPages === 0) ? 'not-allowed' : 'pointer',
-              userSelect: 'none'
-            }}
-          >
-            다음
-          </button>
-        </div>
+      <div style={{ textAlign: 'right', marginTop: 12 }}>
+        <Pagination />
         <button
           onClick={handleDeleteSelected}
           disabled={selectedIds.length === 0}
