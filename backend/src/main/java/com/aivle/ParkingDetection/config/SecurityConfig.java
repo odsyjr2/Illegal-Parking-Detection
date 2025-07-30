@@ -39,9 +39,15 @@ public class SecurityConfig {
                         // ✅ public endpoints
                         .requestMatchers(
                                 "/api/users/signup",
+                                "/api/users/register",
                                 "/api/users/login",
                                 "/api/users/logout",
-                                "/h2-console/**"
+                                "/api/human-reports/**",    // 여기 추가 임시 허용
+                                "/uploads/**",              // 여기 추가 임시 허용                            
+                                "/h2-console/**",
+                                "/api/cctvs",          // GET /api/cctvs
+                                "/api/cctvs/*",         // GET /api/cctvs/{id}                                
+                                "/api/cctvs/**"
                         ).permitAll()
 
                         // ✅ 관리자 전용 endpoint 보호

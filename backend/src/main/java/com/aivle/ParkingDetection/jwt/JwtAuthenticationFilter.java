@@ -17,7 +17,7 @@ import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
+@Component 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
@@ -39,6 +39,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+                    // ** 임시 uploads 파일 필터 적용 제외 //  // ** 임시 report 필터 적용 제외 //
+        if (requestURI.startsWith("/api/human-reports") || requestURI.startsWith("/uploads")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
 
         String token = resolveToken(request);
 
@@ -52,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
+            
 
             // ✅ 인증 객체 설정
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
