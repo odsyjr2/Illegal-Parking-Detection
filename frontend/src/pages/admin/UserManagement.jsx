@@ -193,7 +193,6 @@ function UserManagement() {
       </div>
 
       {loading && <div style={{ padding: 20, textAlign: 'center' }}>로딩 중...</div>}
-      {error && <div style={{ color: 'red', textAlign: 'center', marginBottom: 8 }}>⚠️ {error} (임시 데이터 표시 중)</div>}
 
       <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
         <thead>

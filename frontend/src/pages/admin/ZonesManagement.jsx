@@ -1,79 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react'
 
-const KAKAO_API_KEY = '9fabbd28c079827af4ab0436f07293ec';
-
-// 도로명주소 검색 컴포넌트
-function AddressSearch({ onSelect, placeholder = "도로명주소 검색", style = {}, inputStyle = {} }) {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState([]);
-  
-  useEffect(() => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
-    const controller = new AbortController();
-    fetch(
-      `https://dapi.kakao.com/v2/local/search/address.json?query=${encodeURIComponent(query)}`,
-      {
-        headers: { Authorization: `KakaoAK ${KAKAO_API_KEY}` },
-        signal: controller.signal,
-      }
-    )
-      .then(res => res.json())
-      .then(data => {
-        if (data.documents) setResults(data.documents);
-      })
-      .catch(err => {
-        if (err.name !== 'AbortError') console.error(err);
-      });
-
-    return () => controller.abort();
-  }, [query]);
-
-  return (
-    <div style={{ position: 'relative', ...style }}>
-      <input
-        placeholder={placeholder}
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        style={{ padding: 7, width: 250, borderRadius: 6, border: '1px solid #ccc', ...inputStyle }}
-      />
-      {results.length > 0 && (
-        <ul
-          style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            maxHeight: 150,
-            overflowY: 'auto',
-            background: 'white',
-            border: '1px solid #ddd',
-            margin: 0,
-            padding: 0,
-            listStyle: 'none',
-            zIndex: 10,
-          }}
-        >
-          {results.map(item => (
-            <li
-              key={item.id}
-              style={{ padding: 8, cursor: 'pointer' }}
-              onClick={() => {
-                onSelect(item.address.address_name);
-                setQuery('');
-                setResults([]);
-              }}
-            >
-              {item.address.address_name}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
+// 중요! 프로젝트 public/index.html head에 아래 스크립트 필수입니다
+// <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
 function ZonesManagement() {
   // [1] 상태 정의
@@ -90,24 +18,53 @@ function ZonesManagement() {
     {
       id: 2,
       name: '강남구',
-      allowedTime: '09:00 ~ 18:00',
-      sections: [{ id: 200, start: '역삼동', end: '삼성동', time: '10:00~23:00', allowed: true }],
+      allowedTime: '09:00~18:00',
+      sections: [
+        { id: 200, start: '역삼동', end: '삼성동', time: '10:00~23:00', allowed: true },
+      ],
     },
-  ]);
-  const [newZoneName, setNewZoneName] = useState('');
-  const [newAllowedTime, setNewAllowedTime] = useState('');
+  ])
 
-  const [newSection, setNewSection] = useState({ start: '', end: '', time: '', allowed: true });
-  const [selectedZoneId, setSelectedZoneId] = useState(null);
-  const [selectedSectionIds, setSelectedSectionIds] = useState({});
-  const [editingSectionId, setEditingSectionId] = useState(null);
-  const [editingSectionInput, setEditingSectionInput] = useState({});
+  // 구역 추가 폼: 구역명, 허용시간 시작/종료 분리 상태
+  const [newZoneName, setNewZoneName] = useState('')
+  const [newAllowedStartTime, setNewAllowedStartTime] = useState('')
+  const [newAllowedEndTime, setNewAllowedEndTime] = useState('')
 
-  // 구역 추가
+  // 구간 추가 폼 상태
+  const [newSection, setNewSection] = useState({
+    start: '',
+    end: '',
+    startTime: '',
+    endTime: '',
+    allowed: true,
+  })
+
+  const [selectedZoneId, setSelectedZoneId] = useState(null)
+  const [selectedSectionIds, setSelectedSectionIds] = useState({})
+  const [editingSectionId, setEditingSectionId] = useState(null)
+  const [editingSectionInput, setEditingSectionInput] = useState({})
+  const [zoneForPopup, setZoneForPopup] = useState(null)
+
+  // zone.id 별 input ref 관리
+  const inputRefs = useRef({})
+
+  const ensureZoneRefs = (zoneId) => {
+    if (!inputRefs.current[zoneId]) {
+      inputRefs.current[zoneId] = {
+        start: React.createRef(),
+        end: React.createRef(),
+        startTime: React.createRef(),
+        endTime: React.createRef(),
+      }
+    }
+    return inputRefs.current[zoneId]
+  }
+
+  // 구역 추가 함수 (허용시간 startTime, endTime 조합 저장)
   const handleAddZone = () => {
-    if (!newZoneName.trim() || !newAllowedTime.trim()) {
-      alert('구역명과 허용 시간대를 입력하세요.');
-      return;
+    if (!newZoneName.trim() || !newAllowedStartTime || !newAllowedEndTime) {
+      alert('구역명과 허용 시간대를 입력하세요.')
+      return
     }
     const allowedTime = `${newAllowedStartTime}~${newAllowedEndTime}`
     setZones([
@@ -118,36 +75,35 @@ function ZonesManagement() {
         allowedTime,
         sections: [],
       },
-    ]);
-    setNewZoneName('');
-    setNewAllowedTime('');
-  };
+    ])
+    setNewZoneName('')
+    setNewAllowedStartTime('')
+    setNewAllowedEndTime('')
+  }
 
-  // 구간 체크박스 선택 관리
+  // 이하 주요 함수는 기존과 동일 (구간 체크, 삭제, 편집 등) ...
+
   const handleSectionCheckbox = (zoneId, sectionId, checked) => {
     setSelectedSectionIds(prev => {
-      const current = prev[zoneId] || [];
-      const next = checked ? Array.from(new Set([...current, sectionId])) : current.filter(id => id !== sectionId);
-      return { ...prev, [zoneId]: next };
-    });
-  };
+      const current = prev[zoneId] || []
+      const next = checked ? Array.from(new Set([...current, sectionId])) : current.filter(id => id !== sectionId)
+      return { ...prev, [zoneId]: next }
+    })
+  }
 
-  // 선택 구간 삭제
-  const handleDeleteSections = zoneId => {
-    const idsToDelete = selectedSectionIds[zoneId] || [];
-    if (idsToDelete.length === 0) return;
-    if (!window.confirm('선택한 구간을 삭제하시겠습니까?')) return;
-    setZones(
-      zones.map(zone =>
-        zone.id === zoneId ? { ...zone, sections: zone.sections.filter(s => !idsToDelete.includes(s.id)) } : zone
-      )
-    );
-    setSelectedSectionIds(prev => ({ ...prev, [zoneId]: [] }));
-  };
+  const handleDeleteSections = (zoneId) => {
+    const idsToDelete = selectedSectionIds[zoneId] || []
+    if (idsToDelete.length === 0) return
+    if (!window.confirm('선택한 구간을 삭제하시겠습니까?')) return
+    setZones(zones.map(zone =>
+      zone.id === zoneId ? { ...zone, sections: zone.sections.filter(s => !idsToDelete.includes(s.id)) } : zone
+    ))
+    setSelectedSectionIds(prev => ({ ...prev, [zoneId]: [] }))
+  }
 
-  // 구간 수정 시작
   const handleEditSection = (zoneId, section) => {
-    setEditingSectionId(section.id);
+    setEditingSectionId(section.id)
+    const [startT, endT] = section.time.split('~')
     setEditingSectionInput({
       start: section.start,
       end: section.end,
@@ -155,77 +111,158 @@ function ZonesManagement() {
       endTime: endT || '',
       allowed: section.allowed,
       zoneId,
-    });
-  };
+    })
+  }
 
-  // 수정 입력 변경 감지
   const handleEditInputChange = (field, value) => {
-    setEditingSectionInput(prev => ({ ...prev, [field]: value }));
-  };
+    setEditingSectionInput(prev => ({ ...prev, [field]: value }))
+  }
 
-  // 수정 저장
   const handleSaveEdit = () => {
-    const { zoneId, start, end, time, allowed } = editingSectionInput;
-    setZones(
-      zones.map(zone =>
-        zone.id === zoneId
-          ? {
-              ...zone,
-              sections: zone.sections.map(s =>
-                s.id === editingSectionId ? { ...s, start, end, time, allowed: allowed === 'false' ? false : !!allowed } : s
-              ),
-            }
-          : zone
-      )
-    );
-    setEditingSectionId(null);
-    setEditingSectionInput({});
-  };
-
-  // 수정 취소
-  const handleCancelEdit = () => {
-    setEditingSectionId(null);
-    setEditingSectionInput({});
-  };
-
-  // 구간 추가
-  const handleAddSection = zoneId => {
-    if (!newSection.start || !newSection.end || !newSection.time) {
-      alert('구간 정보를 모두 입력하세요.');
-      return;
+    const { zoneId, start, end, startTime, endTime, allowed } = editingSectionInput
+    if (!start || !end || !startTime || !endTime) {
+      alert('모든 구간 정보를 입력하세요.')
+      return
     }
-    setZones(
-      zones.map(z =>
-        z.id === zoneId
-          ? {
-              ...z,
-              sections: [
-                ...z.sections,
-                {
-                  ...newSection,
-                  id: Date.now(),
-                  allowed: newSection.allowed === 'false' ? false : !!newSection.allowed,
-                },
-              ],
-            }
-          : z
-      )
-    );
-    setNewSection({ start: '', end: '', time: '', allowed: true });
-    setSelectedZoneId(null);
-  };
+    const time = `${startTime}~${endTime}`
+    setZones(zones.map(zone =>
+      zone.id === zoneId
+        ? {
+          ...zone,
+          sections: zone.sections.map(s =>
+            s.id === editingSectionId
+              ? { ...s, start, end, time, allowed: allowed === 'false' ? false : !!allowed }
+              : s
+          )
+        }
+        : zone
+    ))
+    setEditingSectionId(null)
+    setEditingSectionInput({})
+  }
 
+  const handleCancelEdit = () => {
+    setEditingSectionId(null)
+    setEditingSectionInput({})
+  }
+
+  const handleAddSection = (zoneId) => {
+    if (!newSection.start || !newSection.end || !newSection.startTime || !newSection.endTime) {
+      alert('구간 정보를 모두 입력하세요.')
+      return
+    }
+    const time = `${newSection.startTime}~${newSection.endTime}`
+
+    setZones(zones.map(z =>
+      z.id === zoneId
+        ? {
+          ...z,
+          sections: [...z.sections, {
+            start: newSection.start,
+            end: newSection.end,
+            time,
+            allowed: newSection.allowed === 'false' ? false : !!newSection.allowed,
+            id: Date.now(),
+          }]
+        }
+        : z
+    ))
+
+    setNewSection({
+      start: '',
+      end: '',
+      startTime: '',
+      endTime: '',
+      allowed: true,
+    })
+    setSelectedZoneId(null)
+
+    focusNextInput(zoneId, 'addSection')
+  }
+
+  const openAddressPopup = (zoneId, type /* 'start'|'end' */) => {
+    setZoneForPopup(zoneId)
+    new window.daum.Postcode({
+      oncomplete: function (data) {
+        const address = data.roadAddress || data.jibunAddress
+
+        setNewSection(ns => ({
+          ...ns,
+          [type]: address
+        }))
+
+        const refs = inputRefs.current[zoneId]
+        if (!refs) return
+
+        setTimeout(() => {
+          if (type === 'start' && refs.end.current) refs.end.current.focus()
+          else if (type === 'end' && refs.startTime.current) refs.startTime.current.focus()
+        }, 0)
+      }
+    }).open()
+  }
+
+  const openAddressPopupForEdit = (field /* 'start'|'end' */) => {
+    new window.daum.Postcode({
+      oncomplete: function (data) {
+        const address = data.roadAddress || data.jibunAddress
+        setEditingSectionInput(prev => ({
+          ...prev,
+          [field]: address
+        }))
+      }
+    }).open()
+  }
+
+  const focusNextInput = (currentZoneId, actionType) => {
+    const currentIndex = zones.findIndex(z => z.id === currentZoneId)
+    if (currentIndex === -1) return
+    const nextZone = zones[currentIndex + 1]
+    const refs = inputRefs.current
+
+    if (actionType === 'addSection') {
+      if (nextZone) {
+        setSelectedZoneId(nextZone.id)
+        setNewSection({
+          start: '',
+          end: '',
+          startTime: '',
+          endTime: '',
+          allowed: true,
+        })
+
+        setTimeout(() => {
+          const nextRefs = refs[nextZone.id]
+          if (nextRefs && nextRefs.start.current) {
+            nextRefs.start.current.focus()
+          }
+        }, 0)
+      } else {
+        setSelectedZoneId(null)
+      }
+    }
+  }
+
+
+
+  // === JSX ===
   return (
     <div style={{ background: '#fff', padding: 20, borderRadius: 10 }}>
       <h2>🕒 구역별 주정차 허용시간 및 구간정보 관리</h2>
 
-      {/* 구역 추가 폼 + 도로명주소 검색 붙임 */}
-      <section style={{ margin: '24px 0 32px 0', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+      {/* 구역 추가 폼 */}
+      <section style={{ margin: '24px 0 32px 0', display: 'flex', gap: 10, alignItems: 'center' }}>
         <input
           placeholder="구역명"
           value={newZoneName}
           onChange={e => setNewZoneName(e.target.value)}
-          style={{ padding: 7, border: '1px solid #364599ff', borderRadius: 6, background: '#f7fafd', width: 160 }}
+          style={{
+            padding: 7,
+            border: '1px solid #364599ff',
+            borderRadius: 6,
+            background: '#f7fafd',
+            width: 120
+          }}
         />
 
         {/* 허용시간 시작 */}
@@ -244,189 +281,207 @@ function ZonesManagement() {
         <span style={{ alignSelf: 'center' }}>~</span>
         {/* 허용시간 종료 */}
         <input
-          placeholder="허용시간 (예: 08:00 ~ 20:00)"
-          value={newAllowedTime}
-          onChange={e => setNewAllowedTime(e.target.value)}
-          style={{ padding: 7, border: '1px solid #364599ff', borderRadius: 6, background: '#f7fafd', width: 180 }}
+          type="time"
+          value={newAllowedEndTime}
+          onChange={e => setNewAllowedEndTime(e.target.value)}
+          style={{
+            padding: 6,
+            width: 110,
+            border: '1px solid #bfd6f2',
+            borderRadius: 6,
+            background: '#f7fafd',
+          }}
         />
+
         <button onClick={handleAddZone} style={mutedBtn('#364599ff')}>
           구역 추가
         </button>
-
-        {/* 도로명주소 검색 - 구역명 대신 필요할 경우 사용하세요 */}
-        <AddressSearch
-          placeholder=" 검색"
-          onSelect={address => setNewZoneName(address)}
-          style={{ flexGrow: 1, maxWidth: 400, marginLeft: 350 }}
-          inputStyle={{ width: '80%' }}
-        />
       </section>
 
-      {/* 기존 구역 목록 및 구간 테이블 */}
+      {/* 각 구역별 구간 목록 */}
       <section>
         {zones.length === 0 ? (
           <p style={{ color: '#777' }}>등록된 구역이 없습니다.</p>
         ) : (
-          zones.map(zone => (
-            <div
-              key={zone.id}
-              style={{ marginBottom: 36, border: '1px solid #e0eaf6', borderRadius: 8, padding: 14 }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 12, flexWrap: 'wrap' }}>
-                <span style={{ fontWeight: 700, fontSize: 18 }}>{zone.name}</span>
-                <span style={{ color: '#555' }}>{zone.allowedTime}</span>
-                <button
-                  onClick={() => {
-                    if (window.confirm('정말 해당 구역을 삭제하시겠습니까?')) {
-                      setZones(zones.filter(z => z.id !== zone.id));
-                    }
-                  }}
-                  style={{ marginLeft: 'auto', ...mutedBtn('#dd6565ff'), flexShrink: 0 }}
-                >
-                  구역 삭제
-                </button>
-              </div>
+          zones.map(zone => {
+            const refs = ensureZoneRefs(zone.id)
 
-              {/* 구간 테이블 */}
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ background: '#f2f6fb', borderBottom: '1px solid #e0eaf6' }}>
-                    <th style={thStyle}></th>
-                    <th style={thStyle}>출발지</th>
-                    <th style={thStyle}>도착지</th>
-                    <th style={thStyle}>허용 시간대</th>
-                    <th style={thStyle}>주정차 허용</th>
-                    <th style={thStyle}></th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {zone.sections.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ color: '#999', padding: 12, textAlign: 'center' }}>
-                        등록된 구간이 없습니다.
-                      </td>
-                    </tr>
-                  ) : (
-                    zone.sections.map(section =>
-                      editingSectionId === section.id ? (
-                        <tr key={section.id} style={{ borderBottom: '1px solid #e0eaf6', background: '#f6faff' }}>
-                          <td style={tdStyle}>
-                            <input type="checkbox" disabled />
-                          </td>
-                          <td style={tdStyle}>
-                            <AddressSearch
-                              placeholder="출발지 주소 검색"
-                              onSelect={address => handleEditInputChange('start', address)}
-                              inputStyle={{ width: 150, padding: 4 }}
-                            />
-                          </td>
-                          <td style={tdStyle}>
-                            <AddressSearch
-                              placeholder="도착지 주소 검색"
-                              onSelect={address => handleEditInputChange('end', address)}
-                              inputStyle={{ width: 150, padding: 4 }}
-                            />
-                          </td>
-                          <td style={tdStyle}>
-                            <input
-                              value={editingSectionInput.time}
-                              onChange={e => handleEditInputChange('time', e.target.value)}
-                              style={{ width: 100 }}
-                            />
-                          </td>
-                          <td style={tdStyle}>
-                            <select
-                              value={editingSectionInput.allowed ? 'true' : 'false'}
-                              onChange={e => handleEditInputChange('allowed', e.target.value)}
-                              style={{ width: 90 }}
-                            >
-                              <option value="true">허용</option>
-                              <option value="false">불가</option>
-                            </select>
-                          </td>
-                          <td style={tdStyle}>
-                            <button onClick={handleSaveEdit} style={mutedBtn('#364599ff')}>
-                              저장
-                            </button>
-                            <button onClick={handleCancelEdit} style={mutedBtn('#bdbdbd')}>
-                              취소
-                            </button>
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr key={section.id} style={{ borderBottom: '1px solid #e0eaf6' }}>
-                          <td style={tdStyle}>
-                            <input
-                              type="checkbox"
-                              checked={(selectedSectionIds[zone.id] || []).includes(section.id)}
-                              onChange={e => handleSectionCheckbox(zone.id, section.id, e.target.checked)}
-                            />
-                          </td>
-                          <td style={tdStyle}>{section.start}</td>
-                          <td style={tdStyle}>{section.end}</td>
-                          <td style={tdStyle}>{section.time}</td>
-                          <td style={tdStyle}>
-                            {section.allowed ? '허용' : <span style={{ color: '#e06767' }}>불가</span>}
-                          </td>
-                          <td style={tdStyle}>
-                            <button onClick={() => handleEditSection(zone.id, section)} style={mutedBtn('#364599ff')}>
-                              수정
-                            </button>
-                          </td>
-                        </tr>
-                      )
-                    )
-                  )}
-                </tbody>
-              </table>
-
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  marginTop: 10,
-                  flexWrap: 'wrap',
-                  gap: 8,
-                }}
-              >
-                <div>
+            return (
+              <div key={zone.id} style={{ marginBottom: 36, border: '1px solid #e0eaf6', borderRadius: 8, padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 12 }}>
+                  <span style={{ fontWeight: 700, fontSize: 18 }}>{zone.name}</span>
+                  <span style={{ color: '#555' }}>{zone.allowedTime}</span>
                   <button
-                    type="button"
-                    onClick={() => handleDeleteSections(zone.id)}
-                    disabled={!(selectedSectionIds[zone.id] || []).length}
-                    style={{
-                      ...mutedBtn('#dd6565ff'),
-                      opacity: !(selectedSectionIds[zone.id] || []).length ? 0.5 : 1,
-                      cursor: !(selectedSectionIds[zone.id] || []).length ? 'not-allowed' : 'pointer',
+                    onClick={() => {
+                      if (window.confirm('정말 해당 구역을 삭제하시겠습니까?')) {
+                        setZones(zones.filter(z => z.id !== zone.id))
+                        delete inputRefs.current[zone.id]
+                      }
                     }}
+                    style={{ marginLeft: 'auto', ...mutedBtn('#dd6565ff') }}
                   >
-                    선택구간 삭제
+                    구역 삭제
                   </button>
                 </div>
 
+                {/* 구간 테이블 */}
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f2f6fb', borderBottom: '1px solid #e0eaf6' }}>
+                      <th style={thStyle}></th>
+                      <th style={thStyle}>출발지</th>
+                      <th style={thStyle}>도착지</th>
+                      <th style={thStyle}>허용 시간대</th>
+                      <th style={thStyle}>주정차 허용</th>
+                      <th style={thStyle}></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {zone.sections.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} style={{ color: '#999', padding: 12, textAlign: 'center' }}>등록된 구간이 없습니다.</td>
+                      </tr>
+                    ) : (
+                      zone.sections.map(section =>
+                        editingSectionId === section.id ? (
+                          <tr key={section.id} style={{ borderBottom: '1px solid #e0eaf6', background: '#f6faff' }}>
+                            <td style={tdStyle}><input type="checkbox" disabled /></td>
+                            <td style={tdStyle}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <input
+                                  value={editingSectionInput.start}
+                                  onChange={e => handleEditInputChange('start', e.target.value)}
+                                  style={{ width: 150 }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setZoneForPopup(editingSectionInput.zoneId)
+                                    openAddressPopupForEdit('start')
+                                  }}
+                                  style={{ ...mutedBtn('#B3BCF2'), padding: '4px 8px', fontSize: 13 }}
+                                >
+                                  주소검색
+                                </button>
+                              </div>
+                            </td>
+                            <td style={tdStyle}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <input
+                                  value={editingSectionInput.end}
+                                  onChange={e => handleEditInputChange('end', e.target.value)}
+                                  style={{ width: 150 }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setZoneForPopup(editingSectionInput.zoneId)
+                                    openAddressPopupForEdit('end')
+                                  }}
+                                  style={{ ...mutedBtn('#B3BCF2'), padding: '4px 8px', fontSize: 13 }}
+                                >
+                                  주소검색
+                                </button>
+                              </div>
+                            </td>
+                            <td style={tdStyle}>
+                              <input
+                                type="time"
+                                value={editingSectionInput.startTime || ''}
+                                onChange={e => handleEditInputChange('startTime', e.target.value)}
+                                style={{ width: 110 }}
+                              />
+                              <span style={{ margin: '0 4px' }}>~</span>
+                              <input
+                                type="time"
+                                value={editingSectionInput.endTime || ''}
+                                onChange={e => handleEditInputChange('endTime', e.target.value)}
+                                style={{ width: 110 }}
+                              />
+                            </td>
+                            <td style={tdStyle}>
+                              <select
+                                value={editingSectionInput.allowed ? 'true' : 'false'}
+                                onChange={e => handleEditInputChange('allowed', e.target.value)}
+                                style={{ width: 90 }}
+                              >
+                                <option value="true">허용</option>
+                                <option value="false">불가</option>
+                              </select>
+                            </td>
+                            <td style={tdStyle}>
+                              <button onClick={handleSaveEdit} style={mutedBtn('#364599ff')}>저장</button>
+                              <button onClick={handleCancelEdit} style={mutedBtn('#bdbdbd')}>취소</button>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr key={section.id} style={{ borderBottom: '1px solid #e0eaf6' }}>
+                            <td style={tdStyle}>
+                              <input
+                                type="checkbox"
+                                checked={(selectedSectionIds[zone.id] || []).includes(section.id)}
+                                onChange={e => handleSectionCheckbox(zone.id, section.id, e.target.checked)}
+                              />
+                            </td>
+                            <td style={tdStyle}>{section.start}</td>
+                            <td style={tdStyle}>{section.end}</td>
+                            <td style={tdStyle}>{section.time}</td>
+                            <td style={tdStyle}>
+                              {section.allowed ? '허용' : <span style={{ color: '#e06767' }}>불가</span>}
+                            </td>
+                            <td style={tdStyle}>
+                              <button onClick={() => handleEditSection(zone.id, section)} style={mutedBtn('#364599ff')}>수정</button>
+                            </td>
+                          </tr>
+                        )
+                      )
+                    )}
+                  </tbody>
+                </table>
+
                 {/* 구간 추가 폼 */}
-                <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {/* 출발지 검색 */}
-                  <AddressSearch
-                    placeholder="출발지 주소 검색"
-                    onSelect={address => {
-                      setSelectedZoneId(zone.id);
-                      setNewSection(ns => ({ ...ns, start: address }));
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 10 }}>
+                  <input
+                    ref={refs.start}
+                    placeholder="출발 도로명 주소"
+                    value={selectedZoneId === zone.id ? newSection.start : ''}
+                    onChange={e => {
+                      setSelectedZoneId(zone.id)
+                      setZoneForPopup(zone.id)
+                      setNewSection(ns => ({ ...ns, start: e.target.value }))
                     }}
-                    style={{ maxWidth: 150 }}
-                    inputStyle={{ padding: 6, width: 150, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
+                    style={{
+                      padding: 6,
+                      width: 220,
+                      border: '1px solid #bfd6f2',
+                      borderRadius: 6,
+                      background: '#f7fafd',
+                    }}
                   />
-                  {/* 도착지 검색 */}
-                  <AddressSearch
-                    placeholder="도착지 주소 검색"
-                    onSelect={address => {
-                      setSelectedZoneId(zone.id);
-                      setNewSection(ns => ({ ...ns, end: address }));
+                  <button
+                    type="button"
+                    onClick={() => openAddressPopup(zone.id, 'start')}
+                    style={{ ...mutedBtn('#B3BCF2'), padding: '6px 11px' }}
+                  >
+                    주소검색
+                  </button>
+
+                  <input
+                    ref={refs.end}
+                    placeholder="도착 도로명 주소"
+                    value={selectedZoneId === zone.id ? newSection.end : ''}
+                    onChange={e => {
+                      setSelectedZoneId(zone.id)
+                      setZoneForPopup(zone.id)
+                      setNewSection(ns => ({ ...ns, end: e.target.value }))
                     }}
-                    style={{ maxWidth: 150 }}
-                    inputStyle={{ padding: 6, width: 150, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
+                    style={{
+                      padding: 6,
+                      width: 220,
+                      border: '1px solid #bfd6f2',
+                      borderRadius: 6,
+                      background: '#f7fafd',
+                    }}
                   />
                   <button
                     type="button"
@@ -460,19 +515,31 @@ function ZonesManagement() {
                     ref={refs.endTime}
                     value={selectedZoneId === zone.id ? newSection.endTime : ''}
                     onChange={e => {
-                      setSelectedZoneId(zone.id);
-                      setNewSection(ns => ({ ...ns, time: e.target.value }));
+                      setSelectedZoneId(zone.id)
+                      setNewSection(ns => ({ ...ns, endTime: e.target.value }))
                     }}
-                    style={{ padding: 6, width: 150, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
+                    style={{
+                      padding: 6,
+                      width: 110,
+                      border: '1px solid #bfd6f2',
+                      borderRadius: 6,
+                      background: '#f7fafd',
+                    }}
                   />
 
                   <select
                     value={selectedZoneId === zone.id ? (newSection.allowed ? 'true' : 'false') : 'true'}
                     onChange={e => {
-                      setSelectedZoneId(zone.id);
-                      setNewSection(ns => ({ ...ns, allowed: e.target.value === 'true' }));
+                      setSelectedZoneId(zone.id)
+                      setNewSection(ns => ({ ...ns, allowed: e.target.value === 'true' }))
                     }}
-                    style={{ padding: 6, width: 100, border: '1px solid #bfd6f2', borderRadius: 6, background: '#f7fafd' }}
+                    style={{
+                      padding: 6,
+                      width: 90,
+                      border: '1px solid #bfd6f2',
+                      borderRadius: 6,
+                      background: '#f7fafd',
+                    }}
                   >
                     <option value="true">허용</option>
                     <option value="false">불가</option>
@@ -481,17 +548,32 @@ function ZonesManagement() {
                     구간 추가
                   </button>
                 </div>
+
+                {/* 선택구간 삭제 버튼 */}
+                <div style={{ marginTop: 8, display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteSections(zone.id)}
+                    disabled={!(selectedSectionIds[zone.id] || []).length}
+                    style={{
+                      ...mutedBtn('#dd6565ff'),
+                      opacity: !(selectedSectionIds[zone.id] || []).length ? 0.5 : 1,
+                      cursor: !(selectedSectionIds[zone.id] || []).length ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    선택구간 삭제
+                  </button>
+                </div>
               </div>
             )
           })
         )}
       </section>
     </div>
-  );
+  )
 }
 
-// 스타일 함수 및 객체
-const mutedBtn = color => ({
+const mutedBtn = (color) => ({
   background: color,
   color: '#fff',
   border: 'none',
@@ -503,7 +585,7 @@ const mutedBtn = color => ({
   userSelect: 'none',
   boxShadow: 'none',
   transition: 'background 0.18s',
-});
+})
 
 const thStyle = {
   padding: '8px 10px',
@@ -511,12 +593,12 @@ const thStyle = {
   fontSize: 15,
   borderBottom: '1px solid #e0eaf6',
   background: '#f2f6fb',
-};
+}
 const tdStyle = {
   padding: '8px 10px',
   fontSize: 15,
   borderBottom: '1px solid #e0eaf6',
   textAlign: 'center',
-};
+}
 
-export default ZonesManagement;
+export default ZonesManagement
