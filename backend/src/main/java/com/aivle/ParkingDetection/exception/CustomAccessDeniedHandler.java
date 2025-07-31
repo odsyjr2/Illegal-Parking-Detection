@@ -24,9 +24,21 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
 
+        String requestURI = request.getRequestURI();
+        String method = request.getMethod();
+        String message;
+
+        if (requestURI.startsWith("/api/admin/users")) {
+            message = "사용자는 권한이 없습니다.";
+        } else if (requestURI.startsWith("/api/users") && "DELETE".equalsIgnoreCase(method)) {
+            message = "사용자는 권한이 없습니다.";
+        } else {
+            message = "접근 권한이 없습니다.";
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("status", "ERROR");
-        body.put("message", "사용자는 탈퇴 권한이 없습니다.");
+        body.put("message", message);
         body.put("data", null);
 
         response.getWriter().write(objectMapper.writeValueAsString(body));

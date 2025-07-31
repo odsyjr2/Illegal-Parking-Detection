@@ -32,7 +32,7 @@ public class HumanDetectionReport {
     private String reason;
 
     @Column(nullable = false)
-    private String status = "접수"; // ex: "접수", "진행중", "완료"
+    private String status; // ex: "접수", "진행중", "완료"
 
     @CreationTimestamp
     @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
@@ -43,4 +43,5 @@ public class HumanDetectionReport {
     private String location; // 선택 사항, 상세주소
 
     private String title; // 선택 사항, 신고 제목
+
 }

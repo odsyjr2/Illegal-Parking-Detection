@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -17,14 +16,13 @@ import java.io.IOException;
 
 @Slf4j
 @RequiredArgsConstructor
-@Component
+@Component 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, Object> redisTemplate; // ✅ Redis 주입 추가
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -39,21 +37,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
+                    // ** 임시 uploads 파일 필터 적용 제외 //  // ** 임시 report 필터 적용 제외 //
+        if (requestURI.startsWith("/api/human-reports") || requestURI.startsWith("/uploads")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+
+        // ** 임시 uploads 파일 필터 적용 제외 //  // ** 임시 report 필터 적용 제외 //
+        if (requestURI.startsWith("/api/human-reports") || requestURI.startsWith("/uploads")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String token = resolveToken(request);
 
         // ✅ 토큰 존재 및 유효성 검사
         if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
 
-            // ✅ 로그아웃된 토큰인지 Redis에서 확인
-            String isLogout = (String) redisTemplate.opsForValue().get(token);
-            if ("logout".equals(isLogout)) {
-                log.warn("❌ 로그아웃된 토큰 사용 시도. URI: {}", requestURI);
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // ✅ 인증 객체 설정
+            // ✅ 인증 객체 설정 (Redis 검사 제거됨)
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             log.debug("✅ 인증 성공: '{}' → {}", authentication.getName(), requestURI);
