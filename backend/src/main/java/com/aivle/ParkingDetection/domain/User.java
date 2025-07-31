@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -32,5 +34,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;// 관리자 코드 -> AAAA / 단속 담당자 코드 -> BBBB
+
+    @Column(name = "joined_at")
+    private LocalDateTime joinedAt;
 
 }
