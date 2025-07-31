@@ -4,8 +4,11 @@ import com.aivle.ParkingDetection.dto.*;
 import com.aivle.ParkingDetection.service.CctvService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/cctvs")
@@ -24,10 +27,6 @@ public class CctvController {
         return cctvService.updateCctv(id, dto);
     }
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        cctvService.deleteCctv(id);
-    }
 
     @GetMapping("/{id}")
     public CctvDTO getOne(@PathVariable Long id) {
@@ -38,4 +37,11 @@ public class CctvController {
     public List<CctvDTO> getAll() {
         return cctvService.getAllCctvs();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        cctvService.deleteCctv(id);
+        return ResponseEntity.ok().body(Map.of("message", "삭제 완료"));
+    }    
+
 }
