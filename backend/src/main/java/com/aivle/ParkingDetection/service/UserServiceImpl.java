@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -57,6 +58,7 @@ public class UserServiceImpl implements UserService {
                         .name(user.getName())
                         .email(user.getEmail())
                         .role(user.getRole())
+                        .joinedAt(user.getJoinedAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -90,6 +92,7 @@ public class UserServiceImpl implements UserService {
                 .email(request.getEmail())
                 .adminCode(request.getAdminCode()) // 선택사항 필드
                 .role(role)
+                .joinedAt(LocalDateTime.now())
                 .build();
 
         // 저장
@@ -101,6 +104,7 @@ public class UserServiceImpl implements UserService {
                 .name(savedUser.getName())
                 .email(savedUser.getEmail())
                 .role(savedUser.getRole())
+                .joinedAt(savedUser.getJoinedAt())
                 .build();
     }
 
