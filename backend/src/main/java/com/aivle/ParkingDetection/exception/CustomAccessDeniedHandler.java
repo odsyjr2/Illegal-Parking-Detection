@@ -29,9 +29,9 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         String message;
 
         if (requestURI.startsWith("/api/admin/users")) {
-            message = "사용자는 회원 목록을 볼 권한이 없습니다.";
+            message = "사용자는 권한이 없습니다.";
         } else if (requestURI.startsWith("/api/users") && "DELETE".equalsIgnoreCase(method)) {
-            message = "사용자는 탈퇴 권한이 없습니다.";
+            message = "사용자는 권한이 없습니다.";
         } else {
             message = "접근 권한이 없습니다.";
         }
