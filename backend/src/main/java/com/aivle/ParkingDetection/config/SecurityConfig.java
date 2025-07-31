@@ -6,8 +6,6 @@ import com.aivle.ParkingDetection.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,21 +15,28 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
+import static org.springframework.security.config.Customizer.withDefaults;
+import java.util.List;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisTemplate<String, Object> redisTemplate;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         JwtAuthenticationFilter jwtAuthenticationFilter =
-                new JwtAuthenticationFilter(jwtTokenProvider, redisTemplate); // ✅ 두 인자 전달
+                new JwtAuthenticationFilter(jwtTokenProvider);
 
         http
+                .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
 
@@ -39,9 +44,15 @@ public class SecurityConfig {
                         // ✅ public endpoints
                         .requestMatchers(
                                 "/api/users/signup",
+                                "/api/users/register",
                                 "/api/users/login",
                                 "/api/users/logout",
-                                "/h2-console/**"
+                                "/api/human-reports/**",    // 여기 추가 임시 허용
+                                "/uploads/**",              // 여기 추가 임시 허용                            
+                                "/h2-console/**",
+                                "/api/cctvs",          // GET /api/cctvs
+                                "/api/cctvs/*",         // GET /api/cctvs/{id}                                
+                                "/api/cctvs/**"
                         ).permitAll()
 
                         // ✅ 관리자 전용 endpoint 보호
@@ -63,6 +74,19 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:5173")); 
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+    return source;
     }
 }
 

@@ -5,8 +5,10 @@ import com.aivle.ParkingDetection.dto.LoginRequestDTO;
 import com.aivle.ParkingDetection.dto.UserDTO;
 import com.aivle.ParkingDetection.dto.UserSignUpRequestDTO;
 import org.springframework.security.core.Authentication;
+import java.util.List;
 
 public interface UserService {
+    List<UserDTO> getAllUsers(); // 전체 회원 목록
     UserDTO signUpUser(UserSignUpRequestDTO request);
     UserDTO loginUser(LoginRequestDTO request);
     void logoutUser(Long userId, String accessToken);
