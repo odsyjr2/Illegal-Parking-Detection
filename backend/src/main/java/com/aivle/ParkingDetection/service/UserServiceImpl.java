@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -44,6 +46,21 @@ public class UserServiceImpl implements UserService {
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> UserDTO.builder()
+                        .id(user.getId())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .role(user.getRole())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     @Transactional

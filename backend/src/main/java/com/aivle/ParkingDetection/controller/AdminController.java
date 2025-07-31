@@ -1,10 +1,13 @@
 package com.aivle.ParkingDetection.controller;
 
+import com.aivle.ParkingDetection.dto.UserDTO;
 import com.aivle.ParkingDetection.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -12,6 +15,14 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final UserService userService;
+
+    // ✅ 전체 회원 목록
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/users")
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<UserDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(users);
+    }
 
     // ✅ 사용자 삭제 (ADMIN 권한만 가능)
     @DeleteMapping("/users/{id}")
