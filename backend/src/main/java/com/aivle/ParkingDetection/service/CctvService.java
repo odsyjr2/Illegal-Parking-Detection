@@ -10,4 +10,7 @@ public interface CctvService {
     void deleteCctv(Long id);
     CctvDTO getCctv(Long id);
     List<CctvDTO> getAllCctvs();
+
+    // 추가된 메서드
+    List<CctvDTO> findNearestCctvs(Double latitude, Double longitude, Double distance);
 }
