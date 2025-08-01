@@ -1,6 +1,8 @@
 package com.aivle.ParkingDetection.dto;
 
 import lombok.*;
+import java.time.LocalDate;
+
 
 @Getter @Setter
 @NoArgsConstructor
@@ -13,5 +15,6 @@ public class CctvDTO {
     private boolean active;
     private String description;
     private Double latitude;
-    private Double longitude;
+    private Double longitude; 
+    private LocalDate installationDate;
 }

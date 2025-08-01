@@ -24,6 +24,7 @@ public class CctvServiceImpl implements CctvService {
                 .description(dto.getDescription())
                 .latitude(dto.getLatitude())
                 .longitude(dto.getLongitude())
+                .installationDate(dto.getInstallationDate())
                 .build();
         Cctv saved = cctvRepository.save(cctv);
         return toDTO(saved);
@@ -39,6 +40,7 @@ public class CctvServiceImpl implements CctvService {
         cctv.setDescription(dto.getDescription());
         cctv.setLatitude(dto.getLatitude());
         cctv.setLongitude(dto.getLongitude());
+        cctv.setInstallationDate(dto.getInstallationDate());
         return toDTO(cctvRepository.save(cctv));
     }
 
@@ -70,6 +72,15 @@ public class CctvServiceImpl implements CctvService {
                 .description(cctv.getDescription())
                 .latitude(cctv.getLatitude())
                 .longitude(cctv.getLongitude())
+                .installationDate(cctv.getInstallationDate())
                 .build();
     }
+    @Override
+    public List<CctvDTO> findNearestCctvs(Double latitude, Double longitude, Double radius) {
+        // 임시로 전체 반환 (차후 거리 계산 로직 필요)
+        return cctvRepository.findAll().stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+}
+    
 }
