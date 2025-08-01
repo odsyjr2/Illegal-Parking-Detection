@@ -78,7 +78,7 @@ public class CctvServiceImpl implements CctvService {
 
     @Override
     public List<CctvDTO> findNearestCctvs(Double latitude, Double longitude, Double radius) {
-        // 임시로 전체 반환 (차후 거리 계산 로직이 필요함)
+        // 임시로 전체 반환 (차후 거리 계산 로직이 필요)
         return cctvRepository.findAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());

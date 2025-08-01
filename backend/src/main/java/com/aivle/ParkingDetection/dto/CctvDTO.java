@@ -16,5 +16,5 @@ public class CctvDTO {
     private String description;
     private Double latitude;
     private Double longitude; 
-    private LocalDate installationDate; // 설치일
+    private LocalDate installationDate; // 설치일 확인
 }
