@@ -2,10 +2,7 @@ package com.aivle.ParkingDetection.service;
 
 import com.aivle.ParkingDetection.domain.Role;
 import com.aivle.ParkingDetection.domain.User;
-import com.aivle.ParkingDetection.dto.LoginRequestDTO;
-import com.aivle.ParkingDetection.dto.UpdatePasswordDTO;
-import com.aivle.ParkingDetection.dto.UserDTO;
-import com.aivle.ParkingDetection.dto.UserSignUpRequestDTO;
+import com.aivle.ParkingDetection.dto.*;
 import com.aivle.ParkingDetection.exception.UserExistsException;
 import com.aivle.ParkingDetection.jwt.JwtTokenProvider;
 import com.aivle.ParkingDetection.repository.UserRepository;
@@ -213,7 +210,35 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    // 이름 변경
+    @Override
+    @Transactional
+    public void updateName(UpdateNameDTO request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            throw new RuntimeException("인증된 사용자 정보가 없습니다.");
+        }
 
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        String newName = request.getName();
+        String currentName = user.getName();
+
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("이름은 공백일 수 없습니다.");
+        }
+
+        if (newName.equals(currentName)) {
+            throw new IllegalArgumentException("기존 이름과 동일한 이름으로는 변경할 수 없습니다.");
+        }
+
+        user.setName(newName);
+        userRepository.save(user);
+    }
 
     // 탈퇴 (관리자만 허용)
     @Override
