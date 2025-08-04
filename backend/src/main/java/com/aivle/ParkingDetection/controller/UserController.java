@@ -32,23 +32,12 @@ public class UserController {
 
     // ✅ 1. 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> register(
+    public ResponseEntity<ApiResponse<UserDTO>> register(
             @RequestBody UserSignUpRequestDTO request) {
 
-        Map<String, Object> responseData = new HashMap<>();
-
-        if (userService.emailExists(request.getEmail())) {
-            responseData.put("emailExists", true);
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(ApiResponse.fail("이미 존재하는 이메일입니다.", responseData));
-        }
-
         UserDTO registeredUser = userService.signUpUser(request);
-        responseData.put("emailExists", false);
-        responseData.put("user", registeredUser);
-
         return new ResponseEntity<>(
-                ApiResponse.success("회원가입 성공", responseData),
+                ApiResponse.success("회원가입 성공", registeredUser),
                 HttpStatus.CREATED
         );
     }
@@ -111,6 +100,18 @@ public class UserController {
         userService.updatePassword(request);
         return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
+
+    // ✅ 5. 이메일 중복 확인
+    @GetMapping("/check-email")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> checkEmailDuplicate(@RequestParam String email) {
+        boolean exists = userService.emailExists(email);
+
+        Map<String, Object> responseData = new HashMap<>();
+        responseData.put("emailExists", exists);
+
+        return ResponseEntity.ok(ApiResponse.success("이메일 중복 확인 결과", responseData));
+    }
+
 
 
 }

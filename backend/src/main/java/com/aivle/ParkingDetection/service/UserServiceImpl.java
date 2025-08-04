@@ -65,6 +65,13 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    // 이메일 중복 확인
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+
     // 회원가입
     @Override
     @Transactional
@@ -108,12 +115,6 @@ public class UserServiceImpl implements UserService {
                 .role(savedUser.getRole())
                 .joinedAt(savedUser.getJoinedAt())
                 .build();
-    }
-
-    // 이메일 중복 확인
-    @Override
-    public boolean emailExists(String email) {
-        return userRepository.existsByEmail(email);
     }
 
     // 로그인

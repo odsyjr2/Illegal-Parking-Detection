@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ✅ public endpoints
                         .requestMatchers(
+                                "/api/users/check-email",
                                 "/api/users/signup",
                                 "/api/users/register",
                                 "/api/users/login",
