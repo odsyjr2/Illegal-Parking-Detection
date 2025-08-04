@@ -110,6 +110,12 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    // 이메일 중복 확인
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     // 로그인
     @Override
     @Transactional

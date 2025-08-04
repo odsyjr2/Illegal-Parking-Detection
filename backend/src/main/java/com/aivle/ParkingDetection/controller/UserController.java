@@ -14,6 +14,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/users")
@@ -29,15 +32,27 @@ public class UserController {
 
     // ✅ 1. 회원가입
     @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<UserDTO>> register(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> register(
             @RequestBody UserSignUpRequestDTO request) {
 
+        Map<String, Object> responseData = new HashMap<>();
+
+        if (userService.emailExists(request.getEmail())) {
+            responseData.put("emailExists", true);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.fail("이미 존재하는 이메일입니다.", responseData));
+        }
+
         UserDTO registeredUser = userService.signUpUser(request);
+        responseData.put("emailExists", false);
+        responseData.put("user", registeredUser);
+
         return new ResponseEntity<>(
-                ApiResponse.success("회원가입 성공", registeredUser),
+                ApiResponse.success("회원가입 성공", responseData),
                 HttpStatus.CREATED
         );
     }
+
 
     // ✅ 2. 로그인
     @PostMapping("/login")

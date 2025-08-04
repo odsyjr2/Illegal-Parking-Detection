@@ -31,4 +31,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>("FAIL", message, null);
     }
 
+    public static <T> ApiResponse<T> fail(String message, T data) {
+        return ApiResponse.of("FAIL", message, data);
+    }
 }

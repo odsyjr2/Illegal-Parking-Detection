@@ -17,4 +17,5 @@ public interface UserService {
     Authentication authenticate(LoginRequestDTO request);
     void deleteUserById(Long id);   // 탈퇴
     void updatePassword(UpdatePasswordDTO request); // 비밀번호 변경
+    boolean emailExists(String email);  // 이메일 중복 확인
 }
