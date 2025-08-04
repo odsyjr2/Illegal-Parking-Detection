@@ -101,7 +101,15 @@ public class UserController {
         return ResponseEntity.ok("비밀번호가 변경되었습니다.");
     }
 
-    // ✅ 5. 이메일 중복 확인
+    // ✅ 5. 이름 변경
+    @PutMapping("/profile/name")
+    public ResponseEntity<String> updateName(@RequestBody UpdateNameDTO request) {
+        userService.updateName(request);
+        return ResponseEntity.ok("이름이 성공적으로 변경되었습니다.");
+    }
+
+
+    // ✅ 6. 이메일 중복 확인
     @GetMapping("/check-email")
     public ResponseEntity<ApiResponse<Map<String, Object>>> checkEmailDuplicate(@RequestParam String email) {
         boolean exists = userService.emailExists(email);
