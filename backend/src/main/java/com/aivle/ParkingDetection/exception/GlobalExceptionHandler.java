@@ -18,6 +18,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.fail("로그인 실패: " + ex.getMessage()));
+                .body(ApiResponse.fail("실패: " + ex.getMessage()));
     }
 }

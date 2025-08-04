@@ -3,6 +3,7 @@ package com.aivle.ParkingDetection.service;
 import com.aivle.ParkingDetection.domain.Role;
 import com.aivle.ParkingDetection.domain.User;
 import com.aivle.ParkingDetection.dto.LoginRequestDTO;
+import com.aivle.ParkingDetection.dto.UpdatePasswordDTO;
 import com.aivle.ParkingDetection.dto.UserDTO;
 import com.aivle.ParkingDetection.dto.UserSignUpRequestDTO;
 import com.aivle.ParkingDetection.exception.UserExistsException;
@@ -48,6 +49,7 @@ public class UserServiceImpl implements UserService {
         this.authenticationManagerBuilder = authenticationManagerBuilder;
     }
 
+    // 전체 회원 목록 (관리자만 허용)
     @Override
     @Transactional(readOnly = true)
     public List<UserDTO> getAllUsers() {
@@ -63,7 +65,14 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    // 이메일 중복 확인
+    @Override
+    public boolean emailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
 
+
+    // 회원가입
     @Override
     @Transactional
     public UserDTO signUpUser(UserSignUpRequestDTO request) {
@@ -108,6 +117,7 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    // 로그인
     @Override
     @Transactional
     public UserDTO loginUser(LoginRequestDTO request) {
@@ -140,9 +150,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-
-
-
+    // 로그아웃
     @Override
     @Transactional
     public void logoutUser(Long userId, String accessToken) {
@@ -175,6 +183,39 @@ public class UserServiceImpl implements UserService {
         return authenticationManagerBuilder.getObject().authenticate(authToken);
     }
 
+    // 비밀번호 변경
+    @Override
+    @Transactional
+    public void updatePassword(UpdatePasswordDTO request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof CustomUserDetails)) {
+            throw new RuntimeException("인증된 사용자 정보가 없습니다.");
+        }
+
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUserId();
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        String newPassword = request.getPassword();
+        if (newPassword == null || newPassword.isBlank()) {
+            throw new IllegalArgumentException("비밀번호는 공백일 수 없습니다.");
+        }
+
+        // ✅ 기존 비밀번호와 동일한지 확인
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new IllegalArgumentException("기존 비밀번호와 다른 비밀번호를 사용해주세요.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+    }
+
+
+
+    // 탈퇴 (관리자만 허용)
     @Override
     public void deleteUserById(Long id) {
         User user = userRepository.findById(id)
