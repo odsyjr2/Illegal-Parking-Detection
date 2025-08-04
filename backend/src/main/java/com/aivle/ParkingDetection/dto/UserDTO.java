@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,6 +20,7 @@ public class UserDTO {
     private String password;
     private String adminCode;
     private Role role;
+    private LocalDateTime joinedAt;
 
     // 사용자가 로그인에 성공하면 서버가 발급하는 JWT
     // accessToken을 통해 로그인 상태 유지, API 요청 보내기 가능
@@ -34,6 +37,7 @@ public class UserDTO {
                 .name(user.getName())
                 .adminCode(user.getAdminCode()) // optional
                 .role(user.getRole())
+                .joinedAt(user.getJoinedAt())
                 .build();
     }
 }

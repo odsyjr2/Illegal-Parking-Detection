@@ -2,6 +2,7 @@ package com.aivle.ParkingDetection.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 
 @Entity
 @Getter @Setter
@@ -21,4 +22,6 @@ public class Cctv {
 
     private Double latitude;         // 위도
     private Double longitude;        // 경도
+
+    private LocalDate installationDate;  //  설치일
 }
