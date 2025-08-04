@@ -1,10 +1,7 @@
 package com.aivle.ParkingDetection.controller;
 
 import com.aivle.ParkingDetection.domain.User;
-import com.aivle.ParkingDetection.dto.ApiResponse;
-import com.aivle.ParkingDetection.dto.LoginRequestDTO;
-import com.aivle.ParkingDetection.dto.UserDTO;
-import com.aivle.ParkingDetection.dto.UserSignUpRequestDTO;
+import com.aivle.ParkingDetection.dto.*;
 import com.aivle.ParkingDetection.jwt.JwtTokenProvider;
 import com.aivle.ParkingDetection.security.CustomUserDetails;
 import com.aivle.ParkingDetection.service.UserService;
@@ -92,5 +89,13 @@ public class UserController {
         }
         return null;
     }
+
+    // ✅ 4. 비밀번호 변경
+    @PutMapping("/profile/password")
+    public ResponseEntity<String> updatePassword(@RequestBody UpdatePasswordDTO request) {
+        userService.updatePassword(request);
+        return ResponseEntity.ok("비밀번호가 변경되었습니다.");
+    }
+
 
 }
