@@ -1,0 +1,214 @@
+/* 전체 CCTV 관리자 컨테이너 */
+.cctv-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px auto;
+  font-family: Arial, sans-serif;
+}
+
+/* 상단 헤더 영역: 제목과 검색+필터 포함 */
+.header-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+/* 검색 + 필터 영역 */
+.search-filter-area {
+  display: flex;
+  gap: 12px;
+  min-width: 320px;
+}
+
+/* 검색창 */
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 구역 선택 박스 */
+.zone-select {
+  min-width: 120px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 신규 CCTV 입력폼 영역 */
+.new-cctv-input-area {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  align-items: center;
+  position: relative;
+}
+
+/* 도로명 주소 입력 필드 */
+.location-input {
+  flex: 2;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 주소검색 버튼 */
+.address-search-button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-left: 6px;
+  border: 1px solid #ccc;
+  background-color: #eee;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* 위도, 경도 입력 필드 */
+.lat-lng-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+  margin-left: 6px;
+}
+
+/* 추가 버튼 */
+.add-button {
+  padding: 8px 16px;
+  background-color: #364599ff;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  margin-left: 6px;
+}
+
+/* 로딩 텍스트 */
+.loading-text {
+  margin-top: 12px;
+  text-align: center;
+  color: #555;
+}
+
+/* CCTV 목록 테이블 */
+.cctv-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  margin-top: 20px;
+}
+
+.cctv-table thead tr {
+  border-bottom: 2px solid #ddd;
+}
+
+.cctv-table th,
+.cctv-table td {
+  padding: 10px 12px;
+}
+
+.empty-text {
+  padding: 20px;
+  text-align: center;
+  color: #777;
+}
+
+.cctv-row {
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.cctv-row:hover {
+  background-color: #f5f7ff;
+}
+
+/* 페이지네이션 및 삭제 버튼 영역 */
+.pagination-delete-area {
+  text-align: right;
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 페이지네이션 컨테이너 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 8px;
+  width: 100%;
+}
+
+/* 페이지네이션 버튼 공통 */
+.pag-btn {
+  padding: 6px 12px;
+  font-weight: normal;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: transparent;
+  color: #333;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* 활성화된 페이지 버튼 */
+.pag-btn.active {
+  font-weight: bold;
+  border: 2px solid #354185ff;
+  background-color: #354185ff;
+  color: #fff;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 비활성화된 버튼 */
+.pag-btn.disabled {
+  border: 2px solid #354185ff;
+  background-color: #354185ff;
+  color: #fff;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* 호버 - 활성화된 버튼과 비활성화 버튼 제외 */
+.pag-btn:not(.active):not(.disabled):hover {
+  background-color: #e1eaff;
+  border-color: #5a7ae6;
+  color: #20274a;
+}
+
+/* 삭제 버튼 */
+.delete-button {
+  width: 170px;
+  padding: 10px 20px;
+  background-color: #ef4444;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+}
+
+.delete-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

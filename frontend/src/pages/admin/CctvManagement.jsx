@@ -17,6 +17,7 @@ function CctvManagement() {
   const [filterZone, setFilterZone] = useState('전체')
   const [selectedIds, setSelectedIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [newInstallationDate, setNewInstallationDate] = useState('');
 
   // 카카오 정방향 지오코딩 (주소 -> 좌표)
   async function forwardGeocode(address) {
@@ -111,10 +112,15 @@ function CctvManagement() {
     const locationTrim = newLocation.trim()
     const latTrim = newLatitude.trim()
     const lngTrim = newLongitude.trim()
+    const dateTrim = newInstallationDate.trim();
 
     if (!locationTrim && (!latTrim || !lngTrim)) {
       alert('도로명주소 또는 위도/경도 중 하나 이상 입력하세요.')
       return
+    }
+    if (!dateTrim) {
+      alert('설치일을 선택하세요.');
+      return;
     }
 
     let latitude = parseFloat(latTrim)
@@ -139,7 +145,7 @@ function CctvManagement() {
         return
       }
 
-      const payload = { location, latitude, longitude }
+      const payload = { location: locationTrim, latitude, longitude, installationDate: newInstallationDate, }
 
       const res = await fetch('http://localhost:8080/api/cctvs', {
         method: 'POST',
@@ -154,7 +160,8 @@ function CctvManagement() {
       setNewLocation('')
       setNewLatitude('')
       setNewLongitude('')
-      setCurrentPage(totalPages) // 마지막 페이지 이동
+      setCurrentPage(totalPages)
+      setNewInstallationDate('')
     } catch (e) {
       alert('CCTV 추가에 실패했습니다: ' + e.message)
     }
@@ -320,20 +327,17 @@ function CctvManagement() {
             boxSizing: 'border-box',
           }}
         />
-        <button
-          onClick={handleAddCctv}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#364599ff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: 6,
-            fontWeight: '600',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-          aria-label="새 CCTV 추가"
-        >
+        <label>
+          설치일:
+          <input
+            type="date"
+            value={newInstallationDate}
+            onChange={(e) => setNewInstallationDate(e.target.value)}
+            className="lat-lng-input"
+          />
+        </label>
+
+        <button onClick={handleAddCctv} className="add-button" aria-label="새 CCTV 추가">
           + 추가
         </button>
       </div>
@@ -372,21 +376,9 @@ function CctvManagement() {
                       aria-label={`${cctv.location} 선택`}
                     />
                   </td>
-                  <td style={{ padding: '8px 12px', verticalAlign: 'middle' }}>
-                    {(currentPage - 1) * PAGE_SIZE + idx + 1}
-                  </td>
-                  <td
-                    style={{ padding: '8px 12px', cursor: 'pointer', userSelect: 'none', verticalAlign: 'middle' }}
-                    onClick={handleRowClick}
-                  >
-                    {cctv.location}
-                  </td>
-                  <td
-                    style={{ padding: '8px 12px', cursor: 'pointer', userSelect: 'none', verticalAlign: 'middle' }}
-                    onClick={handleRowClick}
-                  >
-                    {cctv.installedAt}
-                  </td>
+                  <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
+                  <td>{cctv.location}</td>
+                  <td>{cctv.installationDate || '-'}</td>
                 </tr>
               )
             })
