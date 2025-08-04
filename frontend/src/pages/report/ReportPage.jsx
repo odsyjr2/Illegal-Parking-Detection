@@ -3,45 +3,26 @@ import axios from 'axios';
 
 // 상태별 컬러 매핑
 const statusColorMap = {
+  접수: '#f59e0b',
   진행중: '#3b82f6',
   완료: '#10b981'
 };
 
 function ReportPage() {
-  // 📌 localStorage에서 초기화 + mock 데이터 없을 경우 자동 세팅
-  const [reports, setReports] = useState(() => {
-    const saved = localStorage.getItem('humanReports');
-    if (saved) return JSON.parse(saved);
+  const [reports, setReports] = useState([]);
 
-    const mock = [
-      {
-        id: 1,
-        title: '불법 주차',
-        reason: '버스 정류장 앞에 불법 주차된 차량',
-        status: '진행중',
-        photoUrl: '',
-        latitude: 37.514575,
-        longitude: 127.105399,
-        roadAddress: '서울특별시 송파구 올림픽로 300',
-        region: '송파',
-        date: '2025-07-28'
-      },
-      {
-        id: 2,
-        title: '쓰레기 무단투기',
-        reason: '상가 골목에 쓰레기 더미',
-        status: '완료',
-        photoUrl: '',
-        latitude: 37.497942,
-        longitude: 127.027621,
-        roadAddress: '서울특별시 강남구 테헤란로 152',
-        region: '강남',
-        date: '2025-07-25'
-      }
-    ];
-    localStorage.setItem('humanReports', JSON.stringify(mock));
-    return mock;
-  });
+  const fetchReports = async () => {
+    try {
+      const res = await axios.get('http://localhost:8080/api/human-reports');
+      setReports(res.data);
+    } catch (err) {
+      console.error('신고 목록 불러오기 실패:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchReports();
+  }, []);
 
   // 지역 추출
   const extractRegionFromAddress = (address) => {
@@ -56,6 +37,7 @@ function ReportPage() {
   const [addressInput, setAddressInput] = useState('');
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
+  const [region, setRegion] = useState(''); 
   const [roadAddress, setRoadAddress] = useState('');
   const [error, setError] = useState('');
   const [photo, setPhoto] = useState(null);
@@ -77,13 +59,14 @@ function ReportPage() {
     formData.append('longitude', longitude);
     formData.append('location', roadAddress);
     formData.append('region', extractRegionFromAddress(roadAddress));
-    formData.append('status', '접수');
+    formData.append('status', '진행중');
 
     try {
-      const res = await axios.post('/api/human-reports', formData, {
+      await axios.post('http://localhost:8080/api/human-reports', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       alert('신고가 등록되었습니다.');
+      await fetchReports();
       setPhoto(null);
       setReason('');
       setAddressInput('');
@@ -97,12 +80,16 @@ function ReportPage() {
   };
 
   // 📌 단속완료 처리
-  const handleComplete = id => {
-    const updated = reports.map(r =>
-      r.id === id ? { ...r, status: '완료' } : r
-    );
-    setReports(updated);
-    localStorage.setItem('humanReports', JSON.stringify(updated));
+  const handleComplete = async id => {
+    try {
+      await axios.patch(`http://localhost:8080/api/human-reports/${id}`, {
+        status: '완료'
+      });
+      await fetchReports();
+    } catch (err) {
+      console.error('상태 변경 실패:', err);
+      alert('단속완료 처리 실패');
+    }
   };
 
   // 📌 경로보기
@@ -146,54 +133,29 @@ function ReportPage() {
     );
   };
 
-  // 📌 주소로 좌표 검색
-  const handleAddressSearch = async () => {
-    try {
-      const response = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
-        params: { query: addressInput },
-        headers: {
-          Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3
-`
+  const handleDaumPostcode = () => {
+    new window.daum.Postcode({
+      oncomplete: async function (data) {
+        const fullAddress = data.roadAddress || data.jibunAddress || '';
+        setRoadAddress(fullAddress);
+        setRegion(extractRegionFromAddress(fullAddress));
+
+        try {
+          const res = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
+            params: { query: fullAddress },
+            headers: {
+              Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
+            }
+          });
+          const result = res.data.documents[0];
+          setLatitude(result?.y || '');
+          setLongitude(result?.x || '');
+        } catch (err) {
+          console.error('좌표 변환 실패:', err);
         }
-      });
-      const result = response.data.documents[0];
-      if (result) {
-        setLatitude(result.y);
-        setLongitude(result.x);
-        setRoadAddress(result.address.address_name);
-        setError('');
-      } else {
-        setError('해당 주소를 찾을 수 없습니다.');
       }
-    } catch (err) {
-      console.error(err);
-      setError('주소 검색 중 오류가 발생했습니다.');
-    }
+    }).open();
   };
-
-  // 📌 자동완성
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (!addressInput.trim()) {
-        setSuggestions([]);
-        return;
-      }
-
-      try {
-        const response = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
-          params: { query: addressInput },
-          headers: {
-            Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
-          }
-        });
-        setSuggestions(response.data.documents);
-      } catch (err) {
-        console.error('자동완성 실패:', err);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [addressInput]);
 
   return (
     <div style={{ maxWidth: 1000, margin: '40px auto', padding: 20, borderRadius: 10, background: '#f9fafe', minHeight: '100vh' }}>
@@ -206,8 +168,15 @@ function ReportPage() {
             type="text"
             value={addressInput}
             onChange={e => setAddressInput(e.target.value)}
+            onClick={handleDaumPostcode}  // ✅ 클릭 시 주소 검색 UI 호출
             placeholder="도로명 주소 입력"
-            style={{ width: '100%', padding: '10px 38px 10px 12px', borderRadius: 8, fontSize: 14 }}
+            style={{
+              width: '100%',
+              padding: '10px 48px 10px 12px',  // 오른쪽 여백 확보!
+              borderRadius: 8,
+              fontSize: 14,
+              boxSizing: 'border-box'
+            }}
           />
           <button
             type="button"
@@ -216,66 +185,22 @@ function ReportPage() {
             style={{
               position: 'absolute',
               top: '50%',
-              right: 8,
+              right: 12,
               transform: 'translateY(-50%)',
               background: '#eef2ff',
               border: 'none',
               borderRadius: '50%',
-              width: 24,
-              height: 24,
-              cursor: 'pointer'
+              width: 28,
+              height: 28,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
             }}
-          >📍</button>
-
-          {/* 자동완성 목록 */}
-          {suggestions.length > 0 && (
-            <ul style={{
-              position: 'absolute',
-              top: '100%',
-              left: 0,
-              right: 0,
-              background: '#fff',
-              border: '1px solid #ccc',
-              zIndex: 100,
-              maxHeight: 200,
-              overflowY: 'auto',
-              listStyle: 'none',
-              margin: 0,
-              padding: 0
-            }}>
-              {suggestions.map((item, idx) => (
-                <li
-                  key={idx}
-                  onClick={() => {
-                    setAddressInput(item.address.address_name);
-                    setLatitude(item.y);
-                    setLongitude(item.x);
-                    setRoadAddress(item.address.address_name);
-                    setSuggestions([]);
-                  }}
-                  style={{ padding: '10px 12px', cursor: 'pointer' }}
-                >
-                  {item.address.address_name}
-                </li>
-              ))}
-            </ul>
-          )}
+          >
+            📍
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={handleAddressSearch}
-          style={{
-            marginLeft: 10,
-            background: '#337aff',
-            color: '#fff',
-            padding: '10px 16px',
-            border: 'none',
-            borderRadius: 8
-          }}
-        >
-          주소 검색
-        </button>
       </div>
 
       {roadAddress && (
@@ -315,60 +240,55 @@ function ReportPage() {
         </button>
       </form>
 
-      {/* 신고 내역 */}
-      <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 22 }}>신고 내역</h2>
-      {reports.length === 0 ? (
-        <p style={{ textAlign: 'center', color: '#888' }}>신고 내역이 없습니다.</p>
-      ) : (
-        reports.map(report => (
+    {/* 신고 내역 */}
+    <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 22 }}>신고 내역</h2>
+    {reports.length === 0 ? (
+      <p style={{ textAlign: 'center', color: '#888' }}>신고 내역이 없습니다.</p>
+    ) : (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {reports.map(report => (
           <div
             key={report.id}
             style={{
               background: '#fff',
-              borderRadius: 10,
-              boxShadow: '0 2px 9px rgba(0,0,0,0.06)',
-              padding: 16,
-              marginBottom: 16
+              borderRadius: 12,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+              padding: '16px 14px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+            <div>
               <strong>{report.title}</strong>
               <span style={{
+                marginLeft: 8,
                 padding: '2px 10px',
-                background: '#eef6ff',
+                background: '#f0f4ff',
                 borderRadius: 12,
                 fontSize: 13,
-                color: statusColorMap[report.status]
+                color: statusColorMap[report.status] || '#333'
               }}>{report.status}</span>
-              {report.roadAddress && (
-                <span style={{ fontSize: 12, color: '#666' }}>
-                  📍 {report.roadAddress} ({report.latitude}, {report.longitude})
-                </span>
-              )}
             </div>
-            {report.photoUrl && (
-              <img src={report.photoUrl} alt="첨부사진" style={{ width: 120, marginTop: 8, borderRadius: 6 }} />
+            <div style={{ fontSize: 14, color: '#666' }}>
+              위치: {report.location} ({report.latitude}, {report.longitude})
+            </div>
+            {report.imageURL && (
+              <img
+                src={`http://localhost:8080${report.imageURL}`}
+                alt="첨부사진"
+                style={{ width: 160, borderRadius: 8 }}
+              />
             )}
-            <div style={{ fontSize: 15, color: '#444', marginTop: 8 }}>{report.reason}</div>
-            {report.status === '진행중' && (
-              <div style={{ marginTop: 10 }}>
-                <button onClick={() => handlePath(report.id)} style={{
-                  background: '#eee', color: '#2277e5', border: 'none',
-                  padding: '6px 14px', borderRadius: 7, marginRight: 7
-                }}>
-                  경로 보기
-                </button>
-                <button onClick={() => handleComplete(report.id)} style={{
-                  background: '#10b981', color: '#fff', border: 'none',
-                  padding: '6px 14px', borderRadius: 7
-                }}>
-                  단속완료
-                </button>
-              </div>
-            )}
+            <div style={{ fontSize: 15, color: '#444' }}>{report.reason}</div>
+            <div style={{ fontSize: 13, color: '#999', display: 'flex', gap: 12 }}>
+              <span> 지역: {report.region}</span>
+              <span> 등록일: {report.createdAt?.slice(0, 10)}</span>
+            </div>
           </div>
-        ))
-      )}
+        ))}
+      </div>
+    )}
     </div>
   );
 }

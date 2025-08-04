@@ -11,7 +11,6 @@ import com.aivle.ParkingDetection.repository.UserRepository;
 import com.aivle.ParkingDetection.security.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -24,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,20 +35,32 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private final RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
                            PasswordEncoder passwordEncoder,
                            JwtTokenProvider jwtTokenProvider,
-                           AuthenticationManagerBuilder authenticationManagerBuilder,
-                           RedisTemplate<String, Object> redisTemplate) {
+                           AuthenticationManagerBuilder authenticationManagerBuilder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
-        this.redisTemplate = redisTemplate;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> UserDTO.builder()
+                        .id(user.getId())
+                        .name(user.getName())
+                        .email(user.getEmail())
+                        .role(user.getRole())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     @Transactional
@@ -108,10 +121,6 @@ public class UserServiceImpl implements UserService {
             String accessToken = jwtTokenProvider.generateAccessToken(authentication);
             String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-            // Redis에 RefreshToken 저장 (7일)
-            redisTemplate.opsForValue()
-                    .set("RT:" + userId, refreshToken, 7, TimeUnit.DAYS);
-
             return UserDTO.builder()
                     .id(userId)
                     .name(userDetails.getUsername())
@@ -134,13 +143,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void logoutUser(Long userId, String accessToken) {
         String refreshTokenKey = "RT:" + userId;
-        if (redisTemplate.hasKey(refreshTokenKey)) {
-            redisTemplate.delete(refreshTokenKey);
-        }
 
         if (StringUtils.hasText(accessToken) && jwtTokenProvider.validateToken(accessToken)) {
             long expiration = jwtTokenProvider.getRemainingExpiration(accessToken);
-            redisTemplate.opsForValue().set(accessToken, "logout", expiration, TimeUnit.MILLISECONDS);
         }
 
         SecurityContextHolder.clearContext();
