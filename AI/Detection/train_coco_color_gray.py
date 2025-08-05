@@ -15,11 +15,11 @@ def main():
     results = model.train(
         data="coco_custom.yaml", 
         epochs=100, 
-        batch=16,
-        imgsz=640,
+        batch=8,
+        imgsz=784,
         device=0,
         project="../Experiments/coco_custom_vehicle_seg",
-        name="25.07.28_gray_aug",
+        name="25.07.31_yolo11seg_gray_aug_from_pretrain_784_b8",
         seed=42,
         multi_scale=True,
 
