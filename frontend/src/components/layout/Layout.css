@@ -1,23 +1,20 @@
-/* Layout.css */
-
 .layout {
   font-family: sans-serif;
 }
 
+/* 기존 스타일 유지 */
 .content {
   box-sizing: border-box;
-  padding-top: 60px; /* Header 높이 */
+  padding-top: 80px; /* 헤더 높이 + 상단 고정 버튼 높이 고려해 충분히 더 띄움 */
   transition: padding-left 0.3s ease;
   min-height: 100vh;
   background-color: #f4f4f4;
 }
 
-/* 사이드바 열려 있을 때 */
 .layout.sidebar-open .content {
   padding-left: 220px;
 }
 
-/* 사이드바 숨겨졌을 때 */
 .layout.sidebar-closed .content,
 .layout.no-sidebar .content {
   padding-left: 0;
@@ -28,7 +25,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 60px 0 0 0;
+  padding: 80px 0 0 0; /* 위 여백 충분히 */
   min-height: 100vh;
   background: #f8f9fa;
 }

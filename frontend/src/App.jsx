@@ -1,66 +1,119 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-import Layout from './components/layout/Layout'
-import LoginPage from './pages/auth/LoginPage'
-import SignupPage from './pages/auth/SignupPage'
-import Main from './pages/dashboard/MainPage'
-import MapPage from './pages/dashboard/MapPage'
-import SearchPage from './pages/search/SearchPage'
-import ReportPage from './pages/report/ReportPage'
-import AdminPage from './pages/admin/AdminPage'
-import AdminRoutes from './pages/admin/AdminRoutes'
+import Layout from './components/layout/Layout';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+import Main from './pages/dashboard/MainPage';
+import MapPage from './pages/dashboard/MapPage';
+import SearchPage from './pages/search/SearchPage';
+import ReportPage from './pages/report/ReportPage';
+import AdminPage from './pages/admin/AdminPage';
+import AdminRoutes from './pages/admin/AdminRoutes';
 
 function App() {
-  const [role, setRole] = useState(null)
+  // 역할 상태
+  const [role, setRole] = useState(null);
+  // 인증 여부 상태 추가 (토큰 존재 등 기반 판단 가능)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const handleRoleChange = () => {
-      try {
-        const storedUserStr = localStorage.getItem('user')
-        const storedUser = storedUserStr ? JSON.parse(storedUserStr) : null
-        setRole(storedUser?.role || null)
-      } catch {
-        setRole(null)
-      }
-    }
+    const handleAuthChange = () => {
+      const userStr = localStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      setRole(user?.role || null);
+      // 예: 토큰 존재 유무로 인증 판단 (필요 시 토큰 유효성도 검사)
+      setIsAuthenticated(!!localStorage.getItem('accessToken'));
+    };
 
-    handleRoleChange()
+    handleAuthChange();
 
-    window.addEventListener('roleChanged', handleRoleChange)
-    window.addEventListener('storage', handleRoleChange)
-
+    window.addEventListener('roleChanged', handleAuthChange);
+    window.addEventListener('storage', handleAuthChange);
     return () => {
-      window.removeEventListener('roleChanged', handleRoleChange)
-      window.removeEventListener('storage', handleRoleChange)
-    }
-  }, [])
+      window.removeEventListener('roleChanged', handleAuthChange);
+      window.removeEventListener('storage', handleAuthChange);
+    };
+  }, []);
 
-  const isUser = role === 'USER'
+  // 보호 라우트 컴포넌트
+  const ProtectedRoute = ({ children }) => {
+    if (!isAuthenticated) {
+      // 인증 안 된 경우 로그인 페이지로 강제 이동
+      return <Navigate to="/login" replace />;
+    }
+    return children;
+  };
+
+  // USER 권한 여부
+  const isUser = role === 'USER';
 
   return (
     <Router>
       <Layout>
         <Routes>
-          {/* USER는 /report만 접근 가능 */}
-          <Route path="/report" element={<ReportPage />} />
+          {/* 인증이 필요한 페이지는 ProtectedRoute로 감싸기 */}
+          <Route
+            path="/report"
+            element={
+              <ProtectedRoute>
+                {/* USER만 접근 가능하도록 추가 제어 */}
+                {isUser ? <ReportPage /> : <Navigate to="/" replace />}
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                {/* USER 아님만 접근 가능 */}
+                {isUser ? <Navigate to="/report" replace /> : <Main />}
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <SearchPage />}</ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <AdminPage />}</ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <MapPage />}</ProtectedRoute>
+            }
+          />
+          <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
 
-          <Route path="/" element={isUser ? <Navigate to="/report" replace /> : <Main />} />
-          <Route path="/search" element={isUser ? <Navigate to="/report" replace /> : <SearchPage />} />
-          <Route path="/admin" element={isUser ? <Navigate to="/report" replace /> : <AdminPage />} />
-          <Route path="/map" element={isUser ? <Navigate to="/report" replace /> : <MapPage />} />
-          <Route path="/admin/*" element={<AdminRoutes />} />
-
-          {/* 인증 관련 */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          {/* 인증 관련 페이지는 로그인하지 않은 사용자만 접근 가능 */}
+          <Route
+            path="/login"
+            element={isAuthenticated ? <Navigate to={isUser ? "/report" : "/"} replace /> : <LoginPage />}
+          />
+          <Route
+            path="/signup"
+            element={isAuthenticated ? <Navigate to={isUser ? "/report" : "/"} replace /> : <SignupPage />}
+          />
 
           {/* 정의되지 않은 경로 */}
-          <Route path="*" element={<Navigate to={isUser ? "/report" : "/"} replace />} />
+          <Route
+            path="*"
+            element={
+              isAuthenticated
+                ? (isUser ? <Navigate to="/report" replace /> : <Navigate to="/" replace />)
+                : <Navigate to="/login" replace />
+            }
+          />
         </Routes>
       </Layout>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;

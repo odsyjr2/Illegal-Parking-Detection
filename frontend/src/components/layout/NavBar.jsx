@@ -1,6 +1,6 @@
-// NavBar.js
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import PasswordChangeModal from '../../pages/auth/EditProfileModal';
 import './Sidebar.css';
 
 const HIDDEN_PATHS = ['/login', '/signup'];
@@ -9,38 +9,44 @@ function NavBar({ isOpen, toggle }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // 상태로 사용자 정보 유지 (null이면 미로그인 상황)
   const [user, setUser] = useState(null);
+  const [isModalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    // localStorage에서 user 정보 불러오기 (예: 로그인 시 저장한 객체)
-    try {
-      const storedUser = JSON.parse(localStorage.getItem('user'));
-      if (storedUser) setUser(storedUser);
-      else setUser(null);
-    } catch {
-      setUser(null);  // 파싱 실패 시 null 처리
-    }
-  }, [location.pathname]); // 경로가 바뀔 때마다 최신 정보 반영
+    const handleUserChange = () => {
+      try {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        setUser(storedUser || null);
+      } catch {
+        setUser(null);
+      }
+    };
 
-  // 페이지가 로그인 또는 회원가입일 경우 NavBar 숨김
+    handleUserChange();
+
+    window.addEventListener('roleChanged', handleUserChange);  // 이벤트 리스너 등록
+
+    return () => {
+      window.removeEventListener('roleChanged', handleUserChange);  // 이벤트 리스너 해제
+    };
+  }, []); // 의존성 빈 배열로 컴포넌트 마운트 시 1회 등록
+
   if (HIDDEN_PATHS.includes(location.pathname)) return null;
 
-  // 로그인 정보가 없으면 기본값
-  // adminInfo가 user 정보와 동일하거나 없는 경우 기본 admin 정보 출력
   const adminInfo = user
     ? { name: user.name || '이름없음', email: user.email || '이메일없음' }
     : { name: '홍길동', email: 'admin@example.com' };
 
-  // 로그아웃 함수
   const logout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('role');
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    window.dispatchEvent(new Event('roleChanged'));
     alert('로그아웃 되었습니다!');
     navigate('/login');
   };
 
-  // 현재 경로가 활성 메뉴인지 확인 함수
   const isActive = (path) => (location.pathname === path ? 'active' : '');
 
   return (
@@ -51,8 +57,6 @@ function NavBar({ isOpen, toggle }) {
       <div className={`sidebar ${isOpen ? 'open' : 'hidden'}`}>
         <div>
           <h2>로고</h2>
-
-          {/* 로그인 사용자 정보 */}
           <div
             className="admin-info"
             style={{
@@ -68,7 +72,6 @@ function NavBar({ isOpen, toggle }) {
             <div style={{ color: '#fff' }}>{adminInfo.email}</div>
           </div>
 
-          {/* 메뉴 목록 */}
           <nav>
             <ul>
               <li className={isActive('/')}>
@@ -100,12 +103,32 @@ function NavBar({ isOpen, toggle }) {
           </nav>
         </div>
 
-        {/* 맨 아래 로그아웃 버튼 영역 */}
         <div style={{ marginTop: 'auto', paddingTop: 16 }}>
           <button
+            onClick={() => setModalOpen(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              fontSize: 13,
+              color: '#ccc',
+              display: 'block',
+              textAlign: 'center',
+              padding: '8px 0',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              width: '100%',
+              cursor: 'pointer',
+              marginBottom: 8,
+            }}
+            aria-label="정보 변경"
+            title="정보 변경"
+          >
+            정보 변경
+          </button>
+
+          <button
             onClick={() => {
-              toggle();  // 메뉴 닫기
-              logout();  // 로그아웃 처리
+              toggle();
+              logout();
             }}
             style={{
               background: 'none',
@@ -126,6 +149,9 @@ function NavBar({ isOpen, toggle }) {
           </button>
         </div>
       </div>
+
+      {/* 비밀번호 변경 모달 */}
+      <PasswordChangeModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
     </>
   );
 }
