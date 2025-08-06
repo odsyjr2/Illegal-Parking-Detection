@@ -50,9 +50,15 @@ function ReportPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const storedUser = JSON.parse(localStorage.getItem('user'));
+    if (!storedUser?.id) {
+      alert('사용자 정보가 없습니다. 다시 로그인해주세요.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', photo); // 📷 사진
-    formData.append('userID', 'user123'); // 사용자 ID는 추후 로그인 시스템 연동 시 대체
+    formData.append('userID', storedUser.email); // 사용자 ID는 추후 로그인 시스템 연동 시 대체
     formData.append('title', '사용자신고');
     formData.append('reason', reason);
     formData.append('latitude', latitude);
@@ -157,6 +163,15 @@ function ReportPage() {
     }).open();
   };
 
+  const storedUser = JSON.parse(localStorage.getItem('user'));
+  const currentUserID = storedUser?.email;
+  const currentRole = storedUser?.role;
+
+  // ✅ 조건에 따라 보여줄 신고 내역 선택
+  const filteredReports = currentRole === 'ADMIN'
+    ? reports
+    : reports.filter(report => report.userID == currentUserID);
+
   return (
     <div style={{ maxWidth: 1000, margin: '40px auto', padding: 20, borderRadius: 10, background: '#f9fafe', minHeight: '100vh' }}>
       <h1 style={{ marginBottom: 28, fontSize: 25, color: '#000' }}>신고 접수</h1>
@@ -242,11 +257,11 @@ function ReportPage() {
 
     {/* 신고 내역 */}
     <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 22 }}>신고 내역</h2>
-    {reports.length === 0 ? (
+    {filteredReports.length === 0 ? (
       <p style={{ textAlign: 'center', color: '#888' }}>신고 내역이 없습니다.</p>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {reports.map(report => (
+        {filteredReports.map(report => (
           <div
             key={report.id}
             style={{
