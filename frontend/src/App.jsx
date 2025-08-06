@@ -12,9 +12,7 @@ import AdminPage from './pages/admin/AdminPage';
 import AdminRoutes from './pages/admin/AdminRoutes';
 
 function App() {
-  // 역할 상태
   const [role, setRole] = useState(null);
-  // 인증 여부 상태 추가 (토큰 존재 등 기반 판단 가능)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
@@ -22,10 +20,8 @@ function App() {
       const userStr = localStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
       setRole(user?.role || null);
-      // 예: 토큰 존재 유무로 인증 판단 (필요 시 토큰 유효성도 검사)
       setIsAuthenticated(!!localStorage.getItem('accessToken'));
     };
-
     handleAuthChange();
 
     window.addEventListener('roleChanged', handleAuthChange);
@@ -36,78 +32,128 @@ function App() {
     };
   }, []);
 
-  // 보호 라우트 컴포넌트
-  const ProtectedRoute = ({ children }) => {
+  const isUser = role === 'USER';
+
+  // 인증 및 역할에 따른 페이지 접근 제어 컴포넌트
+  const AuthRoute = ({ children, requireUserOnly = false }) => {
     if (!isAuthenticated) {
-      // 인증 안 된 경우 로그인 페이지로 강제 이동
+      // 비로그인자는 로그인, 회원가입만 접근 가능
       return <Navigate to="/login" replace />;
+    }
+    if (!requireUserOnly && isUser) {
+      // USER가 들어갈 수 없는 경로는 /report로 이동
+      return <Navigate to="/report" replace />;
     }
     return children;
   };
-
-  // USER 권한 여부
-  const isUser = role === 'USER';
 
   return (
     <Router>
       <Layout>
         <Routes>
-          {/* 인증이 필요한 페이지는 ProtectedRoute로 감싸기 */}
+          {/* 로그인, 회원가입은 비로그인자만 접근 가능 */}
           <Route
-            path="/report"
+            path="/login"
             element={
-              <ProtectedRoute>
-                {/* USER만 접근 가능하도록 추가 제어 */}
-                {isUser ? <ReportPage /> : <Navigate to="/" replace />}
-              </ProtectedRoute>
+              isAuthenticated ? (
+                isUser ? (
+                  <Navigate to="/report" replace />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              ) : (
+                <LoginPage />
+              )
             }
           />
           <Route
+            path="/signup"
+            element={
+              isAuthenticated ? (
+                isUser ? (
+                  <Navigate to="/report" replace />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              ) : (
+                <SignupPage />
+              )
+            }
+          />
+
+          {/* USER만 접근 가능한 신고 페이지 */}
+          <Route
+            path="/report"
+            element={
+              <AuthRoute requireUserOnly={true}>
+                <ReportPage />
+              </AuthRoute>
+            }
+          />
+
+          {/* USER가 아닌 일반 회원용 페이지 (모든 페이지) */}
+          <Route
             path="/"
             element={
-              <ProtectedRoute>
-                {/* USER 아님만 접근 가능 */}
-                {isUser ? <Navigate to="/report" replace /> : <Main />}
-              </ProtectedRoute>
+              <AuthRoute>
+                <Main />
+              </AuthRoute>
+            }
+          />
+          <Route
+            path="/report"
+            element={
+              <AuthRoute>
+                <ReportPage />
+              </AuthRoute>
             }
           />
           <Route
             path="/search"
             element={
-              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <SearchPage />}</ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <AdminPage />}</ProtectedRoute>
+              <AuthRoute>
+                <SearchPage />
+              </AuthRoute>
             }
           />
           <Route
             path="/map"
             element={
-              <ProtectedRoute>{isUser ? <Navigate to="/report" replace /> : <MapPage />}</ProtectedRoute>
+              <AuthRoute>
+                <MapPage />
+              </AuthRoute>
             }
           />
-          <Route path="/admin/*" element={<ProtectedRoute><AdminRoutes /></ProtectedRoute>} />
-
-          {/* 인증 관련 페이지는 로그인하지 않은 사용자만 접근 가능 */}
           <Route
-            path="/login"
-            element={isAuthenticated ? <Navigate to={isUser ? "/report" : "/"} replace /> : <LoginPage />}
+            path="/admin"
+            element={
+              <AuthRoute>
+                <AdminPage />
+              </AuthRoute>
+            }
           />
           <Route
-            path="/signup"
-            element={isAuthenticated ? <Navigate to={isUser ? "/report" : "/"} replace /> : <SignupPage />}
+            path="/admin/*"
+            element={
+              <AuthRoute>
+                <AdminRoutes />
+              </AuthRoute>
+            }
           />
 
           {/* 정의되지 않은 경로 */}
           <Route
             path="*"
             element={
-              isAuthenticated
-                ? (isUser ? <Navigate to="/report" replace /> : <Navigate to="/" replace />)
-                : <Navigate to="/login" replace />
+              isAuthenticated ? (
+                isUser ? (
+                  <Navigate to="/report" replace />
+                ) : (
+                  <Navigate to="/" replace />
+                )
+              ) : (
+                <Navigate to="/login" replace />
+              )
             }
           />
         </Routes>
