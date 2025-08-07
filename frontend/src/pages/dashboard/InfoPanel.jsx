@@ -1,4 +1,8 @@
+import { useNavigate } from 'react-router-dom';
+
 function InfoPanel({ selectedLocation, onLocationChange }) {
+  const navigate = useNavigate();
+
   // 각 지역별로 상태 정보 준비
   const locationStatus = {
     '강남구': [
@@ -80,18 +84,20 @@ function InfoPanel({ selectedLocation, onLocationChange }) {
         <button onClick={() => alert('이상 감지 시작')}>이상감지</button>
       </div>
 
-      <button style={{
-        width: '100%',
-        padding: '12px',
-        backgroundColor: '#0066cc',
-        color: '#fff',
-        fontWeight: 'bold',
-        border: 'none',
-        borderRadius: '6px',
-        fontSize: '16px',
-        cursor: 'pointer',
-        marginTop: '20px'
-      }}>경로 보기</button>
+      <button 
+        onClick={() => navigate('/route')}
+        style={{
+          width: '100%',
+          padding: '12px',
+          backgroundColor: '#0066cc',
+          color: '#fff',
+          fontWeight: 'bold',
+          border: 'none',
+          borderRadius: '6px',
+          fontSize: '16px',
+          cursor: 'pointer',
+          marginTop: '20px'
+        }}>경로 보기</button>
     </div>
   );
 }
