@@ -1,0 +1,270 @@
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 0
+num total samples of /: 0 x 1.0 (total_data_usage_ratio) = 0
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 0
+num total samples of /: 0 x 1.0 (total_data_usage_ratio) = 0
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 0
+num total samples of /: 0 x 1.0 (total_data_usage_ratio) = 0
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 0
+num total samples of /: 0 x 1.0 (total_data_usage_ratio) = 0
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 80000
+num total samples of /: 80000 x 1.0 (total_data_usage_ratio) = 80000
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 10000
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 80000
+num total samples of /: 80000 x 1.0 (total_data_usage_ratio) = 80000
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 10000
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 80000
+num total samples of /: 80000 x 1.0 (total_data_usage_ratio) = 80000
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 10000
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 53316
+num total samples of /: 53316 x 1.0 (total_data_usage_ratio) = 53316
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6610
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 55121
+num total samples of /: 55121 x 1.0 (total_data_usage_ratio) = 55121
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6825
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 55121
+num total samples of /: 55121 x 1.0 (total_data_usage_ratio) = 55121
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6825
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 55121
+num total samples of /: 55121 x 1.0 (total_data_usage_ratio) = 55121
+num samples of / per batch: 192 x 1.0 (batch_ratio) = 192
+--------------------------------------------------------------------------------
+Total_batch_size: 192 = 192
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6825
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+dataset_root: C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train
+opt.select_data: ['/']
+opt.batch_ratio: ['1']
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\train	 dataset: /
+sub-directory:	/.	 num samples: 55121
+num total samples of /: 55121 x 1.0 (total_data_usage_ratio) = 55121
+num samples of / per batch: 16 x 1.0 (batch_ratio) = 16
+--------------------------------------------------------------------------------
+Total_batch_size: 16 = 16
+--------------------------------------------------------------------------------
+dataset_root:    C:\Users\chobh\Desktop\bigProject\Data\licence_plate_original\lmdb\val	 dataset: /
+sub-directory:	/.	 num samples: 6825
+--------------------------------------------------------------------------------

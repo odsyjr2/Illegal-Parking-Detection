@@ -19,3 +19,18 @@
   "license_plate": "12가3456",   # 신고됨일 경우 포함
   "image_id": "IMG_20250728_154010"   # (선택) 추후 저장된 리포트 추적용
 }
+
+
+EasyOCR github 설치 후 진행
+
+
+fine tuning 모델 적용
+
+git clone https://github.com/JaidedAI/EasyOCR.git C:/dev/easyocr
+cd C:/dev/easyocr
+
+# dev 버전으로 설치
+pip install -e . --user 
+
+https://github.com/JaidedAI/EasyOCR/blob/master/custom_model.md 참조하여
+~/.EasyOCR/model, ~/.EasyOCR/user_network 설정
