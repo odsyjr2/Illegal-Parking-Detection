@@ -1,38 +1,81 @@
-.main-layout {
-  padding: 50px;
-  display: flex;
-  height: calc(100vh - 60px); /* Header 제외 */
+/* 최상위 wrapper: padding 때문에 높이 계산 보완 */
+body, html, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
+/* MainPage 최상위 div가 아닌 .main-layout에 높이를 100%로 키우기 */
+.main-layout {
+  display: flex;
+  height: 100%; /* 100%로 키우고 부모도 높이 확실히 잡아야 함 */
+  box-sizing: border-box;
+}
+
+/* 지도영역 */
 .main-map {
   flex: 1 1 0;
   min-width: 0;
+  height: 100%;
+  position: relative;
+  overflow: hidden; /* 지도 영역 넘침 숨김 */
 }
 
+/* 사이드 패널 */
 .side-panel {
-  width: 320px;
+  width: 350px;
   padding: 1.5rem 1rem;
   background: #fff;
   border-left: 1px solid #ccc;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden; /* 스크롤 제거 */
 }
 
-.info-panel {
+/* 탭 영역 */
+.main-tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  overflow: hidden;
   background: #f8f8f8;
-  border-radius: 10px;
-  padding: 1rem;
+  margin-bottom: 0;
+  user-select: none;
 }
 
-.preview-box {
-  background: #f8f8f8;
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-.control-buttons button {
-  padding: 6px 12px;
-  background: #1159a8;
-  color: white;
+/* 탭 버튼 */
+.main-tabs button {
+  flex: 1;
   border: none;
-  border-radius: 6px;
+  outline: none;
+  background: transparent;
+  font-weight: bold;
+  color: #444;
+  padding: 16px 0;
+  font-size: 16px;
   cursor: pointer;
+}
+
+.main-tabs button.active {
+  background: #0066cc;
+  color: #fff;
+}
+
+.main-wrapper {
+  height: 100vh;
+  padding: 40px;
+  background: #f0f2f6;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 전체 화면 스크롤 제거 */
+}
+
+
+/* 탭과 레이아웃 분리해서 세로 배치 가능 */
+.main-content {
+  flex: 1;
+  display: flex;
+  min-height: 0; /* flexbox에서 자식이 잘리게 막지 않도록 */
 }
