@@ -145,8 +145,6 @@ function ReportsPage() {
     boxShadow: '0 2px 7px #e8e8e8',
     minWidth: 0,
     display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start',
-    // minHeight: 245, // 제거!
-    // height: 'auto', // 필요시 명시적으로 주어도 됨
   }
 
 
