@@ -1,0 +1,30 @@
+path: C:/Users/chobh/Desktop/bigProject/Data/lane_violation_yoloseg_dataset_sampled/
+train: images/train
+val: images/val
+
+names:
+  0: vehicle_car
+  1: vehicle_bus
+  2: vehicle_truck
+  3: vehicle_bike
+  4: lane_shoulder_single_solid
+  5: lane_shoulder_double_solid
+  6: lane_shoulder_single_dashed
+  7: lane_shoulder_left_dashed_double
+  8: lane_shoulder_right_dashed_double
+
+# # vehicle only
+# names: 
+#   0: vehicle_car
+#   1: vehicle_bus
+#   2: vehicle_truck
+#   3: vehicle_bike
+
+# lane only
+
+# names: 
+#   0: lane_shoulder_single_solid
+#   1: lane_shoulder_double_solid
+#   2: lane_shoulder_single_dashed
+#   3: lane_shoulder_left_dashed_double
+#   4: lane_shoulder_right_dashed_double

@@ -1,0 +1,43 @@
+# API and Server Configuration
+api:
+  backend_url: "http://localhost:8080/api/detections"
+
+# Model Paths
+models:
+  tracking_path: 'yolov8n.pt'
+  # IMPORTANT: Replace with the actual path to your custom parking detection model
+  parking_path: 'yolo_parking.pt' 
+  ocr:
+    storage_directory: './saved_models/None-VGG-BiLSTM-CTC-Seed1111_korean_g2_ft'
+    language: 'ko'
+
+# Hyperparameters and Thresholds
+parameters:
+  parking_detection:
+    time_threshold_seconds: 5
+    movement_threshold_pixels: 15
+
+# File and Directory Paths
+file_paths:
+  image_save_dir: "detection_images"
+  # Default directory for testing if --video_dir is not provided
+  # This can be overridden by the cctv_streams section
+  video_source_dir: "./test_videos"
+
+# List of CCTV streams to process
+# This section is used if --video_dir is NOT specified.
+# source: can be a file path, RTSP/HTTP URL, or camera index (e.g., 0)
+cctv_streams:
+  - id: "cctv_front_gate_01"
+    source: "C:/Users/chobh/Desktop/bigProject/Illegal-Parking-Detection/AI/OCR/test_videos/test_video_1.mp4"
+    location: "Main Gate Entrance"
+    coordinates:
+      latitude: 37.12345
+      longitude: 127.54321
+  
+  - id: "cctv_parking_lot_A_03"
+    source: "C:/Users/chobh/Desktop/bigProject/Illegal-Parking-Detection/AI/OCR/test_videos/test_video_2.mp4"
+    location: "Parking Lot Section A"
+    coordinates:
+      latitude: 37.12355
+      longitude: 127.54331
