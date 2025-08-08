@@ -1,14 +1,15 @@
 import MapPage from './MapPage'
 import InfoPanel from './InfoPanel'
+import RoutePage from './RoutePage'
 import './MainPage.css'
 import { useState } from 'react'
+
 
 // 임시로 단속경로 패널
 function RoutePanel() {
   return (
-    <div className="route-panel" style={{ padding: 32, textAlign: 'center' }}>
-      <h2>단속경로</h2>
-      <p>여기에 단속경로 관련 내용을 넣으세요.</p>
+    <div className="route-panel" style={{ textAlign: 'center' }}>
+      <RoutePage/>
     </div>
   )
 }
