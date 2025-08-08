@@ -1,14 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
+import axios from 'axios'
 
-
-
-// 불법주정차 지도에 표시할 위치 목록 예시
-const violationsLocations = [
-  { lat: 37.5148, lng: 127.1060, id: Date.now() + 1, },
-  { lat: 37.5155, lng: 127.1050, id: Date.now() + 2, },
-  { lat: 37.5160, lng: 127.1040, id: Date.now() + 3, },
-]
-// 🗺️ 지도에 표시할 위치 목록 예시
+// 🧭 예시 위치(기존 유지)
 const locations = [
   { label: '강남구1', lat: 37.5172, lng: 127.0473 },
   { label: '강남구2', lat: 37.5171, lng: 127.0470 },
@@ -16,30 +9,41 @@ const locations = [
   { label: '송파구', lat: 37.5145, lng: 127.1056 },
 ]
 
-function MapPage({ selectedLocation, onLocationChange }) {
+const escapeHtml = (str = '') => str.replace(/[&<>"']/g, s => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+}[s]))
 
-  const [violations, setViolations] = useState([])
-  const carMarkersRef = useRef({})
+function MapPage({ selectedLocation, onLocationChange }) {
+  // ✅ 진행중 신고 목록 상태
+  const [ongoing, setOngoing] = useState([])
+
+  const carMarkersRef = useRef({}) // { [id]: kakao.maps.Marker }
   const mapRef = useRef(null)
   const mapInstance = useRef(null)
-  // 🚩 { [label]: Marker } 구조. label은 유니크해야 함
-  const markerRefs = useRef({})
+  const markerRefs = useRef({})   // 행정구역 마커 { [label]: Marker }
+  const infoWindowRef = useRef(null) // 하나만 재사용
+  const didAutoFitRef = useRef(false) // 처음 한 번만 자동 맞춤
 
   const kakaoApiKey = 'cc0a3f17267a09a8e2670bb54f681f23'
-  //const kakaoApiKey = import.meta.env.VITE_KAKAOMAP_KEY
 
-  // ✅ 최초 1회: Kakao Map 객체만 생성
+  // ✅ Kakao Map 최초 1회 로딩
   useEffect(() => {
     if (!kakaoApiKey) return
 
     const initMap = () => {
       window.kakao.maps.load(() => {
-        const defaultCenter = new window.kakao.maps.LatLng(37.5665, 126.9780)
+        const defaultCenter = new window.kakao.maps.LatLng(37.4836, 127.0327) // 서초구 중심
         const map = new window.kakao.maps.Map(mapRef.current, {
           center: defaultCenter,
           level: 7,
         })
         mapInstance.current = map
+        infoWindowRef.current = new window.kakao.maps.InfoWindow({ zIndex: 3 })
+
+        // 지도 빈 곳 클릭 시 닫기
+        window.kakao.maps.event.addListener(map, 'click', () => {
+          infoWindowRef.current && infoWindowRef.current.close()
+        })
       })
     }
 
@@ -54,7 +58,7 @@ function MapPage({ selectedLocation, onLocationChange }) {
     }
   }, [kakaoApiKey])
 
-  // 🔄 locations가 변할 때만 마커 추가, 삭제, 위치/이미지 갱신
+  // ✅ 좌측 리스트 마커(행정구역) 동기화 — 기존 로직 유지 + 클릭 시 간단 인포윈도우
   useEffect(() => {
     const map = mapInstance.current
     if (!map || !window.kakao || !window.kakao.maps) return
@@ -62,7 +66,7 @@ function MapPage({ selectedLocation, onLocationChange }) {
     const markerMap = markerRefs.current
     const nextLabels = locations.map(loc => loc.label)
 
-    // 1. 기존에 있었지만, locations에 없는 마커 setMap(null) 후 제거
+    // 제거
     Object.keys(markerMap).forEach(label => {
       if (!nextLabels.includes(label)) {
         markerMap[label].setMap(null)
@@ -70,22 +74,16 @@ function MapPage({ selectedLocation, onLocationChange }) {
       }
     })
 
-    // 2. 추가 & 위치/이미지 갱신
+    // 추가/갱신
     locations.forEach((loc) => {
-      const isSelected = selectedLocation?.label === loc.label
       const markerImage = new window.kakao.maps.MarkerImage(
-        isSelected
-          ? '../public/MapPin1.png'
-          : '../public/MapPin2.png',
+        '/MapPin2.png',
         new window.kakao.maps.Size(36, 36)
       )
       if (markerMap[loc.label]) {
-        // 위치가 바뀌었으면 setPosition
         markerMap[loc.label].setPosition(new window.kakao.maps.LatLng(loc.lat, loc.lng))
-        // 선택 마커 여부에 따라 이미지 갱신
         markerMap[loc.label].setImage(markerImage)
       } else {
-        // 신규 마커 생성
         const marker = new window.kakao.maps.Marker({
           map,
           position: new window.kakao.maps.LatLng(loc.lat, loc.lng),
@@ -95,12 +93,21 @@ function MapPage({ selectedLocation, onLocationChange }) {
         markerMap[loc.label] = marker
         window.kakao.maps.event.addListener(marker, 'click', () => {
           onLocationChange?.({ ...loc, label: loc.label })
+          // 행정구역 마커 클릭 시 간단 인포윈도우
+          if (infoWindowRef.current) {
+            const content = `<div style="padding:8px 10px;min-width:160px;">
+              <div style="font-weight:700;margin-bottom:4px;">${escapeHtml(loc.label)}</div>
+              <div style="font-size:12px;color:#666;">(${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)})</div>
+            </div>`
+            infoWindowRef.current.setContent(content)
+            infoWindowRef.current.open(map, marker)
+          }
         })
       }
     })
   }, [locations, selectedLocation])
 
-  // 선택된 위치가 바뀌면 지도 중심 이동만 처리
+  // ✅ 선택된 위치로 패닝 — 기존 유지
   useEffect(() => {
     const map = mapInstance.current
     if (!map || !selectedLocation) return
@@ -108,43 +115,109 @@ function MapPage({ selectedLocation, onLocationChange }) {
     map.panTo(newCenter)
   }, [selectedLocation])
 
-  // 불법 주차 시뮬레이션 데이터 추가
+  // ✅ 진행중 신고 주기적 조회 (10초 간격)
   useEffect(() => {
-    const timestamp = Date.now()
+    let timer
 
-    const allViolationsWithId = violationsLocations.map((violation, index) => ({
-      ...violation,
-      id: timestamp + index,
-    }))
+    const fetchOngoing = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/human-reports')
+        const list = Array.isArray(res.data) ? res.data : []
+        const onlyOngoing = list
+          .filter(r => r.status === '진행중')
+          .filter(r => r.latitude && r.longitude)
+          .map(r => ({
+            id: r.id,
+            lat: parseFloat(r.latitude),
+            lng: parseFloat(r.longitude),
+            title: r.title || '신고',
+            status: r.status,
+            location: r.location,
+            createdAt: r.createdAt,
+            imageURL: r.imageURL, // "/files/.." 같은 형태 가정
+            reason: r.reason,
+          }))
+        setOngoing(onlyOngoing)
+      } catch (e) {
+        console.error('진행중 신고 조회 실패:', e)
+      }
+    }
 
-    setViolations(allViolationsWithId)
+    fetchOngoing()
+    timer = setInterval(fetchOngoing, 10000)
+    return () => clearInterval(timer)
   }, [])
 
-
-  // 대쉬보드페이지에서 얻은 violations 데이터로 자동차 마커 생성
+  // ✅ 진행중 차량(Car) 마커 동기화 + 클릭 시 인포윈도우
   useEffect(() => {
     const map = mapInstance.current
     if (!map || !window.kakao || !window.kakao.maps) return
 
-    const markerImage = new window.kakao.maps.MarkerImage(
-      '../public/car.png',
+    const markers = carMarkersRef.current
+    const nextIds = new Set(ongoing.map(o => String(o.id)))
+
+    // 1) 삭제: 이제 진행중이 아닌 마커 제거
+    Object.keys(markers).forEach(id => {
+      if (!nextIds.has(id)) {
+        markers[id].setMap(null)
+        delete markers[id]
+      }
+    })
+
+    // 2) 추가/갱신
+    const carImage = new window.kakao.maps.MarkerImage(
+      '/car.png', // public/car.png 배치 필요
       new window.kakao.maps.Size(50, 50)
     )
 
-    violations.forEach((violation) => {
-      // 이미 마커가 존재하면 중복 생성 X
-      if (carMarkersRef.current[violation.id]) return
+    ongoing.forEach(o => {
+      if (!o.lat || !o.lng || isNaN(o.lat) || isNaN(o.lng)) return
+      const pos = new window.kakao.maps.LatLng(o.lat, o.lng)
 
-      const marker = new window.kakao.maps.Marker({
-        map,
-        position: new window.kakao.maps.LatLng(violation.lat, violation.lng),
-        image: markerImage,
-        title: violation.id,
-      })
+      if (markers[o.id]) {
+        // 위치 갱신
+        markers[o.id].setPosition(pos)
+      } else {
+        const marker = new window.kakao.maps.Marker({
+          map,
+          position: pos,
+          image: carImage,
+          title: String(o.title ?? o.id),
+          clickable: true,
+        })
+        markers[o.id] = marker
 
-      carMarkersRef.current[violation.id] = marker
+        // 📌 클릭 시 인포윈도우 오픈
+        window.kakao.maps.event.addListener(marker, 'click', () => {
+          if (!infoWindowRef.current) return
+          const title = escapeHtml(o.title || '신고')
+          const loc = escapeHtml(o.location || '')
+          const created = o.createdAt ? escapeHtml(String(o.createdAt).slice(0,10)) : ''
+
+          const content = `
+            <div style="padding:10px 12px;min-width:220px;max-width:260px;">              <div style="font-weight:700;margin-bottom:2px;">${title}</div>
+              <div style="font-size:12px;color:#555;margin-bottom:4px;">상태: ${o.status}</div>
+              <div style="font-size:12px;color:#555;word-break:break-all;">위치: ${loc}</div>
+              <div style="font-size:12px;color:#888;margin-top:4px;">등록일: ${created}</div>
+            </div>`
+
+          infoWindowRef.current.setContent(content)
+          infoWindowRef.current.open(map, marker)
+        })
+      }
     })
-  }, [violations])
+
+    // 3) 화면에 모두 보이도록 자동 맞춤 — 처음 한 번만
+    if (ongoing.length > 0 && !didAutoFitRef.current) {
+      const bounds = new window.kakao.maps.LatLngBounds()
+      ongoing.forEach(o => {
+        if (!o.lat || !o.lng || isNaN(o.lat) || isNaN(o.lng)) return
+        bounds.extend(new window.kakao.maps.LatLng(o.lat, o.lng))
+      })
+      if (!bounds.isEmpty()) map.setBounds(bounds)
+      didAutoFitRef.current = true // 이후에는 사용자 제어 유지
+    }
+  }, [ongoing])
 
   return (
     <div ref={mapRef} style={{ width: '100%', height: '94vh' }} />
