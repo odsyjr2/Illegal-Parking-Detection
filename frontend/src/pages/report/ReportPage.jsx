@@ -85,18 +85,19 @@ function ReportPage() {
     }
   };
 
-  // 📌 단속완료 처리
-  const handleComplete = async id => {
+  // ✅ 공통 상태 변경 함수 (ADMIN 전용 버튼에서 사용)
+  const handleSetStatus = async (id, status) => {
     try {
-      await axios.patch(`http://localhost:8080/api/human-reports/${id}`, {
-        status: '완료'
-      });
+      await axios.patch(`http://localhost:8080/api/human-reports/${id}/status`, { status });
       await fetchReports();
     } catch (err) {
       console.error('상태 변경 실패:', err);
-      alert('단속완료 처리 실패');
+      alert('상태 변경에 실패했습니다.');
     }
   };
+
+  // 📌 단속완료 처리 (기존 유지, 내부적으로 공통 함수 사용)
+  const handleComplete = async id => handleSetStatus(id, '완료');
 
   // 📌 경로보기
   const handlePath = id => {
@@ -170,7 +171,7 @@ function ReportPage() {
   // ✅ 조건에 따라 보여줄 신고 내역 선택
   const filteredReports = currentRole === 'ADMIN'
     ? reports
-    : reports.filter(report => report.userID == currentUserID);
+    : reports.filter(report => report.userID === currentUserID);
 
   return (
     <div style={{ maxWidth: 1000, margin: '40px auto', padding: 20, borderRadius: 10, background: '#f9fafe', minHeight: '100vh' }}>
@@ -296,14 +297,53 @@ function ReportPage() {
               />
             )}
             <div style={{ fontSize: 15, color: '#444' }}>{report.reason}</div>
-            <div style={{ fontSize: 13, color: '#999', display: 'flex', gap: 12 }}>
-              <span> 지역: {report.region}</span>
-              <span> 등록일: {report.createdAt?.slice(0, 10)}</span>
+            <div style={{ fontSize: 13, color: '#999', display: 'flex', gap: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <span> 지역: {report.region}</span>
+                <span> 등록일: {report.createdAt?.slice(0, 10)}</span>
+              </div>
+
+              {/* ✅ ADMIN 전용 상태 변경 버튼 */}
+              {currentRole === 'ADMIN' && (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSetStatus(report.id, '진행중')}
+                      disabled={report.status === '진행중'}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 8,
+                        border: '1px solid #c7d2fe',
+                        background: report.status === '진행중' ? '#e0e7ff' : '#fff',
+                        cursor: report.status === '진행중' ? 'not-allowed' : 'pointer',
+                        minWidth: 80
+                      }}
+                    >
+                      진행중
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetStatus(report.id, '완료')}
+                      disabled={report.status === '완료'}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: 8,
+                        border: '1px solid #2563eb',
+                        background: report.status === '완료' ? '#2563eb' : '#3b82f6',
+                        color: '#fff',
+                        cursor: report.status === '완료' ? 'not-allowed' : 'pointer',
+                        minWidth: 80
+                      }}
+                    >
+                      완료
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
-    )}
+          ))}
+        </div>
+      )}
     </div>
   );
 }
