@@ -1,65 +1,6 @@
 import React from 'react'
 import { Bar, Line } from 'react-chartjs-2'
 
-function LocationSelectorPanel({ selectedLocation, onLocationChange, locations }) {
-  const curLabel = selectedLocation?.label
-
-  return (
-    <div style={{
-      position: 'absolute',
-      top: 10,
-      left: 10,
-      zIndex: 1000,
-      backgroundColor: 'white',
-      borderRadius: 10,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
-      padding: 12,
-      minWidth: 220,
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      userSelect: 'none',
-    }}>
-      <select
-        value={curLabel || ''}
-        onChange={e => {
-          const loc = locations.find(l => l.label === e.target.value)
-          if (loc) onLocationChange(loc)
-        }}
-        style={{
-          width: '100%',
-          padding: '8px',
-          fontSize: 14,
-          borderRadius: 6,
-          border: '1px solid #ccc',
-          outline: 'none',
-          cursor: 'pointer',
-        }}
-      >
-        <option value="">--- 감시 위치 선택 ---</option>
-        {locations.map(loc => (
-          <option key={loc.label} value={loc.label}>{loc.label}</option>
-        ))}
-      </select>
-
-      <div style={{
-        background: '#e0e0e0',
-        height: 80,
-        borderRadius: 8,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontWeight: '600',
-        color: '#555',
-        userSelect: 'none',
-      }}>
-        <span>{curLabel || '위치 미선택'}</span>
-      </div>
-    </div>
-  )
-}
-
-
 function InfoPanel({ selectedLocation, onLocationChange }) {
   const locationStatus = {
     '강남구': [
@@ -175,7 +116,6 @@ function InfoPanel({ selectedLocation, onLocationChange }) {
           <Line data={timeLineData} options={timeLineOptions} />
         </div>
       </div>
-
         <h3 style={{ margin: '0 0 10px 0', color: '#222', fontWeight: '700' }}>실시간 현황</h3>
         <ul style={{ listStyle: 'none', padding: 0, marginBottom: '20px', display: 'flex', gap: '24px' }}>
           {displayInfo.map((item, idx) => (

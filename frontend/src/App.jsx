@@ -10,6 +10,7 @@ import SearchPage from './pages/search/SearchPage';
 import ReportPage from './pages/report/ReportPage';
 import AdminPage from './pages/admin/AdminPage';
 import AdminRoutes from './pages/admin/AdminRoutes';
+import RoutePage from './pages/dashboard/RoutePage'; 
 
 function App() {
   const [role, setRole] = useState(null);
@@ -137,6 +138,15 @@ function App() {
             element={
               <AuthRoute>
                 <AdminRoutes />
+              </AuthRoute>
+            }
+          />
+
+          <Route
+            path="/route"
+            element={
+              <AuthRoute>
+                <RoutePage />
               </AuthRoute>
             }
           />
