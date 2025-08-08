@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import './AuthForm.css'
+import CheckModal from './CheckModal'
 
 function SignupPage() {
   const [name, setName] = useState('')
@@ -9,6 +10,8 @@ function SignupPage() {
   const [passwordCheck, setPasswordCheck] = useState('')
   const [adminCode, setAdminCode] = useState('')
   const [loading, setLoading] = useState(false)
+  const [termsAgreed, setTermsAgreed] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   // 중복확인 상태 관리
   const [checking, setChecking] = useState(false)
@@ -83,6 +86,11 @@ function SignupPage() {
       return
     }
 
+    if (!termsAgreed) {
+      alert('약관에 동의해주세요.')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -116,6 +124,17 @@ function SignupPage() {
     <div className="auth-container">
       <form className="auth-box" onSubmit={handleSignup}>
         <h2>회원가입</h2>
+
+        {/* 약관 동의 링크 */}
+        <div style={{ textAlign: 'left', fontSize: '0.9rem', marginBottom: '10px' }}>
+          <span
+            onClick={() => setShowModal(true)}
+            style={{ color: 'blue', cursor: 'pointer', textDecoration: 'underline' }}
+          >
+            약관에 동의해주세요
+          </span>
+          {termsAgreed && <span style={{ marginLeft: '10px', color: 'green' }}>✔ 동의 완료</span>}
+        </div>
 
         <div>
           <label>이름:</label>
@@ -186,6 +205,16 @@ function SignupPage() {
           계정이 있나요? <Link to="/login">로그인</Link>
         </div>
       </form>
+      {/* 모달 컴포넌트 렌더링 */}
+      {showModal && (
+        <CheckModal
+          onClose={() => setShowModal(false)}
+          onAgree={() => {
+            setTermsAgreed(true)
+            setShowModal(false)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -4,14 +4,18 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement
 } from 'chart.js'
 
+
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement)
 
+
 const korWeekDays = ['일', '월', '화', '수', '목', '금', '토']
+
 
 function ReportsPage() {
   const [rawData, setRawData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
 
   // 최근 7일 날짜 생성
   const dates = useMemo(() => {
@@ -26,6 +30,7 @@ function ReportsPage() {
       return formatDate(d)
     })
   }, [])
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +50,7 @@ function ReportsPage() {
     fetchData()
   }, [])
 
+
   // 7일간 날짜별 신고 건수 집계
   const dailyCounts = useMemo(() => {
     if (!rawData) return Array(7).fill(0)
@@ -57,11 +63,13 @@ function ReportsPage() {
     return dates.map(date => dailyMap[date])
   }, [rawData, dates])
 
+
   // 오늘
   const todayIndex = dates.length - 1
   const todayCount = dailyCounts[todayIndex]
   const maxCount = Math.max(...dailyCounts)
   const avgCount = (dailyCounts.reduce((a, b) => a + b, 0) / dailyCounts.length).toFixed(1)
+
 
   // 구역별 통계 (이번 주 데이터 기준)
   const regionCounts = useMemo(() => {
@@ -79,6 +87,7 @@ function ReportsPage() {
       data: Object.values(regionMap),
     }
   }, [rawData, dates])
+
 
   // 시간대별 (4구간)
   const timeRanges = [
@@ -101,6 +110,7 @@ function ReportsPage() {
     return counts
   }, [rawData, dates])
 
+
   // 차트 라벨
   const weekLabels = dates.map(d => {
     const dt = new Date(d)
@@ -108,13 +118,15 @@ function ReportsPage() {
   })
   const chartColors = ['#1976d2','#ff9800','#43a047', '#ef5350','#6d4c41','#9c27b0','#0097a7']
 
+
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: '2.1fr 1.1fr',
-    gridTemplateRows: '1.2fr 1.2fr',
+    gridTemplateRows: '1.4fr 2.6fr',
     gap: 30,
-    maxWidth: 1100,
-    minHeight: 760,
+    maxWidth: 1300,
+    maxHeight: 300,
+    height: 'calc(100vh - 70px)',
     margin: '38px auto',
   }
   const bigPanelStyle = {
@@ -123,7 +135,7 @@ function ReportsPage() {
     borderRadius: 18,
     padding: '32px 30px 24px 30px',
     boxShadow: '0 3px 14px #eaf2fe',
-    minHeight: 540,
+    minHeight: 500,
     display: 'flex', flexDirection: 'column', justifyContent:'flex-start'
   }
   const subPanelStyle = {
@@ -131,13 +143,16 @@ function ReportsPage() {
     borderRadius: 14,
     padding: 20,
     boxShadow: '0 2px 7px #e8e8e8',
-    minHeight: 245,
     minWidth: 0,
-    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start'
+    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-start',
+    // minHeight: 245, // 제거!
+    // height: 'auto', // 필요시 명시적으로 주어도 됨
   }
+
 
   if (loading) return <div>로딩 중...</div>
   if (error) return <div>{error}</div>
+
 
   return (
     <div style={gridStyle}>
@@ -174,16 +189,22 @@ function ReportsPage() {
             }}
             options={{
               plugins: {legend:{display:false}},
-              scales: { y: {beginAtZero:true}},
+              scales: { 
+                x: { type: 'category' }, 
+                y: {
+                    beginAtZero:true,
+                    stepSize: 1,
+                    max: maxCount + 1
+                }},
               responsive: true,
               maintainAspectRatio: false,
             }}
-            height={320}
+            height={300}
           />
         </div>
       </section>
       {/* 구역별 신고 통계 */}
-      <section style={{...subPanelStyle, gridColumn:'2', gridRow:'1', marginBottom: 18}}>
+      <section style={{...subPanelStyle, gridColumn:'2', gridRow:'2', marginBottom: 18}}>
         <div style={{fontSize:19, fontWeight:700, marginBottom:12, color:'#2d3c50'}}>📍 구역별 신고 통계</div>
         <Pie
           data={{
@@ -197,40 +218,43 @@ function ReportsPage() {
             ]
           }}
           options={{
-            plugins:{legend:{position:'bottom', labels:{font:{size:15}}}},
+            plugins:{legend:{position:'top', labels:{font:{size:15}}}},
             responsive:true,
           }}
           height={130}
         />
       </section>
       {/* 시간대별 신고 (4구간/라인그래프) */}
-      <section style={{...subPanelStyle, gridColumn:'2', gridRow:'2', marginBottom: 18}}>
-        <div style={{fontSize:19, fontWeight:700, marginBottom:12, color:'#2d3c50'}}>⏰ 시간대별 신고</div>
-        <Line
-          data={{
-            labels: timeRanges.map(r=>r.label),
-            datasets: [
-              {
-                label:'시간대별',
-                data: timeRangeCounts,
-                borderColor:'#17b8fc',
-                backgroundColor:'rgba(41,119,239,0.13)',
-                tension:0.4,
-                fill:true,
-                pointRadius:5,
-              }
-            ]
-          }}
-          options={{
-            plugins: {legend:{display:false}},
-            scales: { y: {beginAtZero:true}},
-            responsive: true,
-          }}
-          height={110}
-        />
+      <section style={{...subPanelStyle, gridColumn:'2', gridRow:'1', marginBottom: 18}}>
+        <div style={{fontSize:19, fontWeight:700, marginBottom:0, color:'#2d3c50'}}>⏰ 시간대별 신고</div>
+        <div style={{ width: '100%' }}>
+          <Line
+            data={{
+              labels: timeRanges.map(r=>r.label),
+              datasets: [
+                {
+                  label:'시간대별',
+                  data: timeRangeCounts,
+                  borderColor:'#17b8fc',
+                  backgroundColor:'rgba(41,119,239,0.13)',
+                  tension:0.4,
+                  fill:true,
+                  pointRadius:5,
+                }
+              ]
+            }}
+            options={{
+              maintainAspectRatio: false,
+              plugins: {legend:{display:false}},
+              scales: { y: {beginAtZero:true}},
+              responsive: true,
+            }}
+          />
+        </div>
       </section>
     </div>
   )
 }
+
 
 export default ReportsPage
