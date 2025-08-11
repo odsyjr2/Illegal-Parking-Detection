@@ -216,12 +216,12 @@ function InfoPanel({ selectedLocation }) {
         </ul>
       </section>
       {/* 시단개별 현황 */}
-      <section style={{gridRow: '4', borderRadius: 14, padding: 20, boxShadow: '0 2px 7px #e8e8e8',}}>
+      <section style={{gridRow: '4', borderRadius: 14, padding: 20, boxShadow: '0 2px 7px #e8e8e8',marginBottom: 10,}}>
         <h4 style={{ marginBottom: 14, color: '#222', fontWeight: '700' }}>시단개별 현황</h4>
         <ul style={{ listStyle: 'none', paddingLeft: 0, margin: 0 }}>
           {sectionStatus.map((section, idx) => (
             <li key={idx} style={{
-              padding: '12px 0',
+              padding: '12px 0 ',
               borderBottom: idx !== sectionStatus.length - 1 ? '1px solid #eee' : 'none',
               fontSize: 14,
               color: '#444',
@@ -314,6 +314,7 @@ function InfoPanel({ selectedLocation }) {
           />
         </div>
       </section>
+      <section style={{gridRow: '5', padding: 5,}}></section>
     </div>
   )
 }

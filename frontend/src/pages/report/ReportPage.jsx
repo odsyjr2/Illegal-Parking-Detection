@@ -30,6 +30,7 @@ function ReportPage() {
     if (address.includes('강남구')) return '강남';
     if (address.includes('관악구')) return '관악';
     if (address.includes('송파구')) return '송파';
+    if (address.includes('동대문구')) return '동대문';
     return '기타';
   };
 

@@ -59,7 +59,7 @@ function MapWithLocationSelector({ selectedLocation, onLocationChange, locations
 
         <div style={{
           background: '#e0e0e0',
-          height: 80,
+          height: 160,
           borderRadius: 8,
           display: 'flex',
           justifyContent: 'center',
