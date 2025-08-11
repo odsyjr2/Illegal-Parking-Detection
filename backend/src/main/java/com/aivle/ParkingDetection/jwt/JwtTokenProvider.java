@@ -90,7 +90,15 @@ public class JwtTokenProvider {
     // ✅ 토큰 유효성 검사
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token).getBody();
+
+            // 액세스 토큰인지 확인 (권한 클레임 필수)
+            Object authClaim = claims.get("auth");
+            if (authClaim == null || authClaim.toString().trim().isEmpty()) {
+                log.warn("권한(auth) 클레임이 없어 액세스 토큰이 아닙니다. (리프레시 토큰 또는 무효)");
+                return false;
+            }
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.warn("잘못된 JWT 서명입니다.");
