@@ -56,7 +56,7 @@ function NavBar({ isOpen, toggle }) {
       </button>
       <div className={`sidebar ${isOpen ? 'open' : 'hidden'}`}>
         <div>
-          <h2>로고</h2>
+           <img src="/logo.png" alt="로고" style={{ width: 100, height: 'auto' }} />
           <div
             className="admin-info"
             style={{

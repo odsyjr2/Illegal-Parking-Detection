@@ -192,11 +192,24 @@ function RoutePage() {
 
   return (
     <div style={{ display: 'flex' }}>
-      <div ref={mapRef} style={{ width: '70%', height: '90vh' }} />
-      <div style={{ width: '30%', padding: '1rem', overflowY: 'auto', backgroundColor: '#f9f9f9', borderLeft: '1px solid #ccc' }}>
+      <div ref={mapRef} style={{ width: '70%', height: '95vh',}} />
+      <div style={{ 
+        width: '30%', 
+        padding: '1rem', 
+        overflowY: 'auto', 
+        backgroundColor: '#f9f9f9', 
+        borderLeft: '1px solid #ccc', 
+        height: '90vh', 
+        paddingBottom: '20px' }}>
         <h3 style={{ marginBottom: '1rem' }}>🚗 차량별 경로</h3>
         {vehicleRoutes.map((vehicle, idx) => (
-          <div key={idx} style={{ marginBottom: '1rem', padding: '10px', background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <div key={idx} style={{ 
+            marginBottom: idx === vehicleRoutes.length - 1 ? '2rem' : '1rem', // 마지막 아이템은 더 크게
+            padding: '10px',
+            background: '#fff',
+            borderRadius: '8px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          }}>
             <div style={{ fontWeight: 'bold', color: vehicle.color }}>{vehicle.id}</div>
             <div style={{ fontSize: '13px', margin: '4px 0', color: '#555' }}>
               📏 거리: {vehicle.distance}km &nbsp;&nbsp; ⏱ 시간: {vehicle.duration}분

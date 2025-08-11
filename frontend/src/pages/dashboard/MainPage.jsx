@@ -4,36 +4,27 @@ import RoutePage from './RoutePage'
 import './MainPage.css'
 import { useState } from 'react'
 
-
-// 임시로 단속경로 패널
+// 단속경로 패널 (RoutePage 감싸기)
 function RoutePanel() {
   return (
     <div className="route-panel" style={{ textAlign: 'center' }}>
-      <RoutePage/>
+      <RoutePage />
     </div>
   )
 }
 
-// 지도쪽에 위치 선택 UI와 지도를 함께 묶는 컴포넌트 (감시 위치 선택 UI 포함)
+// 지도 + 위치 선택 UI
 function MapWithLocationSelector({ selectedLocation, onLocationChange, locations }) {
   return (
     <div style={{ position: 'relative', height: '100%' }}>
-      {/* 위치 선택 UI - 지도 위쪽 왼쪽에 고정 */}
+      {/* 왼쪽 위 위치 선택 UI */}
       <div style={{
-        position: 'absolute',
-        top: 10,
-        left: 10,
-        zIndex: 1000,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
-        padding: 12,
-        width: 240,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 10,
-        userSelect: 'none',
-        marginRight: -40, // 좀 튀어나오는 룩 조절
+        position: 'absolute', top: 10, left: 10,
+        zIndex: 1000, backgroundColor: 'white',
+        borderRadius: 10, boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+        padding: 12, width: 240,
+        display: 'flex', flexDirection: 'column', gap: 10,
+        userSelect: 'none'
       }}>
         <select
           value={selectedLocation?.label || ''}
@@ -42,13 +33,9 @@ function MapWithLocationSelector({ selectedLocation, onLocationChange, locations
             if (loc) onLocationChange(loc)
           }}
           style={{
-            width: '100%',
-            padding: 8,
-            borderRadius: 6,
-            border: '1px solid #ccc',
-            cursor: 'pointer',
-            fontSize: 14,
-            outline: 'none'
+            width: '100%', padding: 8,
+            borderRadius: 6, border: '1px solid #ccc',
+            cursor: 'pointer', fontSize: 14, outline: 'none'
           }}
         >
           <option value="">--- 감시 위치 선택 ---</option>
@@ -58,15 +45,9 @@ function MapWithLocationSelector({ selectedLocation, onLocationChange, locations
         </select>
 
         <div style={{
-          background: '#e0e0e0',
-          height: 160,
-          borderRadius: 8,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          fontWeight: '600',
-          color: '#555',
-          userSelect: 'none',
+          background: '#e0e0e0', height: 160, borderRadius: 8,
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          fontWeight: '600', color: '#555'
         }}>
           <span>{selectedLocation?.label || '위치 미선택'}</span>
         </div>
@@ -82,7 +63,7 @@ function MainPage() {
   const [selectedLocation, setSelectedLocation] = useState(null)
   const [tab, setTab] = useState('map')
 
-  // 감시 위치 목록 (InfoPanel과 동일하게 공유)
+  // 감시 위치 목록
   const locations = [
     { label: '강남구', lat: 37.5172, lng: 127.0473 },
     { label: '관악구', lat: 37.4784, lng: 126.9516 },
@@ -91,7 +72,7 @@ function MainPage() {
 
   return (
     <div style={{ padding: "40px", background: "#f0f2f6", height: '100vh', boxSizing: 'border-box' }}>
-      {/* 탭 버튼 영역 */}
+      {/* 탭 버튼 */}
       <div className="main-tabs">
         <button
           className={tab === 'map' ? 'active' : ''}
@@ -104,8 +85,15 @@ function MainPage() {
       </div>
 
       {/* 메인 레이아웃 */}
-      <div className="main-layout" style={{ height: 'calc(100% - 60px)' }}>
-        <div className="main-map" style={{ position: 'relative' }}>
+      <div
+        className="main-layout"
+        style={{
+          height: 'calc(100% - 60px)',
+          display: 'flex' // flex로 좌우 배치
+        }}
+      >
+        {/* 왼쪽 영역 */}
+        <div style={{ flex: tab === 'map' ? '1 1 70%' : '1 1 100%', position: 'relative' }}>
           {tab === 'map' ? (
             <MapWithLocationSelector
               selectedLocation={selectedLocation}
@@ -117,12 +105,18 @@ function MainPage() {
           )}
         </div>
 
-        <div className="side-panel" style={{ overflowY: 'auto' }}>
-          <InfoPanel
-            selectedLocation={selectedLocation}
-            onLocationChange={setSelectedLocation}
-          />
-        </div>
+        {/* 오른쪽 InfoPanel - 지도 탭일 때만 표시 */}
+        {tab === 'map' && (
+          <div
+            className="side-panel"
+            style={{ flex: '0 0 30%', overflowY: 'auto' }}
+          >
+            <InfoPanel
+              selectedLocation={selectedLocation}
+              onLocationChange={setSelectedLocation}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
