@@ -1,16 +1,18 @@
 package com.aivle.ParkingDetection.dto;
 
-import java.time.LocalTime;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
-@JsonInclude(JsonInclude.Include.NON_NULL) // ✅ 안 온 필드는 역직렬화 대상에서 제외
 public class ParkingZoneRequestDTO {
-    private String zoneName;
-    private String origin;
-    private String destination;
-    private Boolean parkingAllowed;
-    private LocalTime allowedStart;
-    private LocalTime allowedEnd;
+    private String zoneName;    // 예: "관악구"
+    private String allowedTime; // 예: "08:00~20:00"
+    private List<ParkingSectionRequestDTO> sections = new ArrayList<>();
+
+    public String getZoneName() { return zoneName; }
+    public String getAllowedTime() { return allowedTime; }
+    public List<ParkingSectionRequestDTO> getSections() { return sections; }
+
+    public void setZoneName(String zoneName) { this.zoneName = zoneName; }
+    public void setAllowedTime(String allowedTime) { this.allowedTime = allowedTime; }
+    public void setSections(List<ParkingSectionRequestDTO> sections) { this.sections = sections; }
 }

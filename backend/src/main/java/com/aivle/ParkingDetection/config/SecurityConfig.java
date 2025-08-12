@@ -41,9 +41,13 @@ public class SecurityConfig {
         http
                 .cors(withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .headers(h -> h.frameOptions(f -> f.disable()))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // 공개 엔드포인트
                         .requestMatchers(
                                 "/api/users/check-email",
                                 "/api/users/signup",
@@ -58,39 +62,45 @@ public class SecurityConfig {
                                 "/api/cctvs/**"
                         ).permitAll()
 
-                        // ✅ 관리자 전용 endpoint
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
+                        // 관리자 전용
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                        // ✅ zones: 끝 슬래시 유무 모두 매칭
-                        .requestMatchers("/api/zones", "/api/zones/**").hasAnyAuthority("ADMIN","INSPECTOR")
+                        // ===== zones 권한 분리 =====
+                        // 조회: INSPECTOR, ADMIN
+                        .requestMatchers(HttpMethod.GET, "/api/zones", "/api/zones/**")
+                        .hasAnyRole("ADMIN", "INSPECTOR")
+                        // 생성/수정/삭제: ADMIN만
+                        .requestMatchers(HttpMethod.POST, "/api/zones", "/api/zones/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/zones", "/api/zones/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/zones", "/api/zones/**")
+                        .hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/zones", "/api/zones/**")
+                        .hasRole("ADMIN")
 
-                        // ✅ 그 외는 인증 필요
+                        // 그 외는 인증 필요
                         .anyRequest().authenticated()
                 )
-                // ✅ 인증X 요청은 401, 인증O 권한X는 403으로 명확히
                 .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                        .accessDeniedHandler(accessDeniedHandler)
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // 인증X -> 401
+                        .accessDeniedHandler(accessDeniedHandler)                                    // 인증O 권한X -> 403
                 )
-                // ✅ 세션 사용 안 함
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // ✅ JWT 필터 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of("http://localhost:5173"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("*")); // Authorization 포함
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "User-Agent", "Referer", "Cache-Control", "Pragma"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

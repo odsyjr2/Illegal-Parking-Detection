@@ -36,29 +36,29 @@ public class AdminController {
         return ResponseEntity.ok("✅ 사용자 ID " + id + " 삭제 완료");
     }
 
-    // ✅ 구역 추가 (ADMIN)
-    @PostMapping("/zones")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ParkingZoneDTO> createZone(@RequestBody ParkingZoneRequestDTO request) {
-        return ResponseEntity.ok(parkingZoneService.create(request));
-    }
-
-    // ✅ 구역 수정 (ADMIN)
-    @PatchMapping("/zones/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<ParkingZoneDTO> patchZone(
-            @PathVariable Long id,
-            @RequestBody ParkingZoneRequestDTO request
-    ) {
-        return ResponseEntity.ok(parkingZoneService.update(id, request));
-    }
-
-    // ✅ 구역 삭제 (ADMIN)
-    @DeleteMapping("/zones/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<String> deleteZone(@PathVariable Long id) {
-        parkingZoneService.delete(id);
-        return ResponseEntity.ok("구역이 삭제되었습니다. id=" + id);
-    }
+//    // ✅ 구역 추가 (ADMIN)
+//    @PostMapping("/zones")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+//    public ResponseEntity<ParkingZoneDTO> createZone(@RequestBody ParkingZoneRequestDTO request) {
+//        return ResponseEntity.ok(parkingZoneService.create(request));
+//    }
+//
+//    // ✅ 구역 수정 (ADMIN)
+//    @PatchMapping("/zones/{id}")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+//    public ResponseEntity<ParkingZoneDTO> patchZone(
+//            @PathVariable Long id,
+//            @RequestBody ParkingZoneRequestDTO request
+//    ) {
+//        return ResponseEntity.ok(parkingZoneService.update(id, request));
+//    }
+//
+//    // ✅ 구역 삭제 (ADMIN)
+//    @DeleteMapping("/zones/{id}")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+//    public ResponseEntity<String> deleteZone(@PathVariable Long id) {
+//        parkingZoneService.delete(id);
+//        return ResponseEntity.ok("구역이 삭제되었습니다. id=" + id);
+//    }
 
 }
