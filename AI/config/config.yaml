@@ -1,0 +1,205 @@
+# =============================================================================
+# Main Application Configuration for Illegal Parking Detection System
+# =============================================================================
+
+# Application Information
+application:
+  name: "Illegal Parking Detection AI Processor"
+  version: "2.0.0"
+  mode: "standalone"                    # "standalone" or "development"
+  description: "Standalone AI processor for illegal parking detection and enforcement"
+  
+  # Startup configuration
+  startup:
+    initialization_timeout: 60         # seconds to wait for full initialization
+    model_loading_timeout: 120         # seconds to wait for AI models to load
+    stream_connection_timeout: 30      # seconds to wait for stream connections
+    graceful_shutdown_timeout: 30      # seconds to wait for graceful shutdown
+
+# Backend Integration (Spring Boot)
+backend:
+  # Connection settings  
+  url: "${BACKEND_URL}"                # Environment variable for backend URL
+  fallback_url: "http://localhost:8080" # Fallback if env var not set
+  timeout: 30                          # seconds for API requests
+  
+  # Retry and error handling
+  retry_attempts: 3                    # number of retries for failed requests
+  retry_delay: 5                       # seconds between retry attempts
+  retry_backoff: "exponential"         # "linear" or "exponential" backoff
+  max_retry_delay: 60                  # maximum seconds for exponential backoff
+  
+  # API endpoints
+  endpoints:
+    cctvs: "/api/cctvs"                             # Get CCTV list
+    report_detection: "/api/ai/v1/report-detection" # Report violation detections
+    health_check: "/api/health"                     # Backend health check
+    parking_zones: "/api/parking-zones"            # Get legal parking zones
+    
+  # Authentication (if needed)
+  authentication:
+    enabled: false                      # Enable authentication
+    api_key: "${BACKEND_API_KEY}"      # Environment variable for API key
+    auth_header: "X-API-Key"           # Header name for API key
+    
+  # Circuit breaker pattern
+  circuit_breaker:
+    enabled: true                       # Enable circuit breaker
+    failure_threshold: 5                # failures before opening circuit
+    recovery_timeout: 60               # seconds before trying to close circuit
+    half_open_max_calls: 3             # max calls in half-open state
+
+# Logging Configuration
+logging:
+  # Basic logging settings
+  level: "INFO"                        # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # Console output
+  console_output: 
+    enabled: true                      # Enable console logging
+    colored: true                      # Use colored output (if supported)
+    
+  # File logging
+  file_logging:
+    enabled: true                      # Enable file logging
+    path: "../data/outputs/ai_processor.log"  # Log file path
+    max_size_mb: 100                  # Maximum log file size in MB
+    backup_count: 5                   # Number of backup files to keep
+    rotation: "size"                  # "size", "time", or "midnight"
+    
+  # Component-specific log levels
+  component_levels:
+    monitoring: "INFO"                 # Phase 1 monitoring service
+    analysis: "INFO"                   # Phase 2 analysis service
+    workers: "INFO"                    # Analysis worker threads
+    config: "WARNING"                  # Configuration loading
+    backend: "INFO"                    # Backend communication
+    performance: "INFO"                # Performance monitoring
+    
+  # Advanced logging options
+  advanced:
+    log_exceptions: true               # Log exception stack traces
+    log_performance: true              # Log performance metrics
+    log_memory_usage: false            # Log memory usage (can be verbose)
+    structured_logging: false          # Use structured JSON logging
+    
+# Output and Storage Configuration  
+outputs:
+  # Base output directory
+  base_path: "../data/outputs"
+  
+  # Directory structure
+  directories:
+    violations: "violations"           # Detected violation images
+    debug: "debug"                    # Debug output files
+    logs: "logs"                      # Log files
+    metrics: "metrics"                # Performance metrics
+    temp: "temp"                      # Temporary files
+    
+  # File management
+  file_management:
+    auto_cleanup: true                # Automatically clean old files
+    violation_retention_days: 90      # Days to keep violation images
+    debug_retention_days: 7           # Days to keep debug files
+    temp_cleanup_interval: 3600       # Seconds between temp file cleanup
+    max_disk_usage_gb: 50            # Maximum disk usage for outputs
+    
+  # Image output settings
+  image_output:
+    format: "jpg"                     # "jpg", "png", "bmp"
+    quality: 85                       # JPEG quality (1-100)
+    include_metadata: true            # Include EXIF metadata
+    timestamp_format: "%Y%m%d_%H%M%S" # Timestamp format for filenames
+    
+# System Resource Management
+system:
+  # Memory management
+  memory:
+    max_total_usage_mb: 4096          # Maximum total memory usage
+    warning_threshold: 0.8            # Warn when this fraction of max is used
+    monitoring_interval: 30           # Seconds between memory checks
+    automatic_gc: true                # Enable automatic garbage collection
+    gc_threshold: 0.85               # Memory threshold to trigger GC
+    
+  # CPU management
+  cpu:
+    max_cpu_percent: 80              # Maximum CPU usage percentage
+    monitoring_interval: 30          # Seconds between CPU checks
+    throttle_on_high_cpu: true       # Reduce processing on high CPU usage
+    
+  # Disk space management
+  disk:
+    min_free_space_gb: 10           # Minimum free disk space required
+    check_interval: 300             # Seconds between disk space checks
+    cleanup_on_low_space: true      # Automatically clean up on low space
+
+# Development and Debug Settings
+development:
+  # Debug modes
+  debug_mode: false                  # Enable debug mode
+  verbose_output: false              # Enable verbose console output
+  
+  # Performance profiling
+  profiling:
+    enabled: false                   # Enable performance profiling
+    output_path: "../data/profiles"  # Path for profiling output files
+    profile_components: ["monitoring", "analysis", "workers"]
+    
+  # Testing options
+  testing:
+    mock_backend: false              # Use mock backend responses
+    simulated_delays: false          # Add artificial delays for testing
+    test_data_path: "../data/test"   # Path to test data
+    
+  # Hot reload (development only)
+  hot_reload:
+    enabled: false                   # Enable configuration hot reload
+    watch_files: ["config.yaml", "models.yaml", "processing.yaml", "streams.yaml"]
+    reload_delay: 2                  # Seconds delay before reload
+
+# Health Monitoring
+health:
+  # Health check settings
+  checks:
+    enabled: true                    # Enable health monitoring
+    interval: 60                    # Seconds between health checks
+    timeout: 10                     # Seconds for health check timeout
+    
+  # Component health checks
+  components:
+    - name: "backend_connection"
+      enabled: true
+      critical: true                 # System critical component
+    - name: "model_loading"
+      enabled: true  
+      critical: true
+    - name: "stream_connections"
+      enabled: true
+      critical: false                # Not critical - can run with some streams down
+    - name: "disk_space" 
+      enabled: true
+      critical: false
+    - name: "memory_usage"
+      enabled: true
+      critical: false
+      
+  # Health reporting
+  reporting:
+    log_health_status: true          # Log periodic health status
+    alert_on_failure: true          # Alert on health check failures
+    health_endpoint: "/health"       # Health check endpoint (if web interface added)
+
+# Environment Configuration
+environment:
+  # Environment variables that should be set
+  required_env_vars:
+    - "BACKEND_URL"                  # Spring Boot backend URL
+    # - "BACKEND_API_KEY"            # API key (if authentication enabled)
+    # - "CCTV_API_KEY"               # CCTV API key (if live streams enabled)
+    
+  # Optional environment variables with defaults
+  optional_env_vars:
+    LOG_LEVEL: "INFO"               # Override default log level
+    DEBUG_MODE: "false"             # Override debug mode
+    MAX_MEMORY_MB: "4096"           # Override maximum memory usage

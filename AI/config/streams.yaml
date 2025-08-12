@@ -1,0 +1,174 @@
+# =============================================================================
+# CCTV Stream Configurations for Illegal Parking Detection System
+# =============================================================================
+
+# Stream Source Configuration
+cctv_streams:
+  # Backend integration settings
+  fetch_from_backend: true              # Get CCTV list from Spring backend
+  backend_endpoint: "/api/cctvs"        # API endpoint for CCTV data
+  fallback_enabled: true                # Use local streams if backend unavailable
+  auto_refresh_interval: 300            # seconds to refresh CCTV list from backend
+  
+  # Local testing streams (fallback configuration)
+  local_streams:
+    - id: "cctv_001"
+      name: "가양대교북단(고양)"
+      source_type: "image_sequence"
+      path: "../data/test_videos/가양대교북단(고양)_20210327075825"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6158
+        longitude: 126.8441
+        address: "가양대교북단, 고양시"
+        zone_type: "intersection"
+        
+    - id: "cctv_002"
+      name: "구산IC 동측(고양) - 1"
+      source_type: "image_sequence"
+      path: "../data/test_videos/구산IC 동측(고양)_20210420093227"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6234
+        longitude: 126.9156
+        address: "구산IC 동측, 고양시"
+        zone_type: "highway_exit"
+        
+    - id: "cctv_003"
+      name: "구산IC 동측(고양) - 2"
+      source_type: "image_sequence"
+      path: "../data/test_videos/구산IC 동측(고양)_20210420095825"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6234
+        longitude: 126.9156
+        address: "구산IC 동측, 고양시"
+        zone_type: "highway_exit"
+        
+    - id: "cctv_004"
+      name: "북로JC동측(고양) - 1"
+      source_type: "image_sequence"
+      path: "../data/test_videos/북로JC동측(고양)_20210412115826"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6789
+        longitude: 126.7854
+        address: "북로JC동측, 고양시"
+        zone_type: "junction"
+        
+    - id: "cctv_005"
+      name: "북로JC동측(고양) - 2"
+      source_type: "image_sequence"
+      path: "../data/test_videos/북로JC동측(고양)_20210412122825"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6789
+        longitude: 126.7854
+        address: "북로JC동측, 고양시"
+        zone_type: "junction"
+        
+    - id: "cctv_006"
+      name: "하라문교차로"
+      source_type: "image_sequence"
+      path: "../data/test_videos/하라문교차로_20210412075826"
+      fps: 10
+      enabled: true
+      location:
+        latitude: 37.6456
+        longitude: 126.8923
+        address: "하라문교차로"
+        zone_type: "intersection"
+
+  # Live streaming configuration (for future use)
+  live_streams:
+    enabled: false
+    api_base_url: "${CCTV_API_BASE_URL}"    # Environment variable
+    api_key: "${CCTV_API_KEY}"              # Environment variable
+    timeout: 30                             # seconds for API requests
+    retry_attempts: 3                       # retries for failed API calls
+    retry_delay: 10                         # seconds between retries
+    
+    # Stream format configuration
+    stream_format: "rtsp"                   # "rtsp", "http", "rtmp"
+    video_codec: "h264"                     # preferred video codec
+    max_resolution: [1920, 1080]           # maximum resolution to accept
+    min_resolution: [640, 480]             # minimum resolution required
+    
+    # Quality settings
+    quality_settings:
+      preferred_bitrate: "2000k"            # preferred bitrate
+      frame_buffer_size: 30                 # frames to buffer
+      connection_timeout: 15                # seconds for connection timeout
+      read_timeout: 30                      # seconds for read timeout
+
+# Stream Processing Configuration
+stream_processing:
+  # Connection management
+  connection_pool_size: 20                  # maximum concurrent connections
+  connection_retry_attempts: 5              # retries for failed connections
+  connection_retry_delay: 5                 # seconds between connection retries
+  heartbeat_interval: 30                    # seconds between heartbeat checks
+  
+  # Video processing
+  video_settings:
+    auto_resize: true                       # automatically resize frames
+    target_resolution: [1280, 720]         # target resolution for processing
+    maintain_aspect_ratio: true             # maintain aspect ratio when resizing
+    frame_interpolation: false              # interpolate missing frames
+    
+  # Error handling
+  error_handling:
+    max_consecutive_errors: 10              # stop stream after consecutive errors
+    error_recovery_delay: 30                # seconds before attempting recovery
+    skip_corrupted_frames: true             # skip frames that can't be decoded
+    log_stream_errors: true                 # log stream-related errors
+    
+  # Performance optimization
+  performance:
+    enable_multithreading: true             # use multiple threads per stream
+    max_threads_per_stream: 2               # maximum threads per stream
+    frame_drop_on_overload: true            # drop frames if processing overloaded
+    adaptive_fps: false                     # adjust FPS based on processing capacity
+    
+# Output Configuration
+outputs:
+  # Violation capture settings
+  violation_capture:
+    save_violation_images: true             # save images of detected violations
+    image_format: "jpg"                     # "jpg", "png", "bmp"
+    image_quality: 85                       # JPEG quality (1-100)
+    include_timestamp: true                 # include timestamp in filename
+    include_location: true                  # include GPS coords in metadata
+    
+  # Video recording (if needed)
+  video_recording:
+    enabled: false                          # record video streams
+    format: "mp4"                          # video format
+    codec: "h264"                          # video codec
+    max_duration_minutes: 60               # maximum recording duration
+    auto_cleanup_days: 7                   # days to keep recordings
+    
+# Stream Monitoring
+monitoring:
+  # Health checks
+  health_check_interval: 60                 # seconds between health checks
+  stream_status_logging: true               # log stream status changes
+  performance_monitoring: true              # monitor stream performance metrics
+  
+  # Alerts and notifications
+  alerts:
+    stream_offline_alert: true              # alert when stream goes offline
+    low_fps_alert: true                     # alert when FPS drops significantly  
+    connection_failure_alert: true          # alert on repeated connection failures
+    
+  # Metrics collection
+  metrics:
+    collect_fps_metrics: true               # collect FPS statistics
+    collect_frame_metrics: true             # collect frame processing statistics
+    collect_error_metrics: true             # collect error statistics
+    metrics_retention_days: 30              # days to keep metrics data
