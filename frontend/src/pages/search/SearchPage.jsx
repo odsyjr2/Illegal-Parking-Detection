@@ -8,7 +8,7 @@ const statusColorMap = {
 };
 
 const STATUS_OPTIONS = ['전체', '접수', '진행중', '완료'];
-const REGION_OPTIONS = ['전체', '강남', '관악', '송파', '기타'];
+const REGION_OPTIONS = ['전체', '강남', '관악', '송파', '동대문', '기타'];
 const DATE_OPTIONS = ['전체', '오늘', '이번주', '이번달'];
 
 const isDateInRange = (reportDateStr, filter) => {
