@@ -62,26 +62,159 @@ AI/ai_server/
 ### 🎯 **IMMEDIATE PRIORITY: Spring Boot Backend Integration**  
 **Focus:** Implement backend API functions, test AI-backend integration with H2 database, then migrate to production database.
 
-### 5.1. Required Backend Components
+### 5.1. Backend Implementation Blueprint
 
-**Entity Layer:**
-- [ ] Modify `Detection` entity: Add `plateNumber`, `reportType`, `cctvId`, `latitude`, `longitude` 
-- [ ] Create `AiReportController`: Handle `POST /api/ai/v1/report-detection` endpoint
-- [ ] Enhance `DetectionServiceImpl`: Process AI violation reports and validate with parking zones
+**Phase 1: Entity & Data Layer Updates**
+- [ ] **Detection Entity Enhancement** (`Detection.java:15-24`)
+  - Add fields: `String plateNumber`, `String reportType`, `String cctvId`, `Double latitude`, `Double longitude`
+  - Update constructors, builder pattern, and DTOs accordingly
+  - Ensure H2 database compatibility
 
-**Service Layer:**
-- [ ] Create `AiReportProcessingService`: Core logic for processing AI detection reports  
-- [ ] Create `FileStorageService`: Handle Base64 image storage and retrieval
-- [ ] Implement parking zone validation logic
+**Phase 2: AI Integration Controller & Services**
+- [ ] **AiReportController Creation**
+  - Endpoint: `POST /api/ai/v1/report-detection`
+  - Accept AI processor JSON payload (see Section 5.2)
+  - Validation and routing to processing services
+  
+- [ ] **AiReportProcessingService Implementation**
+  - Core business logic for AI violation report processing
+  - Parking zone validation integration
+  - Database persistence with enhanced Detection entity
+  
+- [ ] **FileStorageService Creation**
+  - Handle Base64 image storage from AI processor
+  - Image file management and retrieval APIs
+  - Storage path configuration
 
-**Integration Testing:**
-- [ ] Test AI → Backend communication with real violation data
-- [ ] Validate JSON payload format matches AI processor output  
-- [ ] Test error handling and retry mechanisms end-to-end
+**Phase 3: Enhanced Service Layer**
+- [ ] **DetectionServiceImpl Enhancement** (`DetectionServiceImpl.java:20-31`)
+  - Update `saveDetection()` method for AI reports
+  - Add violation processing with parking zone validation
+  - Integration with AiReportProcessingService
+
+### 5.2. AI Processor Output Analysis
+
+**Based on `event_reporter.py` Analysis:**
+
+**AI Processor Event Structure:**
+```json
+{
+  "event_id": "violation_detected_stream1_1703845234",
+  "event_type": "violation_detected",
+  "priority": "urgent|high|normal|low",
+  "timestamp": 1703845234.567,
+  "timestamp_iso": "2023-12-29T10:33:54.567Z",
+  "stream_id": "cctv_001",
+  "correlation_id": "parking_event_12345",
+  "data": {
+    "violation": {
+      "event_id": "parking_event_12345",
+      "stream_id": "cctv_001",
+      "start_time": 1703845234.567,
+      "duration": 125.3,
+      "violation_severity": 0.85,
+      "is_confirmed": true,
+      "vehicle_type": "car",
+      "parking_zone_type": "no_parking"
+    },
+    "vehicle": {
+      "track_id": "vehicle_456",
+      "vehicle_type": "car",
+      "confidence": 0.92,
+      "bounding_box": [100, 150, 300, 400],
+      "last_position": [125.4, 37.5]
+    },
+    "license_plate": {
+      "plate_text": "ABC1234",
+      "confidence": 0.88,
+      "bounding_box": [180, 320, 280, 350],
+      "is_valid_format": true
+    },
+    "ocr_result": {
+      "recognized_text": "ABC1234",
+      "confidence": 0.88,
+      "is_valid_format": true
+    },
+    "stream_info": {
+      "stream_id": "cctv_001",
+      "location_name": "Main Street Intersection"
+    }
+  }
+}
+```
+
+### 5.3. Backend API Endpoint Specifications
+
+**Primary Endpoint: `POST /api/ai/v1/report-detection`**
+
+**Request Headers:**
+- `Content-Type: application/json`
+- `X-API-Key: <api_key>` (if authentication required)
+
+**Request Body:** AI processor event JSON (see Section 5.2)
+
+**Response Format:**
+```json
+{
+  "success": true,
+  "detection_id": 12345,
+  "message": "Violation report processed successfully",
+  "timestamp": "2023-12-29T10:33:54.567Z"
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error_code": "VALIDATION_ERROR",
+  "message": "Invalid license plate format",
+  "timestamp": "2023-12-29T10:33:54.567Z"
+}
+```
+
+### 5.4. Integration Testing Scenarios
+
+**Test Scenario 1: Valid Violation Report**
+- AI processor sends complete violation with license plate
+- Backend validates, processes, and stores in H2 database
+- Verify Detection entity creation with all fields
+
+**Test Scenario 2: Violation Without License Plate**
+- AI processor sends violation without OCR data
+- Backend processes and stores with null plateNumber
+- Verify system handles missing optional data
+
+**Test Scenario 3: Retry Mechanism Testing**
+- Simulate backend unavailability
+- Verify AI processor retry logic (from `event_reporter.py:234-270`)
+- Test exponential backoff and max retry limits
+
+**Test Scenario 4: Invalid Data Handling**
+- Send malformed JSON payload
+- Verify backend validation and error responses
+- Test graceful error handling
+
+**Test Scenario 5: High Volume Testing**
+- Multiple concurrent violation reports
+- Verify backend performance and H2 database handling
+- Test event queue processing (from `event_reporter.py:431-450`)
 
 ## 6. KEY IMPLEMENTATION INSTRUCTIONS
 
-### 6.1. **⚠️ IMPORTANT REMINDERS**
+### 6.1. **⚠️ IMPLEMENTATION PRIORITIES & CHECKLIST**
+
+**Implementation Order (Current Todo List):**
+1. ✅ **Update CLAUDE.md with detailed AI-Backend integration blueprint**
+2. ⏳ **Modify Detection entity** - Add `plateNumber`, `reportType`, `cctvId`, `latitude`, `longitude` fields
+3. ⏳ **Create AiReportController** - Handle `POST /api/ai/v1/report-detection` endpoint  
+4. ⏳ **Implement AiReportProcessingService** - Core AI report processing logic
+5. ⏳ **Create FileStorageService** - Base64 image storage and retrieval
+6. ⏳ **Enhance DetectionServiceImpl** - Process AI violation reports
+7. ⏳ **Implement parking zone validation logic** - Backend services integration
+8. ⏳ **Test AI → Backend communication** - Real violation data scenarios
+9. ⏳ **Validate JSON payload format** - Matches AI processor output
+10. ⏳ **Test error handling and retry mechanisms** - End-to-end validation
 
 **Development Focus:**
 1. **Backend API Development FIRST** - Implement all backend functions before database migration
@@ -90,9 +223,9 @@ AI/ai_server/
 4. **Follow User Blueprint** - Implementation order: Backend APIs → AI-Backend Integration Testing → Database Migration
 
 **API Integration Requirements:**
-- **AI Processor → Backend**: `POST /api/ai/v1/report-detection` endpoint must be implemented
-- **JSON Payload Structure**: Include `cctvId`, `timestamp`, `location`, `vehicleImage`, `aiAnalysis`
-- **Retry Mechanisms**: Backend must handle AI processor retry logic
+- **AI Processor → Backend**: `POST /api/ai/v1/report-detection` endpoint (see Section 5.3)
+- **JSON Payload Structure**: Matches `event_reporter.py` output format (see Section 5.2)
+- **Retry Mechanisms**: Backend must handle AI processor retry logic (lines 234-270 in `event_reporter.py`)
 - **H2 Database**: Use for all testing scenarios before production migration
 
 ### 6.2. **📁 CONFIGURATION FILES**
@@ -133,3 +266,24 @@ AI/config/
 ---
 
 **🎯 CURRENT FOCUS: Backend API development and AI-Backend integration testing with H2 database**
+
+---
+
+## 📋 IMPLEMENTATION STATUS TRACKING
+
+### ✅ **COMPLETED TASKS**
+- [x] AI Processor development (Production-ready)
+- [x] AI-Backend integration blueprint and detailed specifications
+- [x] Analysis of AI processor output format (`event_reporter.py`)
+- [x] JSON payload structure documentation
+- [x] Integration testing scenarios definition
+
+### 🔄 **IN PROGRESS**
+- [ ] Backend API implementation for AI integration
+
+### ⏭️ **NEXT IMMEDIATE STEPS**
+1. **Test Current Backend Structure** - Verify Spring Boot + H2 database setup
+2. **Modify Detection Entity** - Add required fields for AI integration
+3. **Create AI Integration Controller** - Handle `POST /api/ai/v1/report-detection`
+4. **Implement Processing Services** - Core logic for AI violation reports
+- I want to know where does code modified. don't delete current codebase. If it's necessary to modify, just comment out current code and edit new one.
