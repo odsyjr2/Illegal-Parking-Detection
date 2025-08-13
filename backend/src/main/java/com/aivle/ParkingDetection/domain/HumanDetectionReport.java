@@ -44,4 +44,8 @@ public class HumanDetectionReport {
 
     private String title; // 선택 사항, 신고 제목
 
+    @Column(nullable = false)
+    private boolean isRead = false;
+
+
 }

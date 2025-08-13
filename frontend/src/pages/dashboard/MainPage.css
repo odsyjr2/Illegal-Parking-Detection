@@ -79,3 +79,34 @@ body, html, #root {
   display: flex;
   min-height: 0; /* flexbox에서 자식이 잘리게 막지 않도록 */
 }
+
+/* AlertBox 전체 래퍼 */
+.alert-box {
+  display: flex;
+  width: 100%;           /* 전체 폭 */
+  box-sizing: border-box;
+  flex-direction: column;
+  align-items: center;
+  font-size: 16px;
+  padding-bottom: 10px;
+}
+
+/* 알림 1개 스타일 */
+.alert-item {
+  width: 98%;
+  background-color: #fff9c4;
+  color: #000;
+  padding: 12px 16px;
+  border-radius: 16px;      /* 완전 직사각형 */
+  font-weight: bold;
+  text-align: center;
+  animation: blink-bg 1s step-start infinite;
+  cursor: pointer;
+}
+
+/* 배경 깜빡임 애니메이션 */
+@keyframes blink-bg {
+  50% {
+    background-color: #ffe082;
+  }
+}
