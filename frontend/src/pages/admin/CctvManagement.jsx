@@ -16,6 +16,7 @@ function CctvManagement() {
   const [filterZone, setFilterZone] = useState('전체')
   const [selectedIds, setSelectedIds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
+  const [newInstallationDate, setNewInstallationDate] = useState('');
 
   // 카카오 정방향 지오코딩 (주소 → 좌표)
   async function forwardGeocode(address) {
@@ -133,10 +134,15 @@ function CctvManagement() {
     const locationTrim = newLocation.trim()
     const latTrim = newLatitude.trim()
     const lngTrim = newLongitude.trim()
+    const dateTrim = newInstallationDate.trim();
 
     if (!locationTrim) {
       alert('도로명주소를 입력하거나 주소검색으로 선택하세요.')
       return
+    }
+    if (!dateTrim) {
+      alert('설치일을 선택하세요.');
+      return;
     }
 
     let latitude = parseFloat(latTrim)
@@ -153,9 +159,7 @@ function CctvManagement() {
         alert('유효한 도로명주소 및 위도/경도를 입력하세요.')
         return
       }
-
-      const payload = { location: locationTrim, latitude, longitude }
-
+      const payload = { location: locationTrim, latitude, longitude, installationDate: newInstallationDate, }
       const res = await fetch('http://localhost:8080/api/cctvs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -170,6 +174,7 @@ function CctvManagement() {
       setNewLatitude('')
       setNewLongitude('')
       setCurrentPage(totalPages)
+      setNewInstallationDate('')
     } catch (e) {
       alert('CCTV 추가에 실패했습니다: ' + e.message)
     }
@@ -307,6 +312,15 @@ function CctvManagement() {
           onChange={(e) => setNewLongitude(e.target.value)}
           className="lat-lng-input"
         />
+        <label>
+          설치일:
+          <input
+            type="date"
+            value={newInstallationDate}
+            onChange={(e) => setNewInstallationDate(e.target.value)}
+            className="lat-lng-input"
+          />
+        </label>
         <button onClick={handleAddCctv} className="add-button" aria-label="새 CCTV 추가">
           + 추가
         </button>
@@ -351,7 +365,7 @@ function CctvManagement() {
                   </td>
                   <td>{(currentPage - 1) * PAGE_SIZE + idx + 1}</td>
                   <td>{cctv.location}</td>
-                  <td>{cctv.installedAt || '-'}</td>
+                  <td>{cctv.installationDate || '-'}</td>
                 </tr>
               )
             })

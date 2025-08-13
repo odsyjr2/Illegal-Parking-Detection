@@ -1,24 +1,29 @@
-/* AuthForm.css */
-
-/* 전체 wrapper: 항상 창 가운데 */
+/* 전체 wrapper: 항상 창 가운데 유지 */
 .auth-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(100vh - 60px); /* 헤더 제외한 높이 */
+  height: calc(100vh - 60px); /* 헤더 제외 높이 */
   background-color: #f8f9fa;
-  padding: 0; /* 여백 제거 */
+  padding: 0;
   box-sizing: border-box;
+  min-width: 300px; /* 너무 작아지는 것 방지 */
 }
 
+
 /* 로그인/회원가입 폼 */
+/* 가로 크기를 고정 너비에서 % 단위로 변경, 혹은 vw 활용 */
+/* 최소/최대 너비 지정으로 크기 조절 유연하게 */
 .auth-box {
   background-color: #fff;
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  width: 600px;       /* 고정 너비 지정 */
-  max-width: 80%;     /* 혹시 모를 브라우저끼리 여유 */
+  width: 800px;      /* 기본 넓이 고정 */
+  max-width: 80%;    /* 화면이 600px 미만이면 화면 90%까지 축소 */
+  min-width: 320px;        /* 최소 320px */
+  box-sizing: border-box;
+  transition: width 0.3s ease; /* 크기 변화 부드럽게 */
 }
 
 
@@ -42,15 +47,6 @@
   border-radius: 6px;
 }
 
-.auth-box input {
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  margin-bottom: 18px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
 .auth-button {
   width: 100%;
   padding: 12px;
@@ -61,6 +57,7 @@
   border-radius: 6px;
   font-size: 16px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .auth-button:hover {
@@ -73,7 +70,6 @@
   font-size: 14px;
 }
 
-
 .input-with-button label {
   display: block;
   margin-bottom: 18px;
@@ -82,11 +78,11 @@
 
 .input-row {
   display: flex;
-  gap: 8px; /* input과 버튼 사이 간격 조절 */
+  gap: 8px;
 }
 
 .input-row input {
-  flex: 1; /* 넓게 늘어남 */
+  flex: 1;
 }
 
 .input-row button {
@@ -100,8 +96,41 @@
   font-size: 14px;
   cursor: pointer;
   margin-bottom: 18px;
+  transition: background-color 0.3s ease;
 }
 
 .input-row button:hover {
   background-color: #004c99;
+}
+
+/* 중복확인 메시지 기본 스타일 추가 */
+.check-message {
+  font-size: 13px;
+  margin-top: 3px;
+  margin-bottom: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  width: 100%; /* 입력창과 같은 너비로 */
+  box-sizing: border-box;
+}
+
+/* 중복된 이메일 메시지 */
+.check-message.duplicate {
+  color: #b00020;
+  background-color: #fddede;
+  border: 1px solid #b00020;
+}
+
+/* 사용 가능한 이메일 메시지 */
+.check-message.available {
+  color: #018786;
+  background-color: #d7f1ea;
+  border: 1px solid #018786;
+}
+
+/* 중복확인 오류 메시지 스타일 */
+.check-message.error {
+  color: #b00020;
+  background-color: #ffe3e3;
+  border: 1px solid #b00020;
 }

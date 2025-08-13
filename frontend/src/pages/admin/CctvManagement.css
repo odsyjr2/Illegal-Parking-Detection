@@ -181,10 +181,10 @@
 
 /* 비활성화된 버튼 */
 .pag-btn.disabled {
-  background-color: #ccc;
-  border-color: #ccc;
-  color: #777;
-  cursor: not-allowed;
+  border: 2px solid #354185ff;
+  background-color: #354185ff;
+  color: #fff;
+  cursor: default;
   pointer-events: none;
 }
 

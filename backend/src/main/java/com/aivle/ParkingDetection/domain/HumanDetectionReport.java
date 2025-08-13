@@ -35,7 +35,7 @@ public class HumanDetectionReport {
     private String status; // ex: "접수", "진행중", "완료"
 
     @CreationTimestamp
-    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private Timestamp createdAt;
 
     private String region; // 선택 사항, 예: "강남"

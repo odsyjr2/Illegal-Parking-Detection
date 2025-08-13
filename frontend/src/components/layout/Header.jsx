@@ -26,7 +26,7 @@ function Header() {
   return (
     <header style={headerStyle}>
       <Link to="/" style={logoStyle}>
-        로고
+        <img src="/logo.png" alt="로고" style={{ width: 100, height: 'auto' }} />
       </Link>
     </header>
   );

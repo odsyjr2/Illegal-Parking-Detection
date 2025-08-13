@@ -1,0 +1,118 @@
+# =============================================================================
+# Processing Parameters for Illegal Parking Detection System
+# =============================================================================
+
+# Phase 1: Continuous Monitoring Parameters
+monitoring:
+  # Parking duration detection
+  parking_duration_threshold: 300    # seconds (5 minutes) - when parking becomes violation
+  stationary_threshold: 5.0         # seconds to consider vehicle "parked"
+  position_tolerance: 20             # pixels for "same position" detection
+  
+  # Frame processing
+  frame_skip_rate: 0                 # frames to skip (0 = process all frames)
+  processing_interval: 1.0           # seconds between monitoring cycles
+  update_interval: 0.1               # seconds between position updates
+  
+  # Vehicle tracking parameters
+  tracking:
+    max_disappeared: 30              # frames before removing lost track
+    max_distance: 100               # pixels maximum for track association
+    track_history: 50               # number of position points to keep
+    confidence_decay: 0.95          # confidence reduction per frame
+    min_track_length: 10            # minimum frames to create stable track
+    
+  # Performance optimization
+  max_concurrent_streams: 10         # maximum CCTV streams to monitor simultaneously
+  memory_cleanup_interval: 300      # seconds between memory cleanup
+  max_memory_usage_mb: 2048         # maximum memory usage before cleanup
+
+# Phase 2: Detailed Analysis Parameters  
+analysis:
+  # Worker pool configuration
+  worker_pool_size: 3               # number of analysis worker threads
+  queue_max_size: 100              # maximum tasks in analysis queue
+  task_timeout: 30                 # seconds maximum per analysis task
+  
+  # Processing strategy
+  batch_processing: false          # process tasks individually for now
+  batch_size: 4                   # if batch processing enabled
+  priority_processing: true       # higher priority for recent violations
+  
+  # Retry and error handling
+  retry_attempts: 3               # number of retries for failed analysis
+  retry_delay: 5                  # seconds between retry attempts
+  max_retry_queue_size: 50        # maximum failed tasks to keep for retry
+  
+  # Analysis pipeline stages
+  pipeline_stages:
+    illegal_classification: true   # enable illegal parking classification
+    license_plate_detection: true # enable license plate detection  
+    ocr_processing: true          # enable OCR text recognition
+    confidence_validation: true   # validate confidence scores
+    
+  # Quality filters
+  image_quality:
+    min_resolution: [640, 480]    # minimum image resolution for analysis
+    min_brightness: 30            # minimum brightness level (0-255)
+    max_blur_threshold: 100       # maximum blur metric (lower = less blur)
+    contrast_enhancement: true    # enable automatic contrast enhancement
+
+# Performance Monitoring
+performance:
+  # Metrics collection
+  enable_metrics: true            # collect performance metrics
+  metrics_interval: 60           # seconds between metric collection
+  
+  # Performance thresholds
+  thresholds:
+    max_processing_time: 5.0     # seconds - warning if analysis takes longer
+    min_fps_monitoring: 5.0      # FPS - warning if monitoring drops below
+    max_queue_wait_time: 30.0    # seconds - warning if tasks wait too long
+    max_memory_per_stream: 512   # MB - warning if stream uses more memory
+    
+  # Logging and alerts
+  log_slow_operations: true       # log operations exceeding thresholds
+  alert_on_failures: true        # log alerts for repeated failures
+  detailed_timing: false         # detailed timing for each pipeline stage
+
+# Resource Management
+resources:
+  # Memory management
+  max_total_memory_mb: 4096      # maximum total memory usage
+  memory_warning_threshold: 0.8  # warn when 80% of max memory used
+  automatic_gc: true             # enable automatic garbage collection
+  gc_interval: 120              # seconds between garbage collection
+  
+  # GPU memory management (if applicable)
+  gpu_memory:
+    max_gpu_memory_mb: 2048      # maximum GPU memory usage
+    gpu_memory_growth: true      # allow gradual GPU memory allocation
+    clear_gpu_cache: true        # clear GPU cache between tasks
+    
+  # Disk space management
+  disk_space:
+    min_free_space_gb: 10        # minimum free disk space required
+    cleanup_old_logs: true       # automatically clean old log files
+    log_retention_days: 30       # days to keep log files
+    temp_file_cleanup: true      # clean temporary files automatically
+
+# Development and Debug Settings
+debug:
+  # Debug output
+  save_debug_images: false       # save intermediate processing images
+  debug_output_path: "../data/debug"  # path for debug output files
+  
+  # Performance profiling
+  enable_profiling: false        # enable detailed performance profiling
+  profile_output_path: "../data/profiles"  # path for profiling output
+  
+  # Visualization options
+  show_bounding_boxes: false     # show detection bounding boxes
+  show_tracking_trails: false    # show vehicle tracking trails
+  show_confidence_scores: false  # show model confidence scores
+  
+  # Advanced debugging
+  verbose_logging: false         # enable verbose debug logging
+  save_failed_analyses: true     # save images that failed analysis
+  exception_handling: "log"      # "log", "raise", or "ignore" for exceptions
