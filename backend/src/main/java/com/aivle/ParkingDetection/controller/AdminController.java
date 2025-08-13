@@ -21,7 +21,7 @@ public class AdminController {
     private final ParkingZoneService parkingZoneService;
 
     // ✅ 전체 회원 목록
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<UserDTO> users = userService.getAllUsers();
@@ -30,7 +30,7 @@ public class AdminController {
 
     // ✅ 사용자 삭제 (ADMIN 권한만 가능)
     @DeleteMapping("/users/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')") // ✅ ADMIN만 허용
+    @PreAuthorize("hasRole('ADMIN')") // ✅ ADMIN만 허용
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
         return ResponseEntity.ok("✅ 사용자 ID " + id + " 삭제 완료");
