@@ -1,0 +1,43 @@
+{
+  "event_id": "violation_detected_stream1_1703845234",
+  "event_type": "violation_detected",
+  "priority": "urgent",
+  "timestamp": 1703845234.567,
+  "timestamp_iso": "2023-12-29T10:33:54.567Z",
+  "stream_id": "cctv_001",
+  "correlation_id": "parking_event_12345",
+  "data": {
+    "violation": {
+      "event_id": "parking_event_12345",
+      "stream_id": "cctv_001",
+      "start_time": 1703845234.567,
+      "duration": 125.3,
+      "violation_severity": 0.85,
+      "is_confirmed": true,
+      "vehicle_type": "car",
+      "parking_zone_type": "no_parking"
+    },
+    "vehicle": {
+      "track_id": "vehicle_456",
+      "vehicle_type": "car",
+      "confidence": 0.92,
+      "bounding_box": [100, 150, 300, 400],
+      "last_position": [125.4, 37.5]
+    },
+    "license_plate": {
+      "plate_text": "ABC1234",
+      "confidence": 0.88,
+      "bounding_box": [180, 320, 280, 350],
+      "is_valid_format": true
+    },
+    "ocr_result": {
+      "recognized_text": "ABC1234",
+      "confidence": 0.88,
+      "is_valid_format": true
+    },
+    "stream_info": {
+      "stream_id": "cctv_001",
+      "location_name": "Main Street Intersection"
+    }
+  }
+}

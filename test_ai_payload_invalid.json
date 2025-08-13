@@ -1,0 +1,28 @@
+{
+  "event_id": "invalid_test_123",
+  "event_type": "violation_detected",
+  "priority": "urgent",
+  "timestamp": 1703830800.000,
+  "timestamp_iso": "2023-12-29T07:00:00.000Z",
+  "stream_id": "",
+  "correlation_id": "invalid_test",
+  "data": {
+    "violation": {
+      "event_id": "invalid_test",
+      "stream_id": "",
+      "start_time": 1703830800.000,
+      "duration": -50,
+      "violation_severity": 1.5,
+      "is_confirmed": true,
+      "vehicle_type": "car",
+      "parking_zone_type": "no_parking"
+    },
+    "vehicle": {
+      "track_id": "vehicle_invalid",
+      "vehicle_type": "car",
+      "confidence": -0.1,
+      "bounding_box": [],
+      "last_position": []
+    }
+  }
+}
