@@ -613,6 +613,22 @@ class EventFormatter:
         if ocr_result:
             event_data["ocr_result"] = convert_ocr_result_to_model(ocr_result).dict()
         
+        # AI INTEGRATION - Add Base64 encoded violation image
+        if hasattr(parking_event, 'violation_frame') and parking_event.violation_frame is not None:
+            import cv2
+            import base64
+            try:
+                # Encode violation frame as Base64 JPEG (85% quality for optimal size)
+                _, buffer = cv2.imencode('.jpg', parking_event.violation_frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                image_base64 = base64.b64encode(buffer).decode('utf-8')
+                event_data["vehicle_image"] = f"data:image/jpeg;base64,{image_base64}"
+                logger.debug(f"Added violation image to event {parking_event.event_id} ({len(image_base64)} chars)")
+            except Exception as e:
+                logger.error(f"Failed to encode violation image for event {parking_event.event_id}: {e}")
+                # Continue without image - don't fail the entire event
+        else:
+            logger.debug(f"No violation frame available for event {parking_event.event_id}")
+        
         # Determine priority based on violation severity
         if parking_event.violation_severity > 0.8:
             priority = EventPriority.URGENT

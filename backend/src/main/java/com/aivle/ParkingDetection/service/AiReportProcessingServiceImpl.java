@@ -23,6 +23,7 @@ public class AiReportProcessingServiceImpl implements AiReportProcessingService 
     private final DetectionRepository detectionRepository;
     private final DetectionService detectionService;
     private final ParkingZoneService parkingZoneService;
+    private final FileStorageService fileStorageService;  // AI INTEGRATION - Image storage
 
     @Override
     public Long processViolationEvent(AiViolationEvent aiEvent) {
@@ -128,9 +129,27 @@ public class AiReportProcessingServiceImpl implements AiReportProcessingService 
             latitude = data.getVehicle().getLastPosition()[1];
         }
         
+        // AI INTEGRATION - Handle Base64 image storage
+        String imageUrl = "";
+        if (data.getVehicleImage() != null && !data.getVehicleImage().trim().isEmpty()) {
+            try {
+                imageUrl = fileStorageService.storeBase64Image(
+                    data.getVehicleImage(), 
+                    aiEvent.getEventId(), 
+                    aiEvent.getStreamId()
+                );
+                log.info("Stored violation image for event {}: {}", aiEvent.getEventId(), imageUrl);
+            } catch (Exception e) {
+                log.error("Failed to store violation image for event {}: {}", aiEvent.getEventId(), e.getMessage());
+                // Continue processing without image - image storage failure shouldn't block violation recording
+            }
+        } else {
+            log.debug("No vehicle image provided for event {}", aiEvent.getEventId());
+        }
+        
         return DetectionRequestDto.builder()
                 // Original fields
-                .imageUrl("") // TODO: Will be handled by FileStorageService in Phase 3
+                .imageUrl(imageUrl)  // AI INTEGRATION - Set stored image URL
                 .location(location)
                 .detectedAt(detectedAt)
                 .vehicleType(violation.getVehicleType())

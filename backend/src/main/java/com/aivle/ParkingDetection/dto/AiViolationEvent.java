@@ -47,6 +47,10 @@ public class AiViolationEvent {
         
         @JsonProperty("stream_info")
         private StreamInfo streamInfo;
+        
+        // AI INTEGRATION - IMAGE SUPPORT
+        @JsonProperty("vehicle_image")
+        private String vehicleImage;  // Base64 encoded violation image from AI processor
     }
     
     @Getter @Setter
