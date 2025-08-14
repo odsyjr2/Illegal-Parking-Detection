@@ -289,24 +289,32 @@ class LiveStreamProvider(FrameProvider):
     Frame provider for live API streams or RTSP/HTTP video streams.
     
     Handles network connectivity, automatic reconnection, and buffering
-    for real-time video streams. Supports authentication and custom headers.
+    for real-time video streams. Supports Korean ITS API HLS/HTTP streams.
     """
     
-    def __init__(self, metadata: StreamMetadata, api_config: Dict[str, Any]):
+    def __init__(self, metadata: StreamMetadata, api_config: Dict[str, Any] = None):
         super().__init__(metadata)
-        self.api_config = api_config
-        self.session: Optional[requests.Session] = None
-        self.stream_response: Optional[requests.Response] = None
+        self.api_config = api_config or {}
+        
+        # For Korean ITS API live streams - using OpenCV VideoCapture
+        self.video_capture: Optional[cv2.VideoCapture] = None
+        self.stream_url = metadata.source_path if hasattr(metadata, 'source_path') else ""
+        
+        # Legacy API session support (commented out for Korean ITS)
+        # self.session: Optional[requests.Session] = None
+        # self.stream_response: Optional[requests.Response] = None
+        
         self.reconnect_attempts = 0
         self.max_reconnect_attempts = 3
         self.reconnect_delay = 5.0  # seconds
+        self.last_frame_time = 0.0
+        self.frame_interval = 1.0 / metadata.fps if metadata.fps > 0 else 0.067  # ~15 FPS default
     
     def initialize(self) -> bool:
         """
-        Initialize live stream connection.
+        Initialize live stream connection using OpenCV for Korean ITS API streams.
         
-        Sets up HTTP session with authentication and establishes
-        connection to the live video stream endpoint.
+        Sets up VideoCapture for HLS/HTTP streams from Korean ITS API.
         
         Returns:
             bool: True if connection established successfully
@@ -314,22 +322,34 @@ class LiveStreamProvider(FrameProvider):
         try:
             logger.info(f"Initializing live stream for: {self.metadata.stream_id}")
             
-            # Create HTTP session with configuration
-            self.session = requests.Session()
+            # Get stream URL - for Korean ITS API, it's already the full stream URL
+            if hasattr(self.metadata, 'stream_url'):
+                stream_url = self.metadata.stream_url
+            else:
+                stream_url = self.metadata.source_path
             
-            # Add API key authentication if provided
-            if 'api_key' in self.api_config:
-                self.session.headers['Authorization'] = f"Bearer {self.api_config['api_key']}"
+            if not stream_url:
+                logger.error(f"No stream URL provided for {self.metadata.stream_id}")
+                return False
             
-            # Set timeouts and retry configuration
-            self.session.timeout = (10, 30)  # (connection, read) timeout
+            logger.info(f"Opening live stream: {stream_url}")
             
-            # Build full stream URL
-            base_url = self.api_config.get('api_base_url', '')
-            stream_url = urljoin(base_url, self.metadata.source_path)
+            # Initialize OpenCV VideoCapture for live stream
+            self.video_capture = cv2.VideoCapture(stream_url)
             
-            # Test connection
-            if not self._test_connection(stream_url):
+            # Set buffer size to reduce latency
+            self.video_capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            
+            # Set timeout for network streams (milliseconds)
+            self.video_capture.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 10000)
+            self.video_capture.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 5000)
+            
+            if not self.video_capture.isOpened():
+                logger.error(f"Failed to open live stream: {stream_url}")
+                return False
+            
+            # Test frame read
+            if not self._test_frame_read():
                 return False
             
             self.is_active = True
@@ -340,31 +360,27 @@ class LiveStreamProvider(FrameProvider):
             logger.error(f"Failed to initialize live stream: {e}")
             return False
     
-    def _test_connection(self, stream_url: str) -> bool:
+    def _test_frame_read(self) -> bool:
         """
-        Test connection to live stream endpoint.
+        Test reading a frame from the live stream to ensure it's working.
         
-        Args:
-            stream_url: Full URL to the stream endpoint
-            
         Returns:
-            bool: True if connection test successful
+            bool: True if frame read successful
         """
         try:
-            # TODO: Implement actual live stream connection testing
-            # This will depend on the specific API format
-            # For now, we'll implement a basic connectivity test
+            if not self.video_capture or not self.video_capture.isOpened():
+                return False
             
-            test_response = self.session.head(stream_url)
-            if test_response.status_code == 200:
-                logger.info(f"Live stream connection test successful: {stream_url}")
+            ret, frame = self.video_capture.read()
+            if ret and frame is not None:
+                logger.info(f"Live stream frame test successful. Frame shape: {frame.shape}")
                 return True
             else:
-                logger.error(f"Live stream connection test failed: HTTP {test_response.status_code}")
+                logger.error(f"Failed to read test frame from live stream")
                 return False
                 
         except Exception as e:
-            logger.error(f"Live stream connection test error: {e}")
+            logger.error(f"Live stream frame test error: {e}")
             return False
     
     def get_next_frame(self) -> Optional[np.ndarray]:
@@ -377,27 +393,89 @@ class LiveStreamProvider(FrameProvider):
         Returns:
             Optional[np.ndarray]: Next frame or None if unavailable
         """
-        # TODO: Implement actual live stream frame retrieval
-        # This is a placeholder implementation
-        logger.debug(f"Live stream frame request for {self.metadata.stream_id}")
+        if not self.is_active or not self.video_capture:
+            return None
+
+        # Frame rate control
+        current_time = time.time()
+        if (current_time - self.last_frame_time) < self.frame_interval:
+            return None
+
+        try:
+            with self.lock:
+                if not self.video_capture.isOpened():
+                    # Try to reconnect
+                    if self._attempt_reconnect():
+                        logger.info(f"Reconnected to live stream: {self.metadata.stream_id}")
+                    else:
+                        return None
+                
+                ret, frame = self.video_capture.read()
+                if ret and frame is not None:
+                    self.metadata.frame_count += 1
+                    self.last_frame_time = current_time
+                    self.metadata.last_frame_time = current_time
+                    self.reconnect_attempts = 0  # Reset on successful read
+                    return frame
+                else:
+                    # Failed to read frame, might be temporary network issue
+                    logger.warning(f"Failed to read frame from live stream: {self.metadata.stream_id}")
+                    if self._attempt_reconnect():
+                        # Try reading again after reconnect
+                        ret, frame = self.video_capture.read()
+                        if ret and frame is not None:
+                            return frame
+                    return None
+
+        except Exception as e:
+            logger.error(f"Error reading frame from live stream {self.metadata.stream_id}: {e}")
+            self.metadata.error_count += 1
+            return None
+    
+    def _attempt_reconnect(self) -> bool:
+        """
+        Attempt to reconnect to the live stream.
         
-        # For now, return None to indicate live streaming is not yet implemented
-        return None
+        Returns:
+            bool: True if reconnection successful
+        """
+        if self.reconnect_attempts >= self.max_reconnect_attempts:
+            logger.error(f"Max reconnect attempts reached for {self.metadata.stream_id}")
+            self.is_active = False
+            return False
+        
+        self.reconnect_attempts += 1
+        logger.info(f"Attempting reconnect {self.reconnect_attempts}/{self.max_reconnect_attempts} for {self.metadata.stream_id}")
+        
+        # Release current capture
+        if self.video_capture:
+            self.video_capture.release()
+        
+        # Wait before reconnecting
+        time.sleep(self.reconnect_delay)
+        
+        # Try to reinitialize
+        return self.initialize()
     
     def is_available(self) -> bool:
         """Check if live stream is still available."""
-        return self.is_active and self.session is not None
+        return self.is_active and self.video_capture is not None and self.video_capture.isOpened()
     
     def release(self):
         """Clean up live stream resources."""
         with self.lock:
-            if self.stream_response:
-                self.stream_response.close()
-                self.stream_response = None
+            if self.video_capture:
+                self.video_capture.release()
+                self.video_capture = None
             
-            if self.session:
-                self.session.close()
-                self.session = None
+            # Legacy API cleanup (commented out)
+            # if self.stream_response:
+            #     self.stream_response.close()
+            #     self.stream_response = None
+            # 
+            # if self.session:
+            #     self.session.close()
+            #     self.session = None
             
             self.is_active = False
             logger.info(f"Released live stream provider for {self.metadata.stream_id}")
@@ -538,28 +616,53 @@ class CCTVManager:
         try:
             streams_loaded = 0
             
-            # Load local mode streams
-            if self.config.get('cctv_streams', {}).get('local_mode', {}).get('enabled', False):
-                local_config = self.config['cctv_streams']['local_mode']
-                base_path = local_config['base_path']
-                
-                for stream_config in local_config['streams']:
-                    if self._load_local_stream(stream_config, base_path):
-                        streams_loaded += 1
+            # Load local mode streams (commented out for Korean ITS API)
+            # if self.config.get('cctv_streams', {}).get('local_mode', {}).get('enabled', False):
+            #     local_config = self.config['cctv_streams']['local_mode']
+            #     base_path = local_config['base_path']
+            #     
+            #     for stream_config in local_config['streams']:
+            #         if self._load_local_stream(stream_config, base_path):
+            #             streams_loaded += 1
             
-            # Load live mode streams
-            if self.config.get('cctv_streams', {}).get('live_mode', {}).get('enabled', False):
-                live_config = self.config['cctv_streams']['live_mode']
-                
-                for stream_config in live_config['streams']:
-                    if self._load_live_stream(stream_config, live_config):
-                        streams_loaded += 1
+            # Load live mode streams (commented out for Korean ITS API)
+            # if self.config.get('cctv_streams', {}).get('live_mode', {}).get('enabled', False):
+            #     live_config = self.config['cctv_streams']['live_mode']
+            #     
+            #     for stream_config in live_config['streams']:
+            #         if self._load_live_stream(stream_config, live_config):
+            #             streams_loaded += 1
             
-            logger.info(f"Loaded {streams_loaded} CCTV streams successfully")
-            return streams_loaded > 0
+            logger.info(f"CCTV Manager initialized for dynamic stream loading (Korean ITS API)")
+            logger.info(f"Call load_streams_from_list() with stream configurations from monitoring service")
+            return True  # Always return True for dynamic loading mode
             
         except Exception as e:
             logger.error(f"Failed to load CCTV streams: {e}")
+            return False
+    
+    def load_streams_from_list(self, stream_configs: List[Dict[str, Any]]) -> bool:
+        """
+        Load streams from a list of stream configurations (Korean ITS API format).
+        
+        Args:
+            stream_configs: List of stream configuration dictionaries from monitoring service
+            
+        Returns:
+            bool: True if at least one stream was loaded successfully
+        """
+        try:
+            streams_loaded = 0
+            
+            for stream_config in stream_configs:
+                if self._load_dynamic_stream(stream_config):
+                    streams_loaded += 1
+            
+            logger.info(f"Dynamically loaded {streams_loaded} CCTV streams successfully")
+            return streams_loaded > 0
+            
+        except Exception as e:
+            logger.error(f"Failed to load dynamic CCTV streams: {e}")
             return False
     
     def _load_local_stream(self, stream_config: Dict[str, Any], base_path: str) -> bool:
@@ -590,6 +693,51 @@ class CCTVManager:
             logger.error(f"Error loading local stream: {e}")
             return False
     
+    def _load_dynamic_stream(self, stream_config: Dict[str, Any]) -> bool:
+        """Load a single stream configuration from Korean ITS API format."""
+        try:
+            # Create metadata from Korean ITS API format
+            metadata = StreamMetadata(
+                stream_id=stream_config['id'],
+                name=stream_config['name'],
+                location=stream_config['location'],
+                fps=stream_config.get('fps', 15),
+                stream_type=stream_config.get('source_type', 'live'),
+                source_path=stream_config.get('stream_url', '')
+            )
+            
+            # Add stream_url attribute for LiveStreamProvider
+            metadata.stream_url = stream_config.get('stream_url', '')
+            
+            # Determine provider type based on source_type
+            source_type = stream_config.get('source_type', 'live')
+            
+            if source_type in ['hls', 'http', 'rtsp', 'live']:
+                # Live stream provider for Korean ITS API
+                provider = LiveStreamProvider(metadata)
+                stream = CCTVStream(metadata, provider)
+            elif source_type == 'image_sequence':
+                # Local frame provider (commented out streams)
+                base_path = self.config.get('base_path', '')
+                provider = LocalFrameProvider(metadata, base_path)
+                stream = CCTVStream(metadata, provider)
+            else:
+                logger.error(f"Unsupported source type: {source_type}")
+                return False
+            
+            if stream.initialize():
+                with self.lock:
+                    self.streams[metadata.stream_id] = stream
+                logger.info(f"Loaded dynamic stream: {metadata.stream_id} ({source_type})")
+                return True
+            else:
+                logger.error(f"Failed to initialize dynamic stream: {metadata.stream_id}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error loading dynamic stream: {e}")
+            return False
+
     def _load_live_stream(self, stream_config: Dict[str, Any], live_config: Dict[str, Any]) -> bool:
         """Load a single live stream configuration."""
         try:

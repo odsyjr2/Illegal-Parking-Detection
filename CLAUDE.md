@@ -287,3 +287,5 @@ AI/config/
 3. **Create AI Integration Controller** - Handle `POST /api/ai/v1/report-detection`
 4. **Implement Processing Services** - Core logic for AI violation reports
 - I want to know where does code modified. don't delete current codebase. If it's necessary to modify, just comment out current code and edit new one.
+- todo : live cctv stream connection and test AI system., integrate frontend visualizing area-live cctv stream., frontend pop-up notification function when detection event occured in AI system.
+- I want to test an integration test that includes all of the frontend, backend, AI. I'm going to unannotate the frontend-related features that I commented out for backend-AI feature test and integrate them with newely added code.

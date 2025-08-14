@@ -10,91 +10,121 @@ cctv_streams:
   fallback_enabled: true                # Use local streams if backend unavailable
   auto_refresh_interval: 300            # seconds to refresh CCTV list from backend
   
-  # Local testing streams (fallback configuration)
+  # Local testing streams (fallback configuration) - COMMENTED OUT FOR KOREAN ITS API
   local_streams:
-    - id: "cctv_001"
-      name: "가양대교북단(고양)"
-      source_type: "image_sequence"
-      path: "../data/test_videos/가양대교북단(고양)_20210327075825"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6158
-        longitude: 126.8441
-        address: "가양대교북단, 고양시"
-        zone_type: "intersection"
-        
-    - id: "cctv_002"
-      name: "구산IC 동측(고양) - 1"
-      source_type: "image_sequence"
-      path: "../data/test_videos/구산IC 동측(고양)_20210420093227"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6234
-        longitude: 126.9156
-        address: "구산IC 동측, 고양시"
-        zone_type: "highway_exit"
-        
-    - id: "cctv_003"
-      name: "구산IC 동측(고양) - 2"
-      source_type: "image_sequence"
-      path: "../data/test_videos/구산IC 동측(고양)_20210420095825"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6234
-        longitude: 126.9156
-        address: "구산IC 동측, 고양시"
-        zone_type: "highway_exit"
-        
-    - id: "cctv_004"
-      name: "북로JC동측(고양) - 1"
-      source_type: "image_sequence"
-      path: "../data/test_videos/북로JC동측(고양)_20210412115826"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6789
-        longitude: 126.7854
-        address: "북로JC동측, 고양시"
-        zone_type: "junction"
-        
-    - id: "cctv_005"
-      name: "북로JC동측(고양) - 2"
-      source_type: "image_sequence"
-      path: "../data/test_videos/북로JC동측(고양)_20210412122825"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6789
-        longitude: 126.7854
-        address: "북로JC동측, 고양시"
-        zone_type: "junction"
-        
-    - id: "cctv_006"
-      name: "하라문교차로"
-      source_type: "image_sequence"
-      path: "../data/test_videos/하라문교차로_20210412075826"
-      fps: 10
-      enabled: true
-      location:
-        latitude: 37.6456
-        longitude: 126.8923
-        address: "하라문교차로"
-        zone_type: "intersection"
+    # Test video streams - commented out for live stream integration
+    # - id: "cctv_001"
+    #   name: "가양대교북단(고양)"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/가양대교북단(고양)_20210327075825"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6158
+    #     longitude: 126.8441
+    #     address: "가양대교북단, 고양시"
+    #     zone_type: "intersection"
+    #     
+    # - id: "cctv_002"
+    #   name: "구산IC 동측(고양) - 1"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/구산IC 동측(고양)_20210420093227"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6234
+    #     longitude: 126.9156
+    #     address: "구산IC 동측, 고양시"
+    #     zone_type: "highway_exit"
+    #     
+    # - id: "cctv_003"
+    #   name: "구산IC 동측(고양) - 2"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/구산IC 동측(고양)_20210420095825"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6234
+    #     longitude: 126.9156
+    #     address: "구산IC 동측, 고양시"
+    #     zone_type: "highway_exit"
+    #     
+    # - id: "cctv_004"
+    #   name: "북로JC동측(고양) - 1"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/북로JC동측(고양)_20210412115826"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6789
+    #     longitude: 126.7854
+    #     address: "북로JC동측, 고양시"
+    #     zone_type: "junction"
+    #     
+    # - id: "cctv_005"
+    #   name: "북로JC동측(고양) - 2"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/북로JC동측(고양)_20210412122825"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6789
+    #     longitude: 126.7854
+    #     address: "북로JC동측, 고양시"
+    #     zone_type: "junction"
+    #     
+    # - id: "cctv_006"
+    #   name: "하라문교차로"
+    #   source_type: "image_sequence"
+    #   path: "../data/test_videos/하라문교차로_20210412075826"
+    #   fps: 10
+    #   enabled: true
+    #   location:
+    #     latitude: 37.6456
+    #     longitude: 126.8923
+    #     address: "하라문교차로"
+    #     zone_type: "intersection"
 
-  # Live streaming configuration (for future use)
+    # Fallback configuration for testing when ITS API is unavailable
+    fallback_enabled: true
+
+  # Live streaming configuration (Korean ITS API Integration)
   live_streams:
-    enabled: false
-    api_base_url: "${CCTV_API_BASE_URL}"    # Environment variable
-    api_key: "${CCTV_API_KEY}"              # Environment variable
-    timeout: 30                             # seconds for API requests
-    retry_attempts: 3                       # retries for failed API calls
-    retry_delay: 10                         # seconds between retries
+    enabled: true
+    # Korean ITS API Configuration
+    its_api:
+      base_url: "https://openapi.its.go.kr:9443/cctvInfo"
+      api_key: "c22a7bb038124b879a5bb3715d9db7e7"        # Environment variable - set your API key
+      type: "its"                             # API type parameter
+      cctv_type: 4                           # CCTV type: 4 = HTTP/HLS streams
+      get_type: "json"                       # Response format
+      timeout: 30                            # seconds for API requests
+      retry_attempts: 3                      # retries for failed API calls
+      retry_delay: 10                        # seconds between retries
+      
+      # Geographic bounds for CCTV fetching (Seoul/Gyeonggi area)
+      default_bounds:
+        min_longitude: 126.7                 # Western boundary
+        max_longitude: 127.2                 # Eastern boundary  
+        min_latitude: 37.4                   # Southern boundary
+        max_latitude: 37.7                   # Northern boundary
+      
+      # Stream filtering options
+      filters:
+        min_streams: 1                       # Minimum streams to fetch
+        max_streams: 10                      # Maximum streams to process simultaneously
+        prefer_hls: true                     # Prefer HLS format streams
+        exclude_keywords: ["터널", "지하"]    # Exclude CCTVs with these keywords
+    
+    # Legacy API configuration (commented out)
+    # api_base_url: "${CCTV_API_BASE_URL}"    # Environment variable
+    # api_key: "${CCTV_API_KEY}"              # Environment variable
+    # timeout: 30                             # seconds for API requests
+    # retry_attempts: 3                       # retries for failed API calls
+    # retry_delay: 10                         # seconds between retries
     
     # Stream format configuration
-    stream_format: "rtsp"                   # "rtsp", "http", "rtmp"
+    stream_format: "http"                   # "rtsp", "http", "rtmp"
     video_codec: "h264"                     # preferred video codec
     max_resolution: [1920, 1080]           # maximum resolution to accept
     min_resolution: [640, 480]             # minimum resolution required

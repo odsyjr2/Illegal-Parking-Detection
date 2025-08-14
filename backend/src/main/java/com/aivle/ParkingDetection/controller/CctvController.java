@@ -47,4 +47,38 @@ public class CctvController {
         cctvService.deleteCctv(id);
         return ResponseEntity.ok().body(Map.of("message", "삭제 완료"));
     }
+
+    // Stream sync endpoint for AI integration
+    @PostMapping("/sync")
+    public ResponseEntity<?> syncStreams(@RequestBody List<StreamSyncDto> streams) {
+        try {
+            cctvService.syncStreamsFromAI(streams);
+            return ResponseEntity.ok().body(Map.of(
+                "message", "Stream sync completed successfully",
+                "syncedCount", streams.size()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "Stream sync failed: " + e.getMessage()
+            ));
+        }
+    }
+
+    // Get stream by streamId (for AI and frontend use)
+    @GetMapping("/stream/{streamId}")
+    public CctvDTO getStreamByStreamId(@PathVariable String streamId) {
+        return cctvService.getStreamByStreamId(streamId);
+    }
+
+    // Get active streams only (for frontend stream selection)
+    @GetMapping("/active")
+    public List<CctvDTO> getActiveStreams() {
+        return cctvService.getActiveStreams();
+    }
+
+    // Get streams by source type (e.g., "korean_its_api")
+    @GetMapping("/source/{source}")
+    public List<CctvDTO> getStreamsBySource(@PathVariable String source) {
+        return cctvService.getStreamsBySource(source);
+    }
 }
