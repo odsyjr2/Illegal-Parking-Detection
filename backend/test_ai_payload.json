@@ -1,16 +1,16 @@
 {
-  "event_id": "violation_detected_cctv001_1723534688",
+  "event_id": "violation_detected_stream1_1703845234",
   "event_type": "violation_detected",
-  "priority": "high",
-  "timestamp": 1723534688.567,
-  "timestamp_iso": "2024-08-13T07:31:28.567Z",
+  "priority": "urgent",
+  "timestamp": 1703845234.567,
+  "timestamp_iso": "2023-12-29T10:33:54.567Z",
   "stream_id": "cctv_001",
   "correlation_id": "parking_event_12345",
   "data": {
     "violation": {
       "event_id": "parking_event_12345",
       "stream_id": "cctv_001",
-      "start_time": 1723534688.567,
+      "start_time": 1703845234.567,
       "duration": 125.3,
       "violation_severity": 0.85,
       "is_confirmed": true,
@@ -22,23 +22,22 @@
       "vehicle_type": "car",
       "confidence": 0.92,
       "bounding_box": [100, 150, 300, 400],
-      "last_position": [126.9780, 37.5665]
+      "last_position": [125.4, 37.5]
     },
     "license_plate": {
-      "plate_text": "12가3456",
+      "plate_text": "ABC1234",
       "confidence": 0.88,
       "bounding_box": [180, 320, 280, 350],
       "is_valid_format": true
     },
     "ocr_result": {
-      "recognized_text": "12가3456",
+      "recognized_text": "ABC1234",
       "confidence": 0.88,
       "is_valid_format": true
     },
     "stream_info": {
       "stream_id": "cctv_001",
-      "location_name": "Seoul Main Street Intersection"
-    },
-    "vehicle_image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAoACgDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nnaw..."
+      "location_name": "Main Street Intersection"
+    }
   }
 }
