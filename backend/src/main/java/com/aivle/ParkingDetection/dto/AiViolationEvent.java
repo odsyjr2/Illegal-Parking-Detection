@@ -143,5 +143,13 @@ public class AiViolationEvent {
         
         @JsonProperty("location_name")
         private String locationName;
+        
+        // Phase 2: AI 역지오코딩 연동 - 좌표 및 주소 정보 추가
+        private Double latitude;
+        private Double longitude;
+        private String address;  // 원본 주소 (geopy에서 반환된 전체 주소)
+        
+        @JsonProperty("formatted_address")
+        private String formattedAddress;  // 한국어 형식으로 포맷된 주소
     }
 }

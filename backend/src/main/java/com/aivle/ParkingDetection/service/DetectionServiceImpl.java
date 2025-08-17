@@ -43,7 +43,7 @@ public class DetectionServiceImpl implements DetectionService {
                         .location(dto.getLocation())
                         .detectedAt(dto.getDetectedAt())
                         .vehicleType(dto.getVehicleType())
-                        .isIllegal(dto.isIllegal())
+                        // isIllegal 필드 제거: 모든 Detection은 불법주정차 확정
                         // AI integration fields
                         .plateNumber(dto.getPlateNumber())
                         .reportType(dto.getReportType())
@@ -52,6 +52,9 @@ public class DetectionServiceImpl implements DetectionService {
                         .longitude(dto.getLongitude())
                         .correlationId(dto.getCorrelationId())
                         .violationSeverity(dto.getViolationSeverity())
+                        // Phase 2: AI 역지오코딩 연동 - 주소 정보 추가
+                        .address(dto.getAddress())
+                        .formattedAddress(dto.getFormattedAddress())
                         .build()
         );
         return toDto(saved);
@@ -82,7 +85,7 @@ public class DetectionServiceImpl implements DetectionService {
     //             .location(detection.getLocation())
     //             .detectedAt(detection.getDetectedAt())
     //             .vehicleType(detection.getVehicleType())
-    //             .illegal(detection.isIllegal())
+    //             .illegal(detection.isIllegal()) - 필드 제거됨
     //             .build();
     // }
 
@@ -95,7 +98,7 @@ public class DetectionServiceImpl implements DetectionService {
                 .location(detection.getLocation())
                 .detectedAt(detection.getDetectedAt())
                 .vehicleType(detection.getVehicleType())
-                .illegal(detection.isIllegal())
+                // illegal 필드 제거: 모든 Detection은 불법주정차 확정
                 // AI integration fields
                 .plateNumber(detection.getPlateNumber())
                 .reportType(detection.getReportType())
@@ -104,6 +107,9 @@ public class DetectionServiceImpl implements DetectionService {
                 .longitude(detection.getLongitude())
                 .correlationId(detection.getCorrelationId())
                 .violationSeverity(detection.getViolationSeverity())
+                // Phase 2: AI 역지오코딩 연동 - 주소 정보 추가
+                .address(detection.getAddress())
+                .formattedAddress(detection.getFormattedAddress())
                 .build();
     }
 

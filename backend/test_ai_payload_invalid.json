@@ -23,6 +23,21 @@
       "confidence": -0.1,
       "bounding_box": [],
       "last_position": []
+    },
+    "license_plate": {
+      "plate_text": "가나1234",
+      "confidence": 0.45,
+      "bounding_box": [150, 300, 250, 330],
+      "is_valid_format": false
+    },
+    "ocr_result": {
+      "recognized_text": "가나1234",
+      "confidence": 0.45,
+      "is_valid_format": false
+    },
+    "stream_info": {
+      "stream_id": "",
+      "location_name": "Invalid Location"
     }
   }
 }

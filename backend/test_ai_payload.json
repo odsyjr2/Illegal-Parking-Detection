@@ -2,15 +2,15 @@
   "event_id": "violation_detected_stream1_1703845234",
   "event_type": "violation_detected",
   "priority": "urgent",
-  "timestamp": 1703845234.567,
-  "timestamp_iso": "2023-12-29T10:33:54.567Z",
+  "timestamp": 1704207600.000,
+  "timestamp_iso": "2024-01-02T08:00:00.000Z",
   "stream_id": "cctv_001",
   "correlation_id": "parking_event_12345",
   "data": {
     "violation": {
       "event_id": "parking_event_12345",
       "stream_id": "cctv_001",
-      "start_time": 1703845234.567,
+      "start_time": 1704207600.000,
       "duration": 125.3,
       "violation_severity": 0.85,
       "is_confirmed": true,
@@ -25,19 +25,23 @@
       "last_position": [125.4, 37.5]
     },
     "license_plate": {
-      "plate_text": "ABC1234",
+      "plate_text": "12가3456",
       "confidence": 0.88,
       "bounding_box": [180, 320, 280, 350],
       "is_valid_format": true
     },
     "ocr_result": {
-      "recognized_text": "ABC1234",
+      "recognized_text": "12가3456",
       "confidence": 0.88,
       "is_valid_format": true
     },
     "stream_info": {
       "stream_id": "cctv_001",
-      "location_name": "Main Street Intersection"
+      "location_name": "Main Street Intersection",
+      "latitude": 37.566535,
+      "longitude": 126.977969,
+      "address": "서울특별시 중구 세종대로 110, 대한민국",
+      "formatted_address": "서울특별시 중구 세종대로 110"
     }
   }
 }

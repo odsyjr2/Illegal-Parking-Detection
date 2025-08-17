@@ -50,6 +50,7 @@ from parking_monitor import initialize_parking_monitor
 from license_plate_detector import initialize_license_plate_detector
 from ocr_reader import initialize_ocr_reader
 from illegal_classifier import initialize_violation_classifier
+from geocoding_service import initialize_geocoding_service
 
 # Configure logging
 logger = get_logger("main")
@@ -144,7 +145,8 @@ class IllegalParkingProcessor:
                 ("Parking Monitor", initialize_parking_monitor(self.config)),
                 ("License Plate Detector", initialize_license_plate_detector(self.config)),
                 ("OCR Reader", initialize_ocr_reader(self.config)),
-                ("Violation Classifier", initialize_violation_classifier(self.config))
+                ("Violation Classifier", initialize_violation_classifier(self.config)),
+                ("VWorld Geocoding Service", initialize_geocoding_service(self.config.get('vworld', {})))
             ]
             
             all_success = True

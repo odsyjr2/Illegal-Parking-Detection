@@ -25,13 +25,13 @@
       "last_position": [125.4, 37.5]
     },
     "license_plate": {
-      "plate_text": "XYZ5678",
+      "plate_text": "서울12나5678",
       "confidence": 0.91,
       "bounding_box": [190, 330, 290, 360],
       "is_valid_format": true
     },
     "ocr_result": {
-      "recognized_text": "XYZ5678",
+      "recognized_text": "서울12나5678",
       "confidence": 0.91,
       "is_valid_format": true
     },

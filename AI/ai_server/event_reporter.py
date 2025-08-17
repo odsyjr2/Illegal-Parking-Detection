@@ -40,11 +40,60 @@ from parking_monitor import ParkingEvent
 from multi_vehicle_tracker import VehicleTrack
 from license_plate_detector import PlateDetectionResult
 from ocr_reader import OCRResult
+from geocoding_service import get_geocoding_service, reverse_geocode_coordinates
 # Note: response_models.py was removed as part of FastAPI cleanup
 # These data structures are now handled directly in the event reporter
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# Data Conversion Functions for Event Formatting
+# =============================================================================
+
+def convert_parking_event_to_model(parking_event: ParkingEvent) -> Dict[str, Any]:
+    """Convert ParkingEvent to dictionary model for backend."""
+    return {
+        "event_id": parking_event.event_id,
+        "stream_id": parking_event.stream_id,
+        "start_time": parking_event.start_time,
+        "duration": parking_event.duration,
+        "violation_severity": getattr(parking_event, 'violation_severity', 0.0),
+        "is_confirmed": getattr(parking_event, 'is_confirmed', True),
+        "vehicle_type": parking_event.vehicle_class,
+        "parking_zone_type": getattr(parking_event, 'parking_zone_type', 'no_parking')
+    }
+
+
+def convert_vehicle_track_to_model(vehicle_track: VehicleTrack) -> Dict[str, Any]:
+    """Convert VehicleTrack to dictionary model for backend."""
+    return {
+        "track_id": str(vehicle_track.track_id),
+        "vehicle_type": getattr(vehicle_track, 'vehicle_type', 'car'),
+        "confidence": getattr(vehicle_track, 'confidence', 0.9),
+        "bounding_box": getattr(vehicle_track, 'bounding_box', [100, 150, 300, 400]),
+        "last_position": list(getattr(vehicle_track, 'last_position', vehicle_track.location if hasattr(vehicle_track, 'location') else [125.4, 37.5]))
+    }
+
+
+def convert_plate_detection_to_model(plate_detection: PlateDetectionResult) -> Dict[str, Any]:
+    """Convert PlateDetectionResult to dictionary model for backend."""
+    return {
+        "plate_text": getattr(plate_detection, 'plate_text', ''),
+        "confidence": getattr(plate_detection, 'confidence', 0.0),
+        "bounding_box": getattr(plate_detection, 'bounding_box', [180, 320, 280, 350]),
+        "is_valid_format": getattr(plate_detection, 'is_valid_format', False)
+    }
+
+
+def convert_ocr_result_to_model(ocr_result: OCRResult) -> Dict[str, Any]:
+    """Convert OCRResult to dictionary model for backend."""
+    return {
+        "recognized_text": getattr(ocr_result, 'recognized_text', getattr(ocr_result, 'plate_number', '')),
+        "confidence": getattr(ocr_result, 'confidence', 0.0),
+        "is_valid_format": getattr(ocr_result, 'is_valid_format', getattr(ocr_result, 'is_successful', False))
+    }
 
 
 class EventType(str, Enum):
@@ -593,25 +642,57 @@ class EventFormatter:
                               ocr_result: Optional[OCRResult] = None) -> ReportingEvent:
         """Format parking violation into reporting event."""
         
+        # Phase 2: AI 역지오코딩 연동 - GPS 좌표를 한국 주소로 변환
+        location_info = {
+            "latitude": parking_event.location[0] if parking_event.location else 0.0,
+            "longitude": parking_event.location[1] if parking_event.location else 0.0,
+            "address": None,
+            "formatted_address": None
+        }
+        
+        # 역지오코딩 수행 (AI → Backend 전송 시 주소 정보 포함)
+        if parking_event.location and parking_event.location != (0.0, 0.0):
+            try:
+                geocoding_result = reverse_geocode_coordinates(
+                    parking_event.location[0], 
+                    parking_event.location[1]
+                )
+                
+                if geocoding_result.is_geocoded:
+                    location_info["address"] = geocoding_result.address
+                    location_info["formatted_address"] = geocoding_result.formatted_address
+                    logger.debug(f"Geocoding successful for event {parking_event.event_id}: {geocoding_result.formatted_address}")
+                else:
+                    location_info["formatted_address"] = geocoding_result.formatted_address  # 좌표 형태 fallback
+                    logger.debug(f"Geocoding fallback for event {parking_event.event_id}: {geocoding_result.error_message}")
+            except Exception as e:
+                logger.warning(f"Geocoding failed for event {parking_event.event_id}: {e}")
+                location_info["formatted_address"] = f"좌표: {location_info['latitude']:.6f}, {location_info['longitude']:.6f}"
+        
         event_data = {
-            "violation": convert_parking_event_to_model(parking_event).dict(),
+            "violation": convert_parking_event_to_model(parking_event),
             "stream_info": {
                 "stream_id": parking_event.stream_id,
-                "location_name": self._get_stream_name(parking_event.stream_id)
+                "location_name": self._get_stream_name(parking_event.stream_id),
+                # Phase 2: 역지오코딩된 위치 정보 추가
+                "latitude": location_info["latitude"],
+                "longitude": location_info["longitude"],
+                "address": location_info["address"],
+                "formatted_address": location_info["formatted_address"]
             }
         }
         
         # Add vehicle information
         if vehicle_track:
-            event_data["vehicle"] = convert_vehicle_track_to_model(vehicle_track).dict()
+            event_data["vehicle"] = convert_vehicle_track_to_model(vehicle_track)
         
         # Add license plate information
         if plate_detection:
-            event_data["license_plate"] = convert_plate_detection_to_model(plate_detection).dict()
+            event_data["license_plate"] = convert_plate_detection_to_model(plate_detection)
         
         # Add OCR results
         if ocr_result:
-            event_data["ocr_result"] = convert_ocr_result_to_model(ocr_result).dict()
+            event_data["ocr_result"] = convert_ocr_result_to_model(ocr_result)
         
         # AI INTEGRATION - Add Base64 encoded violation image
         if hasattr(parking_event, 'violation_frame') and parking_event.violation_frame is not None:
@@ -650,7 +731,7 @@ class EventFormatter:
         """Format vehicle entry event."""
         
         event_data = {
-            "vehicle": convert_vehicle_track_to_model(vehicle_track).dict(),
+            "vehicle": convert_vehicle_track_to_model(vehicle_track),
             "stream_info": {
                 "stream_id": vehicle_track.stream_id,
                 "location_name": self._get_stream_name(vehicle_track.stream_id)
@@ -672,7 +753,7 @@ class EventFormatter:
         """Format license plate detection/recognition event."""
         
         event_data = {
-            "license_plate": convert_plate_detection_to_model(plate_detection).dict(),
+            "license_plate": convert_plate_detection_to_model(plate_detection),
             "stream_info": {
                 "stream_id": getattr(plate_detection, 'stream_id', ''),
                 "location_name": self._get_stream_name(getattr(plate_detection, 'stream_id', ''))
@@ -681,14 +762,14 @@ class EventFormatter:
         
         # Add OCR results if available
         if ocr_result:
-            event_data["ocr_result"] = convert_ocr_result_to_model(ocr_result).dict()
+            event_data["ocr_result"] = convert_ocr_result_to_model(ocr_result)
             event_type = EventType.LICENSE_PLATE_RECOGNIZED
         else:
             event_type = EventType.LICENSE_PLATE_DETECTED
         
         # Add vehicle information
         if vehicle_track:
-            event_data["vehicle"] = convert_vehicle_track_to_model(vehicle_track).dict()
+            event_data["vehicle"] = convert_vehicle_track_to_model(vehicle_track)
         
         # Higher priority for recognized plates
         priority = EventPriority.NORMAL if ocr_result and ocr_result.is_valid_format else EventPriority.LOW
