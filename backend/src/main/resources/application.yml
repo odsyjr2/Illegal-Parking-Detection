@@ -59,7 +59,7 @@ app:
 # VWorld Open API Configuration (Korean Government Geocoding Service)
 vworld:
     api:
-        key: ${VWORLD_API_KEY:}              # Environment variable for VWorld API key
+        key:  5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760              # Environment variable for VWorld API key
         base-url: https://api.vworld.kr/req/address
         timeout: 5000                        # API request timeout in milliseconds
         max-retries: 3                       # Number of retry attempts for failed requests
