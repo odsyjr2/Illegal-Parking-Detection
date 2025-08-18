@@ -1,4 +1,3 @@
-// MainPage.jsx
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Hls from "hls.js/dist/hls.min.js"; // Vite 호환 import
@@ -31,7 +30,6 @@ function RoutePanel() {
   );
 }
 
-// CCTV 선택 UI
 function CctvSelector({ cctvList, selectedCctv, onSelect }) {
   return (
     <div
@@ -99,54 +97,7 @@ function MainPage() {
   const [alerts, setAlerts] = useState([]);
   const [cctvList, setCctvList] = useState([]);
 
-  // CCTV 리스트 (임시 하드코딩)
-  // const cctvList = [
-  //   {
-  //     streamId: "cctv_000",
-  //     streamName: "가양대교북단(고양)",
-  //     streamUrl: "https://openapi.its.go.kr/stream/cctv001",
-  //     location: "경기도 고양시 덕양구 가양대교북단",
-  //     latitude: 37.6158,
-  //     longitude: 126.8441,
-  //     streamSource: "korean_its_api",
-  //     active: true,
-  //     discoveredAt: "2023-12-29T10:33:54.567Z",
-  //   },
-  //   {
-  //     streamId: "cctv_001",
-  //     streamName: "[국도1호선]나주산포",
-  //     streamUrl: "http://cctvsec.ktict.co.kr/4306/QtoPXrKQLl68YLsNjwgu2JcekHo1Ndyf8PwSzb+fKkWA6RByMZZaAlUmda+JIiXeBM0429YhDuCnv2SdoosIGAOSSaD2NcOACpvOo5kQ354=",
-  //     location: "전남 나주시 산포면 등정리 860-17",
-  //     latitude: 35.0411,
-  //     longitude: 126.8102,
-  //     streamSource: "ktict_cctv_api",
-  //     active: true,
-  //     discoveredAt: "2023-12-29T10:33:54.567Z",
-  //   },
-  //   {
-  //     streamId: "cctv_002",
-  //     streamName: "[국도22호선]광주너릿재T",
-  //     streamUrl: "http://cctvsec.ktict.co.kr/4316/tmGlyHi1I47WrXEhMPLGQFcJHva4/izTPv12JaH8+byrIjzOe/mRJfDBx/Cph814Y8ry153TMzeVZ5uK3S9kllBSgjbhBYfFfWuw8jbhNZ0=",
-  //     location: "광주 동구 선교동 482",
-  //     latitude: 35.0811,
-  //     longitude: 126.9516,
-  //     streamSource: "ktict_cctv_api",
-  //     active: true,
-  //     discoveredAt: "2023-12-29T10:33:54.567Z",
-  //   },
-  //   {
-  //     streamId: "cctv_003",
-  //     streamName: "[국도1호선]나주칠석교차로",
-  //     streamUrl: "http://cctvsec.ktict.co.kr/4935/xRj9/fXMHhpbMa+k+94QSQk/f94JSvmmCNBiqzs0Po2ktGvJFL0EACLMrD5Ymq/fYQx3S1jwrJc/CqbEOrwnglgSmrMDc6wz4LBbyD8Ltvk=",
-  //     location: "전남 나주시 남평읍 평산리 8-1",
-  //     latitude: 35.065308,
-  //     longitude: 126.842247,
-  //     streamSource: "ktict_cctv_api",
-  //     active: true,
-  //     discoveredAt: "2023-12-29T10:33:54.567Z",
-  //   },
-  // ];
-
+  // CCTV 리스트 불러오기
   useEffect(() => {
     const fetchCctvs = async () => {
       try {
@@ -163,8 +114,57 @@ function MainPage() {
     fetchCctvs();
   }, []);
 
+  // 신규 신고 알림 폴링 + 알림 상태 관리
+  useEffect(() => {
+    let interval;
 
-  // HLS CCTV 플레이어 연결 + cleanup 추가
+    const fetchAndCheckReports = async () => {
+      try {
+        const res = await axios.get('http://localhost:8080/api/human-reports');
+        console.log('신규 신고 원본 데이터:', res.data);
+
+        if (Array.isArray(res.data)) {
+          const unread = res.data.filter(item => !item.read);
+          if (unread.length > 0) {
+            const latest = unread[0];
+            setAlerts(prev => {
+              if (prev.some(a => a.id === latest.id)) {
+                console.log(`이미 알림이 있는 신고 ID: ${latest.id}`);
+                return prev;
+              }
+              console.log(`새로운 알림 추가 - 신고 ID: ${latest.id}`);
+              return [...prev, { id: latest.id, message: `${latest.title || '신고'}가 접수되었습니다!` }];
+            });
+          } else {
+            console.log('미열람 신규 신고 없음');
+          }
+        }
+      } catch (e) {
+        console.error('신규 신고 조회 오류:', e);
+      }
+    };
+
+    // 페이지 진입시 즉시 호출
+    fetchAndCheckReports();
+
+    // 이후 10초 간격으로 실행
+    interval = setInterval(fetchAndCheckReports, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 알림 클릭 시 읽음 처리 API 호출 후 알림 제거
+  const dismissAlert = async (id) => {
+    try {
+      await axios.patch(`http://localhost:8080/api/human-reports/${id}/read`, {});
+    } catch (error) {
+      console.error('읽음 처리 실패:', error);
+    } finally {
+      setAlerts(prev => prev.filter(a => a.id !== id));
+    }
+  };
+
+  // HLS CCTV 플레이어 연결 + cleanup
   useEffect(() => {
     let hls;
     if (selectedCctv?.streamUrl) {
@@ -194,12 +194,7 @@ function MainPage() {
       }}
     >
       {/* 알림 박스 */}
-      <AlertBox
-        alerts={alerts}
-        onDismiss={(id) => {
-          setAlerts((prev) => prev.filter((a) => a.id !== id));
-        }}
-      />
+      <AlertBox alerts={alerts} onDismiss={dismissAlert} />
 
       {/* 탭 버튼 */}
       <div className="main-tabs">

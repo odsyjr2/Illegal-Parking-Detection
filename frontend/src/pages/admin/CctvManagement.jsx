@@ -181,6 +181,7 @@ function CctvManagement() {
       setNewLongitude('')
       setCurrentPage(totalPages)
       setNewInstallationDate('')
+      setNewStreamUrl('')
     } catch (e) {
       alert('CCTV 추가에 실패했습니다: ' + e.message)
     }
@@ -338,7 +339,6 @@ function CctvManagement() {
           onChange={(e) => setNewLongitude(e.target.value)}
           className="lat-lng-input"
         />
-
       {loading && <p className="loading-text">데이터 로딩 중...</p>}
 
       <table className="cctv-table">

@@ -142,6 +142,7 @@ function MapPage({ selectedLocation, cctvData, onCctvSelect }) {
   }, [ongoing]);
 
   // CCTV 마커
+  // 1. 카카오 CCTV 마커 생성 + 클릭 이벤트 (반드시 유지!)
   useEffect(() => {
     const map = mapInstance.current;
     if (!map || !window.kakao || !window.kakao.maps) return;
@@ -185,7 +186,31 @@ function MapPage({ selectedLocation, cctvData, onCctvSelect }) {
     });
   }, [cctvData, onCctvSelect]);
 
-  return <div ref={mapRef} style={{ width: "100%", height: "94vh" }} />;
-}
+
+  // 2. 셀렉트 등으로 선택 상태 변경 시 마커 active 이미지 동기화(useEffect 추가)
+  useEffect(() => {
+    const cctvList = Array.isArray(cctvData) ? cctvData : [];
+    const defaultImage = new window.kakao.maps.MarkerImage('/MapPin2.png', new window.kakao.maps.Size(36, 36));
+    const activeImage = new window.kakao.maps.MarkerImage('/MapPin1.png', new window.kakao.maps.Size(36, 36));
+
+    cctvMarkersRef.current.forEach((marker, idx) => {
+      const cctv = cctvList[idx];
+
+      if (
+        cctv &&
+        (
+          cctv.streamName === selectedLocation?.label ||
+          (cctv.latitude === selectedLocation?.lat && cctv.longitude === selectedLocation?.lng)
+        )
+      ) {
+        marker.setImage(activeImage);   // 선택된 CCTV면 active 이미지
+      } else {
+        marker.setImage(defaultImage);  // 아니면 기본 이미지
+      }
+    });
+  }, [selectedLocation, cctvData]);
+
+    return <div ref={mapRef} style={{ width: "100%", height: "94vh" }} />;
+  }
 
 export default MapPage;
