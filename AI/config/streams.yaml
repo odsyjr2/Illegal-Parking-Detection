@@ -94,7 +94,7 @@ cctv_streams:
     # Korean ITS API Configuration
     its_api:
       base_url: "https://openapi.its.go.kr:9443/cctvInfo"
-      api_key: "my_api_key"        # Environment variable - set your API key
+      api_key: "c22a7bb038124b879a5bb3715d9db7e7"        # Environment variable - set your API key
       type: "its"                             # API type parameter
       cctv_type: 4                           # CCTV type: 4 = HTTP/HLS streams
       get_type: "json"                       # Response format

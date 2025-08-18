@@ -193,7 +193,7 @@ health:
 # VWorld API Configuration (Korean Government Geocoding Service)
 vworld:
   # API settings
-  api_key: " 5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"      # Environment variable for VWorld API key
+  api_key: "5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"      # Environment variable for VWorld API key
   base_url: "https://api.vworld.kr/req/address"
   
   # Request settings
