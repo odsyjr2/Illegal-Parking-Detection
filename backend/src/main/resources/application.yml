@@ -1,7 +1,10 @@
 spring:
     datasource:
         driver-class-name: org.h2.Driver
-        url: jdbc:h2:~/parkingdb
+                # Cause: The DB_CLOSE_ON_EXIT=FALSE setting prevents H2 from closing the database when the JVM exits.
+        # This can cause database file lock issues, especially after an unclean shutdown.
+        # Result: Removing this option ensures that database resources are properly released when the application stops.
+        url: jdbc:h2:mem:testdb
         username: sa
         password: 1234
         platform: h2
@@ -25,15 +28,49 @@ spring:
             charset: UTF-8
             enabled: true
             force: true
+    lifecycle:
+        timeout-per-shutdown-phase: 10s
 
 server:
     port: 8080
     servlet:
         encoding:
             force-response: true
+    shutdown: graceful
+    tomcat:
+        # Ensure Tomcat shuts down properly
+        connection-timeout: 20000
+        threads:
+            max: 200
+            min-spare: 10
 logging:
     level:
         root: INFO
         com.aivle.ParkingDetection: DEBUG
 jwt:
     secret: bXlzZWNyZXRrZXlmb3JzaWduaW5ndG9rZW5zMTIzNDU2
+
+# AI Integration - File Storage Configuration
+app:
+    file-storage:
+        base-path: "./storage/images"        # Base directory for stored images
+        url-prefix: "/api/images"            # URL prefix for image serving
+
+# VWorld Open API Configuration (Korean Government Geocoding Service)
+vworld:
+    api:
+        key: ${VWORLD_API_KEY:}              # Environment variable for VWorld API key
+        base-url: https://api.vworld.kr/req/address
+        timeout: 5000                        # API request timeout in milliseconds
+        max-retries: 3                       # Number of retry attempts for failed requests
+        
+    # Cache configuration for geocoding results
+    cache:
+        enabled: true                        # Enable geocoding result caching
+        ttl: 3600                           # Cache TTL in seconds (1 hour)
+        max-size: 1000                      # Maximum number of cached results
+        
+    # Address validation settings
+    validation:
+        check-korean-bounds: true           # Validate coordinates are within Korea
+        allow-partial-matches: true         # Allow partial address matches

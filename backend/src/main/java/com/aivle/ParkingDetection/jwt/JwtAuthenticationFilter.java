@@ -40,7 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2) 화이트리스트 경로 통과
         if (uri.startsWith("/api/users/login") || uri.startsWith("/api/users/signup")
-                || uri.startsWith("/api/human-reports") || uri.startsWith("/uploads")) {
+                || uri.startsWith("/api/human-reports") || uri.startsWith("/uploads")
+                || uri.startsWith("/api/ai/v1")) { // AI INTEGRATION - Allow AI processor endpoints
             chain.doFilter(request, response);
             return;
         }

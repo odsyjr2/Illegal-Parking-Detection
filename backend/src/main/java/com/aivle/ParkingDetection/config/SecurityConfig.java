@@ -59,7 +59,8 @@ public class SecurityConfig {
                                 "/h2-console/**",
                                 "/api/cctvs",
                                 "/api/cctvs/*",
-                                "/api/cctvs/**"
+                                "/api/cctvs/**",
+                                "/api/ai/v1/**"  // AI INTEGRATION - Allow AI processor endpoints
                         ).permitAll()
 
                         // 관리자 전용

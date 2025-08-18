@@ -30,7 +30,8 @@ public class AdminController {
 
     // ✅ 사용자 삭제 (ADMIN 권한만 가능)
     @DeleteMapping("/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")  // ✅ ADMIN만 허용
+  
+    @PreAuthorize("hasRole('ADMIN')") // ✅ ADMIN만 허용
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.deleteUserById(id);
         return ResponseEntity.ok("✅ 사용자 ID " + id + " 삭제 완료");

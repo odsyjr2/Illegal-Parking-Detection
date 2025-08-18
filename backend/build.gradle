@@ -45,3 +45,23 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+bootRun {
+    // AI Integration - Clean shutdown configuration for port 8080 reuse
+    systemProperty 'spring.devtools.restart.enabled', 'true'
+    systemProperty 'server.shutdown', 'graceful'
+    systemProperty 'spring.lifecycle.timeout-per-shutdown-phase', '10s'
+    
+    // Ensure JVM exits cleanly
+    jvmArgs = [
+        '-Djava.awt.headless=true', 
+        '-Dspring.output.ansi.enabled=always',
+        '-Dspring.main.register-shutdown-hook=true'
+    ]
+    
+    // Simple startup message
+    doFirst {
+        println "Starting Spring Boot backend on port 8080..."
+        println "Note: If port conflict occurs, run cleanup-and-run.bat instead"
+    }
+}

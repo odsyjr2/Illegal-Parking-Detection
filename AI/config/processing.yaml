@@ -9,10 +9,10 @@ monitoring:
   stationary_threshold: 5.0         # seconds to consider vehicle "parked"
   position_tolerance: 20             # pixels for "same position" detection
   
-  # Frame processing
-  frame_skip_rate: 0                 # frames to skip (0 = process all frames)
-  processing_interval: 1.0           # seconds between monitoring cycles
-  update_interval: 0.1               # seconds between position updates
+  # Frame processing (optimized for multi-stream)
+  frame_skip_rate: 2                 # frames to skip (2 = process every 3rd frame)
+  processing_interval: 0.5           # seconds between monitoring cycles
+  update_interval: 0.2               # seconds between position updates
   
   # Vehicle tracking parameters
   tracking:
@@ -22,10 +22,11 @@ monitoring:
     confidence_decay: 0.95          # confidence reduction per frame
     min_track_length: 10            # minimum frames to create stable track
     
-  # Performance optimization
-  max_concurrent_streams: 10         # maximum CCTV streams to monitor simultaneously
-  memory_cleanup_interval: 300      # seconds between memory cleanup
-  max_memory_usage_mb: 2048         # maximum memory usage before cleanup
+  # Performance optimization (multi-stream optimized)
+  max_concurrent_streams: 4          # maximum CCTV streams to monitor simultaneously
+  memory_cleanup_interval: 120       # seconds between memory cleanup
+  max_memory_usage_mb: 3072          # maximum memory usage before cleanup
+  ai_processing_interval: 3          # process AI detection every N frames (reduces GPU load)
 
 # Phase 2: Detailed Analysis Parameters  
 analysis:
