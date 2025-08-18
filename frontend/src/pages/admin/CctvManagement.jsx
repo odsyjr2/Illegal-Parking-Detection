@@ -11,6 +11,7 @@ function CctvManagement() {
   const [newLatitude, setNewLatitude] = useState('')
   const [newLongitude, setNewLongitude] = useState('')
   const [newLocation, setNewLocation] = useState('')
+  const [newStreamUrl, setNewStreamUrl] = useState('')
 
   const [searchText, setSearchText] = useState('')
   const [filterZone, setFilterZone] = useState('전체')
@@ -135,6 +136,7 @@ function CctvManagement() {
     const latTrim = newLatitude.trim()
     const lngTrim = newLongitude.trim()
     const dateTrim = newInstallationDate.trim();
+    const urlTrim = newStreamUrl.trim()
 
     if (!locationTrim) {
       alert('도로명주소를 입력하거나 주소검색으로 선택하세요.')
@@ -143,6 +145,10 @@ function CctvManagement() {
     if (!dateTrim) {
       alert('설치일을 선택하세요.');
       return;
+    }
+    if (!urlTrim) {
+      alert('스트리밍 URL을 입력하세요.')
+      return
     }
 
     let latitude = parseFloat(latTrim)
@@ -159,7 +165,7 @@ function CctvManagement() {
         alert('유효한 도로명주소 및 위도/경도를 입력하세요.')
         return
       }
-      const payload = { location: locationTrim, latitude, longitude, installationDate: newInstallationDate, }
+      const payload = { location: locationTrim, latitude, longitude, installationDate: newInstallationDate, streamUrl: urlTrim,}
       const res = await fetch('http://localhost:8080/api/cctvs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -300,16 +306,9 @@ function CctvManagement() {
         </button>
         <input
           type="text"
-          placeholder="위도 (예: 37.123456)"
-          value={newLatitude}
-          onChange={(e) => setNewLatitude(e.target.value)}
-          className="lat-lng-input"
-        />
-        <input
-          type="text"
-          placeholder="경도 (예: 127.123456)"
-          value={newLongitude}
-          onChange={(e) => setNewLongitude(e.target.value)}
+          placeholder="URL (예: http:// ... )"
+          value={newStreamUrl}
+          onChange={(e) => setNewStreamUrl(e.target.value)}
           className="lat-lng-input"
         />
         <label>
@@ -325,6 +324,20 @@ function CctvManagement() {
           + 추가
         </button>
       </div>
+        <input
+          type="text"
+          placeholder="위도 (예: 37.123456)"
+          value={newLatitude}
+          onChange={(e) => setNewLatitude(e.target.value)}
+          className="lat-lng-input"
+        />
+        <input
+          type="text"
+          placeholder="경도 (예: 127.123456)"
+          value={newLongitude}
+          onChange={(e) => setNewLongitude(e.target.value)}
+          className="lat-lng-input"
+        />
 
       {loading && <p className="loading-text">데이터 로딩 중...</p>}
 
