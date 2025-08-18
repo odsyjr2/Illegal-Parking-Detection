@@ -52,10 +52,10 @@ function CctvSelector({ cctvList, selectedCctv, onSelect }) {
       }}
     >
       <select
-        value={selectedCctv?.cctvname || ""}
+        value={selectedCctv?.streamName || ""}
         onChange={(e) => {
           const selected = cctvList.find(
-            (c) => c.cctvname === e.target.value
+            (c) => c.streamName === e.target.value
           );
           if (selected) onSelect(selected);
         }}
@@ -71,13 +71,13 @@ function CctvSelector({ cctvList, selectedCctv, onSelect }) {
       >
         <option value="">--- CCTV 선택 ---</option>
         {cctvList.map((c, idx) => (
-          <option key={idx} value={c.cctvname}>
-            {c.cctvname || "CCTV 미선택"}
+          <option key={idx} value={c.streamName}>
+            {c.streamName || "CCTV 미선택"}
           </option>
         ))}
       </select>
 
-      {selectedCctv?.cctvurl && (
+      {selectedCctv?.streamUrl && (
         <video
           id="cctv-player"
           controls
@@ -98,44 +98,68 @@ function MainPage() {
   const [tab, setTab] = useState("map");
   const [alerts, setAlerts] = useState([]);
 
-  // CCTV 리스트 (임시 하드코딩)
+  // CCTV 리스트 (임시 하드코딩, 역슬래시 제거)
+
   const cctvList = [
     {
-      roadsectionid: "",
-      coordx: 126.8102,
-      coordy: 35.0411,
-      cctvresolution: "",
-      filecreatetime: "",
-      cctvtype: 1,
-      cctvformat: "HLS",
-      cctvname: "[국도1호선]나주산포",
-      cctvurl: "http://",
+      streamId: "cctv_000",
+      streamName: "가양대교북단(고양)",
+      streamUrl: "https://openapi.its.go.kr/stream/cctv001",
+      location: "경기도 고양시 덕양구 가양대교북단",
+      latitude: 37.6158,
+      longitude: 126.8441,
+      streamSource: "korean_its_api",
+      active: true,
+      discoveredAt: "2023-12-29T10:33:54.567Z",
     },
     {
-      roadsectionid: "",
-      coordx: 126.9516,
-      coordy: 35.0811,
-      cctvresolution: "",
-      filecreatetime: "",
-      cctvtype: 1,
-      cctvformat: "HLS",
-      cctvname: "[국도22호선]광주너릿재T",
-      cctvurl: "http://",
+      streamId: "cctv_001",
+      streamName: "[국도1호선]나주산포",
+      streamUrl: "http://cctvsec.ktict.co.kr/4306/QtoPXrKQLl68YLsNjwgu2JcekHo1Ndyf8PwSzb+fKkWA6RByMZZaAlUmda+JIiXeBM0429YhDuCnv2SdoosIGAOSSaD2NcOACpvOo5kQ354=",
+      location: "전남 나주시 산포면 등정리 860-17",
+      latitude: 35.0411,
+      longitude: 126.8102,
+      streamSource: "ktict_cctv_api",
+      active: true,
+      discoveredAt: "2023-12-29T10:33:54.567Z",
+    },
+    {
+      streamId: "cctv_002",
+      streamName: "[국도22호선]광주너릿재T",
+      streamUrl: "http://cctvsec.ktict.co.kr/4316/tmGlyHi1I47WrXEhMPLGQFcJHva4/izTPv12JaH8+byrIjzOe/mRJfDBx/Cph814Y8ry153TMzeVZ5uK3S9kllBSgjbhBYfFfWuw8jbhNZ0=",
+      location: "광주 동구 선교동 482",
+      latitude: 35.0811,
+      longitude: 126.9516,
+      streamSource: "ktict_cctv_api",
+      active: true,
+      discoveredAt: "2023-12-29T10:33:54.567Z",
+    },
+    {
+      streamId: "cctv_003",
+      streamName: "[국도1호선]나주칠석교차로",
+      streamUrl: "http://cctvsec.ktict.co.kr/4935/xRj9/fXMHhpbMa+k+94QSQk/f94JSvmmCNBiqzs0Po2ktGvJFL0EACLMrD5Ymq/fYQx3S1jwrJc/CqbEOrwnglgSmrMDc6wz4LBbyD8Ltvk=",
+      location: "전남 나주시 남평읍 평산리 8-1",
+      latitude: 35.065308,
+      longitude: 126.842247,
+      streamSource: "ktict_cctv_api",
+      active: true,
+      discoveredAt: "2023-12-29T10:33:54.567Z",
     },
   ];
+
 
   // HLS CCTV 플레이어 연결 + cleanup 추가
   useEffect(() => {
     let hls;
-    if (selectedCctv?.cctvurl) {
+    if (selectedCctv?.streamUrl) {
       const video = document.getElementById("cctv-player");
       if (video) {
         if (Hls.isSupported()) {
           hls = new Hls();
-          hls.loadSource(selectedCctv.cctvurl);
+          hls.loadSource(selectedCctv.streamUrl);
           hls.attachMedia(video);
         } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = selectedCctv.cctvurl;
+          video.src = selectedCctv.streamUrl;
         }
       }
     }
@@ -205,17 +229,18 @@ function MainPage() {
                 selectedLocation={
                   selectedCctv
                     ? {
-                        label: selectedCctv.cctvname,
-                        lat: selectedCctv.coordy,
-                        lng: selectedCctv.coordx,
+                        label: selectedCctv.streamName,
+                        lat: selectedCctv.latitude, // 위도
+                        lng: selectedCctv.longitude, // 경도
                       }
                     : null
                 }
                 onLocationChange={(loc) => {
                   const c = cctvList.find(
                     (cctv) =>
-                      cctv.cctvname === loc?.label ||
-                      (cctv.coordx === loc?.lng && cctv.coordy === loc?.lat)
+                      cctv.streamName === loc?.label ||
+                      (cctv.latitude === loc?.lat &&
+                        cctv.longitude === loc?.lng)
                   );
                   if (c) setSelectedCctv(c);
                 }}
