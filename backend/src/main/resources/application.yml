@@ -30,6 +30,8 @@ spring:
             force: true
     lifecycle:
         timeout-per-shutdown-phase: 10s
+    profiles:
+        active: local
 
 server:
     port: 8080
