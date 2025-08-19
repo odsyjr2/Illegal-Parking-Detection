@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Hls from "hls.js/dist/hls.min.js"; // Vite 호환 import
 import MapPage from "./MapPage";
@@ -6,18 +6,17 @@ import InfoPanel from "./InfoPanel";
 import RoutePage from "./RoutePage";
 import "./MainPage.css";
 
-function AlertBox({ alerts, onDismiss }) {
+function AlertBox({ alert, onDismiss }) {
+  if (!alert) return null;
   return (
     <div className="alert-box">
-      {alerts.map((alert) => (
-        <div
-          key={alert.id}
-          className="alert-item"
-          onClick={() => onDismiss(alert.id)}
-        >
-          {alert.message}
-        </div>
-      ))}
+      <div
+        key={alert.id}
+        className="alert-item"
+        onClick={() => onDismiss(alert.id)}
+      >
+        {alert.message}
+      </div>
     </div>
   );
 }
@@ -94,8 +93,10 @@ function CctvSelector({ cctvList, selectedCctv, onSelect }) {
 function MainPage() {
   const [selectedCctv, setSelectedCctv] = useState(null);
   const [tab, setTab] = useState("map");
-  const [alerts, setAlerts] = useState([]);
+  const [alert, setAlert] = useState(null);   // 현재 하나만 보이는 알림
+  const [queue, setQueue] = useState([]);     // 대기 알림 큐
   const [cctvList, setCctvList] = useState([]);
+  const timerRef = useRef(null);
 
   // CCTV 리스트 불러오기
   useEffect(() => {
@@ -114,57 +115,72 @@ function MainPage() {
     fetchCctvs();
   }, []);
 
-  // 신규 신고 알림 폴링 + 알림 상태 관리
+  // 신고 데이터 polling
   useEffect(() => {
     let interval;
 
     const fetchAndCheckReports = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/human-reports');
-        console.log('신규 신고 원본 데이터:', res.data);
+        const res = await axios.get("http://localhost:8080/api/human-reports");
+        console.log("신규 신고 원본 데이터:", res.data);
 
         if (Array.isArray(res.data)) {
-          const unread = res.data.filter(item => !item.read);
-          if (unread.length > 0) {
-            const latest = unread[0];
-            setAlerts(prev => {
-              if (prev.some(a => a.id === latest.id)) {
-                console.log(`이미 알림이 있는 신고 ID: ${latest.id}`);
-                return prev;
-              }
-              console.log(`새로운 알림 추가 - 신고 ID: ${latest.id}`);
-              return [...prev, { id: latest.id, message: `${latest.title || '신고'}가 접수되었습니다!` }];
-            });
-          } else {
-            console.log('미열람 신규 신고 없음');
-          }
+          // 미열람 && 완료되지 않은 신고만 알림 후보
+          const unread = res.data.filter((item) => !item.read && item.status !== "done");
+
+          // 새로 들어온 미열람 신고만 queue에 추가
+          setQueue((prev) => {
+            const newOnes = unread.filter(
+              (item) =>
+                !prev.some((q) => q.id === item.id) &&
+                (!alert || alert.id !== item.id) // 현재 alert와 중복 방지
+            ).map((item) => ({
+              id: item.id,
+              message: `${item.title || "신고"}가 접수되었습니다!`,
+            }));
+
+            return [...prev, ...newOnes];
+          });
         }
       } catch (e) {
-        console.error('신규 신고 조회 오류:', e);
+        console.error("신규 신고 조회 오류:", e);
       }
     };
 
-    // 페이지 진입시 즉시 호출
     fetchAndCheckReports();
-
-    // 이후 10초 간격으로 실행
     interval = setInterval(fetchAndCheckReports, 10000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [alert]);
 
-  // 알림 클릭 시 읽음 처리 API 호출 후 알림 제거
+  // queue에 알림 있으면 순차적으로 보여줌
+  useEffect(() => {
+    if (!alert && queue.length > 0) {
+      const nextAlert = queue[0];
+      setAlert(nextAlert);
+
+      // 자동 닫힘 (3초 뒤)
+      timerRef.current = setTimeout(() => {
+        dismissAlert(nextAlert.id);
+      }, 3000);
+    }
+
+    return () => clearTimeout(timerRef.current);
+  }, [queue, alert]);
+
+  // 알림 닫기
   const dismissAlert = async (id) => {
     try {
       await axios.patch(`http://localhost:8080/api/human-reports/${id}/read`, {});
     } catch (error) {
       console.error('읽음 처리 실패:', error);
     } finally {
-      setAlerts(prev => prev.filter(a => a.id !== id));
+      setAlert(null);
+      setQueue((prev) => prev.filter((q) => q.id !== id));
     }
   };
 
-  // HLS CCTV 플레이어 연결 + cleanup
+  // HLS CCTV 플레이어 연결
   useEffect(() => {
     let hls;
     if (selectedCctv?.streamUrl) {
@@ -193,8 +209,8 @@ function MainPage() {
         boxSizing: "border-box",
       }}
     >
-      {/* 알림 박스 */}
-      <AlertBox alerts={alerts} onDismiss={dismissAlert} />
+      {/* 알림 박스 (하나씩 순차적으로 팝업) */}
+      <AlertBox alert={alert} onDismiss={dismissAlert} />
 
       {/* 탭 버튼 */}
       <div className="main-tabs">
@@ -241,8 +257,8 @@ function MainPage() {
                   selectedCctv
                     ? {
                         label: selectedCctv.streamName,
-                        lat: selectedCctv.latitude, // 위도
-                        lng: selectedCctv.longitude, // 경도
+                        lat: selectedCctv.latitude,
+                        lng: selectedCctv.longitude,
                       }
                     : null
                 }
