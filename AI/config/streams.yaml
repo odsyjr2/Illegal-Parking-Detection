@@ -112,7 +112,7 @@ cctv_streams:
       # Stream filtering options
       filters:
         min_streams: 1                       # Minimum streams to fetch
-        max_streams: 10                      # Maximum streams to process simultaneously
+        max_streams: 5                      # Maximum streams to process simultaneously
         prefer_hls: true                     # Prefer HLS format streams
         exclude_keywords: ["터널", "지하"]    # Exclude CCTVs with these keywords
     
