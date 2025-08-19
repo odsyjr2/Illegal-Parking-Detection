@@ -8,7 +8,6 @@ const statusColorMap = {
 };
 
 const STATUS_OPTIONS = ['전체', '접수', '진행중', '완료'];
-const REGION_OPTIONS = ['전체', '강남', '관악', '송파', '기타'];
 const DATE_OPTIONS = ['전체', '오늘', '이번주', '이번달'];
 
 const isDateInRange = (reportDateStr, filter) => {
@@ -71,14 +70,30 @@ function SearchPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredReports = reports.filter(report =>
-    (status === '전체' || report.status === status) &&
-    (region === '전체' || report.region === region) &&
-    (date === '전체' || isDateInRange(report.date, date)) &&
-    (query === '' ||
-      report.title.toLowerCase().includes(query.toLowerCase()) ||
-      report.content.toLowerCase().includes(query.toLowerCase()))
-  );
+    // 지역 필터 옵션을 reports 데이터에서 구 이름으로 동적 생성
+  const regionOptions = React.useMemo(() => {
+    const regionsSet = new Set();
+    reports.forEach(report => {
+      if (report.region) {
+        // "00구 00동" -> "00구"만 추출
+        const district = report.region.split(' ')[0] || '기타';
+        regionsSet.add(district);
+      }
+    });
+    return ['전체', ...Array.from(regionsSet)];
+  }, [reports]);
+
+  const filteredReports = reports.filter(report => {
+    const reportDistrict = report.region ? report.region.split(' ')[0] : '기타';
+    return (
+      (status === '전체' || report.status === status) &&
+      (region === '전체' || reportDistrict === region) &&
+      (date === '전체' || isDateInRange(report.date, date)) &&
+      (query === '' ||
+        report.title.toLowerCase().includes(query.toLowerCase()) ||
+        report.content.toLowerCase().includes(query.toLowerCase()))
+    );
+  });
 
   return (
     <div style={{
@@ -107,7 +122,7 @@ function SearchPage() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 30 }}>
           <FilterGroup title="처리상태" options={STATUS_OPTIONS} selected={status} onSelect={setStatus} />
-          <FilterGroup title="지역" options={REGION_OPTIONS} selected={region} onSelect={setRegion} />
+          <FilterGroup title="지역" options={regionOptions} selected={region} onSelect={setRegion} />
           <FilterGroup title="날짜" options={DATE_OPTIONS} selected={date} onSelect={setDate} />
         </div>
 

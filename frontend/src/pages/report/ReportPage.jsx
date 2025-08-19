@@ -24,16 +24,6 @@ function ReportPage() {
     fetchReports();
   }, []);
 
-  // 지역 추출
-  const extractRegionFromAddress = (address) => {
-    if (!address) return '기타';
-    if (address.includes('강남구')) return '강남';
-    if (address.includes('관악구')) return '관악';
-    if (address.includes('송파구')) return '송파';
-    if (address.includes('동대문구')) return '동대문';
-    return '기타';
-  };
-
   const [suggestions, setSuggestions] = useState([]);
   const [addressInput, setAddressInput] = useState('');
   const [latitude, setLatitude] = useState('');
@@ -65,7 +55,7 @@ function ReportPage() {
     formData.append('latitude', latitude);
     formData.append('longitude', longitude);
     formData.append('location', roadAddress);
-    formData.append('region', extractRegionFromAddress(roadAddress));
+    formData.append('region', region); 
     formData.append('status', '진행중');
 
     try {
@@ -126,10 +116,16 @@ function ReportPage() {
               Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
             }
           });
-          const address = response.data.documents[0]?.road_address?.address_name || '주소 없음';
+        const address = response.data.documents[0]?.address;
+        if (address) {
+          const fullAddress = address.address_name;   // 전체 주소 문자열
+          const region2 = address.region_2depth_name; // 구
+          const region3 = address.region_3depth_name; // 동/읍/면
           setRoadAddress(address);
-          setError('');
-        } catch (err) {
+          setRegion(`${region2} ${region3}`); // 👉 "강남구 역삼동" 처럼 저장 가능
+        } 
+        setError('');
+      }catch (err) {
           console.error(err);
           setRoadAddress('주소 조회 실패');
         }
@@ -144,9 +140,8 @@ function ReportPage() {
   const handleDaumPostcode = () => {
     new window.daum.Postcode({
       oncomplete: async function (data) {
-        const fullAddress = data.roadAddress || data.jibunAddress || '';
+        const fullAddress = data.jibunAddress || data.roadAddress || '';
         setRoadAddress(fullAddress);
-        setRegion(extractRegionFromAddress(fullAddress));
 
         try {
           const res = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
@@ -155,9 +150,14 @@ function ReportPage() {
               Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
             }
           });
-          const result = res.data.documents[0];
-          setLatitude(result?.y || '');
-          setLongitude(result?.x || '');
+          const result = res.data.documents[0]?.address;
+          if (result) {
+            const region2 = result.region_2depth_name; // 구
+            const region3 = result.region_3depth_name; // 동/읍/면
+            setRegion(`${region2} ${region3}`); // "송파구 잠실동"
+            setLatitude(result.y);
+            setLongitude(result.x);
+          }
         } catch (err) {
           console.error('좌표 변환 실패:', err);
         }
@@ -310,34 +310,34 @@ function ReportPage() {
                     <button
                       type="button"
                       onClick={() => handleSetStatus(report.id, '진행중')}
-                      disabled={report.status === '진행중'}
+                      disabled={report.status === '진행중' || report.status === '완료'}
                       style={{
                         padding: '8px 16px',
                         borderRadius: 8,
                         border: '1px solid #c7d2fe',
-                        background: report.status === '진행중' ? '#e0e7ff' : '#fff',
-                        cursor: report.status === '진행중' ? 'not-allowed' : 'pointer',
+                        background: report.status === '진행중'|| report.status === '완료' ? '#e0e7ff' : '#fff',
+                        cursor: report.status === '진행중'|| report.status === '완료' ? 'not-allowed' : 'pointer',
                         minWidth: 80
                       }}
                     >
                       진행중
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSetStatus(report.id, '완료')}
-                      disabled={report.status === '완료'}
-                      style={{
-                        padding: '8px 16px',
-                        borderRadius: 8,
-                        border: '1px solid #2563eb',
-                        background: report.status === '완료' ? '#2563eb' : '#3b82f6',
-                        color: '#fff',
-                        cursor: report.status === '완료' ? 'not-allowed' : 'pointer',
-                        minWidth: 80
-                      }}
-                    >
-                      완료
-                    </button>
+                   <button
+                    type="button"
+                    onClick={() => handleSetStatus(report.id, '완료')}
+                    disabled={report.status === '완료'}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: 8,
+                      border: report.status === '완료' ? '1px solid' : '1px solid #2563eb',
+                      background: report.status === '완료' ? '#e0e7ff' : '#3b82f6',
+                      color: '#fff',
+                      cursor: report.status === '완료' ? 'not-allowed' : 'pointer',
+                      minWidth: 80
+                    }}
+                  >
+                    완료
+                  </button>
                   </div>
                 )}
               </div>
