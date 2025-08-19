@@ -5,7 +5,7 @@
 # Phase 1: Continuous Monitoring Parameters
 monitoring:
   # Parking duration detection
-  parking_duration_threshold: 300    # seconds (5 minutes) - when parking becomes violation
+  parking_duration_threshold: 10     # seconds (10 seconds) - TEMPORARY TEST VALUE for faster violation detection
   stationary_threshold: 5.0         # seconds to consider vehicle "parked"
   position_tolerance: 20             # pixels for "same position" detection
   
@@ -58,6 +58,13 @@ analysis:
     min_brightness: 30            # minimum brightness level (0-255)
     max_blur_threshold: 100       # maximum blur metric (lower = less blur)
     contrast_enhancement: true    # enable automatic contrast enhancement
+  
+  # OCR and Backend Image Cropping Settings
+  image_cropping:
+    enabled: true                 # enable image cropping for OCR and backend transmission
+    margin_pixels: 20            # margin around illegal parking bbox (pixels)
+    min_crop_size: [100, 50]     # minimum crop size [width, height]
+    max_crop_size: [400, 200]    # maximum crop size [width, height]
 
 # Performance Monitoring
 performance:
