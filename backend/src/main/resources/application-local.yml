@@ -12,7 +12,7 @@ spring:
             connection-timeout: 30000
     jpa:
         hibernate:
-            ddl-auto: update      # 개발 중: update / 운영: validate 권장
+            ddl-auto: create      # 개발 중: update / 운영: validate 권장
         properties:
             hibernate:
                 format_sql: true
