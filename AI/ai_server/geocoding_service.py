@@ -72,9 +72,9 @@ class VWorldGeocodingService:
         self.config = config or {}
         
         # VWorld API configuration
-        self.base_url = 'https://api.vworld.kr/req/address'
-        self.api_key = self.config.get('vworld_api_key', '')
-        self.timeout = self.config.get('geocoding_timeout', 10.0)
+        self.base_url = self.config.get('base_url', 'https://api.vworld.kr/req/address')
+        self.api_key = self.config.get('api_key', '')
+        self.timeout = self.config.get('timeout', 10.0)
         self.cache_size = self.config.get('cache_size', 1000)
         self.retry_attempts = self.config.get('retry_attempts', 3)
         self.retry_delay = self.config.get('retry_delay', 1.0)
@@ -112,7 +112,7 @@ class VWorldGeocodingService:
             logger.warning(f"VWorld API key validation failed: {e}")
             return False
     
-    def _reverse_geocode_api(self, latitude: float, longitude: float) -> VWorldApiResult:
+    def _reverse_geocode_api(self, latitude: float, longitude: float, address_type: str = 'ROAD') -> VWorldApiResult:
         """
         Call VWorld reverse geocoding API.
         
@@ -130,7 +130,7 @@ class VWorldGeocodingService:
             'crs': 'epsg:4326',
             'point': f"{longitude},{latitude}",
             'format': 'json',
-            'type': 'ROAD',  # 도로명 주소만 요청
+            'type': address_type,  # 'ROAD' for 도로명주소, 'PARCEL' for 지번주소
             'key': self.api_key
         }
         
@@ -267,42 +267,43 @@ class VWorldGeocodingService:
         if not self.is_available():
             return self._fallback_location_info(latitude, longitude, "VWorld API not available")
         
-        # Perform reverse geocoding with retries
-        for attempt in range(self.retry_attempts + 1):
-            try:
-                logger.debug(f"VWorld reverse geocoding attempt {attempt + 1} for coordinates: {latitude}, {longitude}")
-                
-                # Call VWorld reverse geocoding API
-                api_result = self._reverse_geocode_api(latitude, longitude)
-                
-                if api_result.success:
-                    formatted_address = self._format_korean_road_address(api_result.road_address)
+        # Try road address first, then fallback to parcel address
+        for address_type in ['ROAD', 'PARCEL']:
+            for attempt in range(self.retry_attempts + 1):
+                try:
+                    logger.debug(f"VWorld {address_type} geocoding attempt {attempt + 1} for coordinates: {latitude}, {longitude}")
                     
-                    result = LocationInfo(
-                        latitude=latitude,
-                        longitude=longitude,
-                        address=api_result.road_address,
-                        formatted_address=formatted_address,
-                        is_geocoded=True
-                    )
+                    # Call VWorld reverse geocoding API with specific type
+                    api_result = self._reverse_geocode_api(latitude, longitude, address_type)
                     
-                    logger.debug(f"VWorld geocoding successful: {formatted_address}")
-                    return result
-                else:
-                    logger.warning(f"VWorld API failed (attempt {attempt + 1}): {api_result.error_message}")
+                    if api_result.success:
+                        formatted_address = self._format_korean_address(api_result.road_address)
+                        
+                        result = LocationInfo(
+                            latitude=latitude,
+                            longitude=longitude,
+                            address=api_result.road_address,
+                            formatted_address=formatted_address,
+                            is_geocoded=True
+                        )
+                        
+                        logger.debug(f"VWorld geocoding successful ({address_type}): {formatted_address}")
+                        return result
+                    else:
+                        logger.debug(f"VWorld {address_type} API failed (attempt {attempt + 1}): {api_result.error_message}")
+                        if attempt < self.retry_attempts:
+                            time.sleep(self.retry_delay * (attempt + 1))  # Exponential backoff
+                            continue
+                        else:
+                            break
+                    
+                except Exception as e:
+                    logger.error(f"Unexpected VWorld API error: {e}")
                     if attempt < self.retry_attempts:
-                        time.sleep(self.retry_delay * (attempt + 1))  # Exponential backoff
+                        time.sleep(self.retry_delay)
                         continue
                     else:
                         break
-                    
-            except Exception as e:
-                logger.error(f"Unexpected VWorld API error: {e}")
-                if attempt < self.retry_attempts:
-                    time.sleep(self.retry_delay)
-                    continue
-                else:
-                    break
         
         # Return fallback information if geocoding failed
         return self._fallback_location_info(latitude, longitude, "VWorld reverse geocoding failed after retries")
@@ -355,31 +356,24 @@ class VWorldGeocodingService:
         
         return True
     
-    def _format_korean_road_address(self, raw_address: str) -> str:
+    def _format_korean_address(self, raw_address: str) -> str:
         """
-        Format VWorld API road address into clean Korean format.
+        Format VWorld API address into clean Korean format.
         
         Args:
-            raw_address: Raw road address string from VWorld API
+            raw_address: Raw address string from VWorld API (road or parcel)
             
         Returns:
-            str: Formatted Korean road address
+            str: Formatted Korean address
         """
         if not raw_address:
             return ""
         
-        # VWorld API returns clean road addresses already
-        # Just remove extra whitespace and validate format
+        # VWorld API returns clean addresses (road or parcel)
+        # Just remove extra whitespace
         formatted_address = ' '.join(raw_address.split())
         
-        # Ensure it contains road address indicators
-        road_indicators = ['로', '길', '대로']
-        if any(indicator in formatted_address for indicator in road_indicators):
-            return formatted_address
-        else:
-            # If no road indicators, might be incomplete - return as is
-            logger.debug(f"Address may not be road address format: {formatted_address}")
-            return formatted_address
+        return formatted_address
     
     def _fallback_location_info(self, latitude: float, longitude: float, reason: str) -> LocationInfo:
         """
@@ -438,7 +432,7 @@ class VWorldGeocodingService:
                 api_result = self._geocode_api(road_address)
                 
                 if api_result.success:
-                    formatted_address = self._format_korean_road_address(api_result.road_address)
+                    formatted_address = self._format_korean_address(api_result.road_address)
                     
                     result = LocationInfo(
                         latitude=api_result.latitude,
