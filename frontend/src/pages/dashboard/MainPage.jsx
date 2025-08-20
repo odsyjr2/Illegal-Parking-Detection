@@ -1,5 +1,4 @@
-// MainPage.jsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Hls from "hls.js/dist/hls.min.js"; // Vite 호환 import
 import MapPage from "./MapPage";
@@ -7,18 +6,17 @@ import InfoPanel from "./InfoPanel";
 import RoutePage from "./RoutePage";
 import "./MainPage.css";
 
-function AlertBox({ alerts, onDismiss }) {
+function AlertBox({ alert, onDismiss }) {
+  if (!alert) return null;
   return (
     <div className="alert-box">
-      {alerts.map((alert) => (
-        <div
-          key={alert.id}
-          className="alert-item"
-          onClick={() => onDismiss(alert.id)}
-        >
-          {alert.message}
-        </div>
-      ))}
+      <div
+        key={alert.id}
+        className="alert-item"
+        onClick={() => onDismiss(alert.id)}
+      >
+        {alert.message}
+      </div>
     </div>
   );
 }
@@ -31,7 +29,6 @@ function RoutePanel() {
   );
 }
 
-// CCTV 선택 UI
 function CctvSelector({ cctvList, selectedCctv, onSelect }) {
   return (
     <div
@@ -96,59 +93,94 @@ function CctvSelector({ cctvList, selectedCctv, onSelect }) {
 function MainPage() {
   const [selectedCctv, setSelectedCctv] = useState(null);
   const [tab, setTab] = useState("map");
-  const [alerts, setAlerts] = useState([]);
+  const [alert, setAlert] = useState(null);   // 현재 하나만 보이는 알림
+  const [queue, setQueue] = useState([]);     // 대기 알림 큐
+  const [cctvList, setCctvList] = useState([]);
+  const timerRef = useRef(null);
 
-  // CCTV 리스트 (임시 하드코딩, 역슬래시 제거)
+  // CCTV 리스트 불러오기
+  useEffect(() => {
+    const fetchCctvs = async () => {
+      try {
+        const response = await axios.get('http://localhost:8080/api/cctvs');
+        const data = response.data.map(item => ({
+          ...item,
+          streamName: item.streamName || item.location || "(이름 없음)"
+        }));
+        setCctvList(data);
+      } catch (error) {
+        console.error("CCTV 데이터를 불러오는데 실패했습니다.", error);
+      }
+    };
+    fetchCctvs();
+  }, []);
 
-  const cctvList = [
-    {
-      streamId: "cctv_000",
-      streamName: "가양대교북단(고양)",
-      streamUrl: "https://openapi.its.go.kr/stream/cctv001",
-      location: "경기도 고양시 덕양구 가양대교북단",
-      latitude: 37.6158,
-      longitude: 126.8441,
-      streamSource: "korean_its_api",
-      active: true,
-      discoveredAt: "2023-12-29T10:33:54.567Z",
-    },
-    {
-      streamId: "cctv_001",
-      streamName: "[국도1호선]나주산포",
-      streamUrl: "http://cctvsec.ktict.co.kr/4306/QtoPXrKQLl68YLsNjwgu2JcekHo1Ndyf8PwSzb+fKkWA6RByMZZaAlUmda+JIiXeBM0429YhDuCnv2SdoosIGAOSSaD2NcOACpvOo5kQ354=",
-      location: "전남 나주시 산포면 등정리 860-17",
-      latitude: 35.0411,
-      longitude: 126.8102,
-      streamSource: "ktict_cctv_api",
-      active: true,
-      discoveredAt: "2023-12-29T10:33:54.567Z",
-    },
-    {
-      streamId: "cctv_002",
-      streamName: "[국도22호선]광주너릿재T",
-      streamUrl: "http://cctvsec.ktict.co.kr/4316/tmGlyHi1I47WrXEhMPLGQFcJHva4/izTPv12JaH8+byrIjzOe/mRJfDBx/Cph814Y8ry153TMzeVZ5uK3S9kllBSgjbhBYfFfWuw8jbhNZ0=",
-      location: "광주 동구 선교동 482",
-      latitude: 35.0811,
-      longitude: 126.9516,
-      streamSource: "ktict_cctv_api",
-      active: true,
-      discoveredAt: "2023-12-29T10:33:54.567Z",
-    },
-    {
-      streamId: "cctv_003",
-      streamName: "[국도1호선]나주칠석교차로",
-      streamUrl: "http://cctvsec.ktict.co.kr/4935/xRj9/fXMHhpbMa+k+94QSQk/f94JSvmmCNBiqzs0Po2ktGvJFL0EACLMrD5Ymq/fYQx3S1jwrJc/CqbEOrwnglgSmrMDc6wz4LBbyD8Ltvk=",
-      location: "전남 나주시 남평읍 평산리 8-1",
-      latitude: 35.065308,
-      longitude: 126.842247,
-      streamSource: "ktict_cctv_api",
-      active: true,
-      discoveredAt: "2023-12-29T10:33:54.567Z",
-    },
-  ];
+  // 신고 데이터 polling
+  useEffect(() => {
+    let interval;
 
+    const fetchAndCheckReports = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/api/human-reports");
+        console.log("신규 신고 원본 데이터:", res.data);
 
-  // HLS CCTV 플레이어 연결 + cleanup 추가
+        if (Array.isArray(res.data)) {
+          // 미열람 && 완료되지 않은 신고만 알림 후보
+          const unread = res.data.filter((item) => !item.read && item.status !== "done");
+
+          // 새로 들어온 미열람 신고만 queue에 추가
+          setQueue((prev) => {
+            const newOnes = unread.filter(
+              (item) =>
+                !prev.some((q) => q.id === item.id) &&
+                (!alert || alert.id !== item.id) // 현재 alert와 중복 방지
+            ).map((item) => ({
+              id: item.id,
+              message: `${item.title || "신고"}가 접수되었습니다!`,
+            }));
+
+            return [...prev, ...newOnes];
+          });
+        }
+      } catch (e) {
+        console.error("신규 신고 조회 오류:", e);
+      }
+    };
+
+    fetchAndCheckReports();
+    interval = setInterval(fetchAndCheckReports, 10000);
+
+    return () => clearInterval(interval);
+  }, [alert]);
+
+  // queue에 알림 있으면 순차적으로 보여줌
+  useEffect(() => {
+    if (!alert && queue.length > 0) {
+      const nextAlert = queue[0];
+      setAlert(nextAlert);
+
+      // 자동 닫힘 (3초 뒤)
+      timerRef.current = setTimeout(() => {
+        dismissAlert(nextAlert.id);
+      }, 3000);
+    }
+
+    return () => clearTimeout(timerRef.current);
+  }, [queue, alert]);
+
+  // 알림 닫기
+  const dismissAlert = async (id) => {
+    try {
+      await axios.patch(`http://localhost:8080/api/human-reports/${id}/read`, {});
+    } catch (error) {
+      console.error('읽음 처리 실패:', error);
+    } finally {
+      setAlert(null);
+      setQueue((prev) => prev.filter((q) => q.id !== id));
+    }
+  };
+
+  // HLS CCTV 플레이어 연결
   useEffect(() => {
     let hls;
     if (selectedCctv?.streamUrl) {
@@ -177,13 +209,8 @@ function MainPage() {
         boxSizing: "border-box",
       }}
     >
-      {/* 알림 박스 */}
-      <AlertBox
-        alerts={alerts}
-        onDismiss={(id) => {
-          setAlerts((prev) => prev.filter((a) => a.id !== id));
-        }}
-      />
+      {/* 알림 박스 (하나씩 순차적으로 팝업) */}
+      <AlertBox alert={alert} onDismiss={dismissAlert} />
 
       {/* 탭 버튼 */}
       <div className="main-tabs">
@@ -230,8 +257,8 @@ function MainPage() {
                   selectedCctv
                     ? {
                         label: selectedCctv.streamName,
-                        lat: selectedCctv.latitude, // 위도
-                        lng: selectedCctv.longitude, // 경도
+                        lat: selectedCctv.latitude,
+                        lng: selectedCctv.longitude,
                       }
                     : null
                 }

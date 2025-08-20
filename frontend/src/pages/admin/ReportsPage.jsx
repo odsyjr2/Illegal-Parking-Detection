@@ -37,7 +37,6 @@ function ReportsPage() {
       setLoading(true)
       setError(null)
       try {
-        // 실제 호출로 교체하세요
         const res = await fetch('http://localhost:8080/api/human-reports')
         const data = await res.json()
         setRawData(data)

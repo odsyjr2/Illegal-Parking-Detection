@@ -19,8 +19,8 @@ public class CctvServiceImpl implements CctvService {
     public CctvDTO createCctv(CctvCreateRequestDTO dto) {
         Cctv cctv = Cctv.builder()
                 .location(dto.getLocation())
-                .streamUrl(dto.getIpAddress())  // Map ipAddress to streamUrl for backward compatibility
-                .streamName(dto.getDescription())  // Map description to streamName
+                .streamUrl(dto.getStreamUrl() != null ? dto.getStreamUrl() : dto.getIpAddress())  // Map ipAddress to streamUrl for backward compatibility
+                .streamName(dto.getStreamName() != null ? dto.getStreamName() : dto.getDescription())  // Map description to streamName
                 .streamSource("manual")  // Manual CCTVs are marked as manual source
                 .active(dto.isActive())
                 .latitude(dto.getLatitude())
