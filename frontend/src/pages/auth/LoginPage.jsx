@@ -75,6 +75,9 @@ function LoginPage() {
         </button>
         <div className="auth-link">
           계정이 없나요? <Link to="/signup">회원가입</Link>
+          <div>
+            계정이 없나요? <Link to="/report">로그인 없이 신고</Link>
+          </div>
         </div>
       </form>
     </div>
