@@ -51,6 +51,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     }
 
     @Override
+    @Transactional
     public ParkingZoneDTO create(ParkingZoneRequestDTO req) {
         if (req.getZoneName() == null)
             throw new IllegalArgumentException("zoneName은 필수입니다.");
@@ -95,6 +96,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
 
 
     @Override
+    @Transactional
     public ParkingZoneDTO update(Long id, ParkingZoneRequestDTO req) {
         ParkingZone zone = zoneRepo.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + id));
@@ -136,6 +138,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
 
 
     @Override
+    @Transactional
     public void delete(Long id) {
         ParkingZone z = zoneRepo.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + id));
@@ -143,15 +146,28 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     }
 
     @Override
+    @Transactional
     public ParkingZoneDTO addSection(Long zoneId, ParkingSectionRequestDTO req) {
         ParkingZone z = zoneRepo.findById(zoneId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + zoneId));
-        ParkingSection s = parkingMapper.toSectionEntity(req);
-        z.addSection(s);
+
+        ParkingSection s = ParkingMapper.toSectionEntity(req);
+
+        // 양방향 연관관계 확실히 유지
+        s.setZone(z);
+        z.getSections().add(s);
+
+        // ✅ 명시적으로 저장(자식 저장 보장). 또는 zoneRepo.save(z)도 가능
+        sectionRepo.save(s);
+
+        // 필요하면 즉시 flush 해서 DB 반영 확인
+        // sectionRepo.flush();
+
         return ParkingMapper.toZoneDTO(z);
     }
 
     @Override
+    @Transactional
     public ParkingZoneDTO updateSection(Long zoneId, Long sectionId, ParkingSectionRequestDTO req) {
         ParkingZone z = zoneRepo.findById(zoneId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + zoneId));
@@ -159,11 +175,22 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                 .filter(s -> Objects.equals(s.getId(), sectionId))
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 섹션 id=" + sectionId));
-        parkingMapper.applySectionUpdate(target, req);
-        return ParkingMapper.toZoneDTO(z);
+
+        // 섹션-존 매칭 방지(다른 구역 섹션을 잘못 수정하는 실수 차단)
+        if (!Objects.equals(target.getZone().getId(), zoneId)) {
+            throw new IllegalArgumentException("섹션이 해당 구역에 속하지 않습니다. sectionId=" + sectionId);
+        }
+
+        ParkingMapper.applySectionUpdate(target, req);
+        // 필요 시 명시 저장으로 디버깅 편의 ↑
+        // sectionRepo.save(target);
+
+      return ParkingMapper.toZoneDTO(z);
     }
 
+
     @Override
+    @Transactional
     public ParkingZoneDTO removeSection(Long zoneId, Long sectionId) {
         ParkingZone z = zoneRepo.findById(zoneId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + zoneId));
@@ -177,28 +204,28 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     }
 
     // AI INTEGRATION - NEW METHODS FOR VIOLATION VALIDATION
-    
+
     @Override
     public boolean isLegalParkingAllowed(String cctvId, LocalDateTime detectionTime) {
         log.debug("Checking legal parking for CCTV: {} at time: {}", cctvId, detectionTime);
-        
+
         // TODO: Implement CCTV to ParkingZone mapping
         // For now, implement basic time-based validation
-        
+
         // Example business rule: No parking allowed between 7AM-9AM and 5PM-7PM (rush hours)
         LocalTime detectionTimeOnly = detectionTime.toLocalTime();
         LocalTime morningRushStart = LocalTime.of(7, 0);
         LocalTime morningRushEnd = LocalTime.of(9, 0);
         LocalTime eveningRushStart = LocalTime.of(17, 0);
         LocalTime eveningRushEnd = LocalTime.of(19, 0);
-        
-        boolean isMorningRush = !detectionTimeOnly.isBefore(morningRushStart) && 
+
+        boolean isMorningRush = !detectionTimeOnly.isBefore(morningRushStart) &&
                                detectionTimeOnly.isBefore(morningRushEnd);
-        boolean isEveningRush = !detectionTimeOnly.isBefore(eveningRushStart) && 
+        boolean isEveningRush = !detectionTimeOnly.isBefore(eveningRushStart) &&
                                detectionTimeOnly.isBefore(eveningRushEnd);
-        
+
         boolean isRushHour = isMorningRush || isEveningRush;
-        
+
         log.debug("CCTV {} - Rush hour parking restriction: {}", cctvId, isRushHour);
         return !isRushHour; // Parking is allowed if NOT in rush hour
     }
@@ -206,61 +233,61 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     @Override
     public ParkingZoneDTO findParkingZoneByCoordinates(Double latitude, Double longitude) {
         log.debug("Finding parking zone by coordinates: lat={}, lng={}", latitude, longitude);
-        
+
         if (latitude == null || longitude == null) {
             log.debug("Coordinates are null, cannot find parking zone");
             return null;
         }
-        
+
         // TODO: Implement geospatial queries to find parking zone by coordinates
         // This would require:
         // 1. Database support for spatial queries (PostGIS for PostgreSQL)
         // 2. Spatial data types in ParkingZone entity
         // 3. Spatial repository methods
-        
+
         // For now, return null - will be implemented in production database phase
         log.debug("Geospatial query not implemented yet - returning null");
         return null;
     }
 
     @Override
-    public boolean validateViolationByRules(String cctvId, LocalDateTime detectionTime, 
+    public boolean validateViolationByRules(String cctvId, LocalDateTime detectionTime,
                                           Double latitude, Double longitude) {
-        log.info("Validating violation by rules - CCTV: {}, Time: {}, Coordinates: [{}, {}]", 
+        log.info("Validating violation by rules - CCTV: {}, Time: {}, Coordinates: [{}, {}]",
                 cctvId, detectionTime, latitude, longitude);
-        
+
         if (latitude == null || longitude == null) {
             log.warn("GPS coordinates missing for violation validation - assuming violation");
             return true; // 좌표 없으면 기본적으로 위반으로 처리
         }
-        
+
         // 1. GPS 기반 직접 매칭 (50m 반경)
         List<ParkingSection> gpsMatches = findParkingSectionsByGPS(latitude, longitude, 50.0);
-        
-        // 2. VWorld API 주소 기반 매칭  
+
+        // 2. VWorld API 주소 기반 매칭
         List<ParkingSection> addressMatches = findParkingSectionsByAddress(latitude, longitude);
-        
+
         // 3. 하이브리드 매칭 결과 통합
         Set<ParkingSection> allMatches = new HashSet<>();
         allMatches.addAll(gpsMatches);
         allMatches.addAll(addressMatches);
-        
-        log.debug("Parking section matches: GPS={}, Address={}, Total={}", 
+
+        log.debug("Parking section matches: GPS={}, Address={}, Total={}",
                  gpsMatches.size(), addressMatches.size(), allMatches.size());
-        
+
         // 4. 매칭된 구역에서 시간대별 주차 규칙 확인
         boolean parkingAllowed = allMatches.stream()
             .anyMatch(section -> isParkingAllowedAtTime(section, detectionTime));
-        
+
         // 5. 주차 허용이면 위반 아님 (false), 금지면 위반임 (true)
         boolean isViolation = !parkingAllowed;
-        
-        log.info("Violation validation result: coordinates=({}, {}), matches={}, allowed={}, violation={}", 
+
+        log.info("Violation validation result: coordinates=({}, {}), matches={}, allowed={}, violation={}",
                 latitude, longitude, allMatches.size(), parkingAllowed, isViolation);
-        
+
         return isViolation;
     }
-    
+
     /**
      * GPS 좌표 기반 주차구역 매칭 (Haversine 거리 계산)
      */
@@ -268,7 +295,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
         // GPS 좌표가 설정된 구간만 조회 (성능 최적화)
         List<ParkingSection> sectionsWithGps = sectionRepo.findAllWithGpsCoordinates();
         List<ParkingSection> matches = new ArrayList<>();
-        
+
         for (ParkingSection section : sectionsWithGps) {
             // 구간 내 포함 여부 또는 가까운 거리 확인
             if (isLocationWithinSection(latitude, longitude, section, radiusMeters)) {
@@ -276,10 +303,10 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                 log.debug("GPS match found: Section {} at distance within {}m", section.getId(), radiusMeters);
             }
         }
-        
+
         return matches;
     }
-    
+
     /**
      * VWorld API를 통한 주소 기반 매칭
      */
@@ -287,25 +314,25 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
         try {
             // VWorld API로 역지오코딩
             GeocodingResult result = vWorldGeocodingService.reverseGeocode(latitude, longitude);
-            
+
             if (result.isSuccess() && result.getRoadAddress() != null) {
                 String roadAddress = result.getRoadAddress();
                 log.debug("Reverse geocoding result: {}", roadAddress);
-                
+
                 // 도로명 주소 부분 매칭으로 주차구역 검색
                 List<ParkingSection> matches = sectionRepo.findByOriginContainingOrDestinationContaining(
                     roadAddress, roadAddress);
-                
+
                 log.debug("Address-based matches found: {} for address: {}", matches.size(), roadAddress);
                 return matches;
             }
         } catch (Exception e) {
             log.warn("Address-based matching failed: {}", e.getMessage());
         }
-        
+
         return Collections.emptyList();
     }
-    
+
     /**
      * 지점이 주차구역 내에 포함되는지 확인 (선형 보간 포함)
      */
@@ -314,71 +341,71 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
         Double originLng = section.getOriginLongitude();
         Double destLat = section.getDestinationLatitude();
         Double destLng = section.getDestinationLongitude();
-        
+
         // 1. 시작점과의 거리 확인
         double distanceToOrigin = calculateHaversineDistance(lat, lng, originLat, originLng);
         if (distanceToOrigin <= radiusMeters) {
             return true;
         }
-        
+
         // 2. 종료점과의 거리 확인
         double distanceToDestination = calculateHaversineDistance(lat, lng, destLat, destLng);
         if (distanceToDestination <= radiusMeters) {
             return true;
         }
-        
+
         // 3. 선형 보간을 통한 구간 내 포함 여부 확인
         return isPointOnLineSegment(lat, lng, originLat, originLng, destLat, destLng, radiusMeters);
     }
-    
+
     /**
      * Haversine 공식을 이용한 GPS 거리 계산 (미터 단위)
      */
     private double calculateHaversineDistance(Double lat1, Double lng1, Double lat2, Double lng2) {
         final double R = 6371000; // 지구 반지름 (미터)
-        
+
         double dLat = Math.toRadians(lat2 - lat1);
         double dLng = Math.toRadians(lng2 - lng1);
-        
+
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
                    Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
                    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        
+
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        
+
         return R * c;
     }
-    
+
     /**
      * 점이 선분 위에 있는지 확인 (선형 보간)
      */
-    private boolean isPointOnLineSegment(Double pointLat, Double pointLng, 
-                                       Double startLat, Double startLng, 
-                                       Double endLat, Double endLng, 
+    private boolean isPointOnLineSegment(Double pointLat, Double pointLng,
+                                       Double startLat, Double startLng,
+                                       Double endLat, Double endLng,
                                        Double toleranceMeters) {
         // 선분의 길이
         double segmentLength = calculateHaversineDistance(startLat, startLng, endLat, endLng);
-        
+
         if (segmentLength < 1.0) { // 1미터 미만이면 점으로 처리
             return calculateHaversineDistance(pointLat, pointLng, startLat, startLng) <= toleranceMeters;
         }
-        
+
         // 점에서 선분으로의 최단거리 계산
         // 벡터를 이용한 근사 계산
         double A = pointLat - startLat;
         double B = pointLng - startLng;
         double C = endLat - startLat;
         double D = endLng - startLng;
-        
+
         double dot = A * C + B * D;
         double lenSq = C * C + D * D;
-        
+
         if (lenSq < 1e-10) { // 길이가 0에 가까우면
             return calculateHaversineDistance(pointLat, pointLng, startLat, startLng) <= toleranceMeters;
         }
-        
+
         double param = dot / lenSq;
-        
+
         double nearestLat, nearestLng;
         if (param < 0) {
             nearestLat = startLat;
@@ -390,11 +417,11 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
             nearestLat = startLat + param * C;
             nearestLng = startLng + param * D;
         }
-        
+
         double distance = calculateHaversineDistance(pointLat, pointLng, nearestLat, nearestLng);
         return distance <= toleranceMeters;
     }
-    
+
     /**
      * 주차구역의 시간대별 주차 허용 여부 확인
      */
@@ -403,12 +430,12 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
             // 시간 제한이 없으면 항상 허용된 것으로 처리
             return true;
         }
-        
+
         try {
             LocalTime startTime = section.getTimeStart();
             LocalTime endTime = section.getTimeEnd();
             LocalTime currentTime = detectionTime.toLocalTime();
-            
+
             // 시간 범위 확인
             boolean isInTimeRange;
             if (endTime.isAfter(startTime)) {
@@ -418,16 +445,16 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                 // 자정을 넘는 범위 (예: 22:00~06:00)
                 isInTimeRange = !currentTime.isBefore(startTime) || currentTime.isBefore(endTime);
             }
-            
+
             // parkingAllowed 필드에 따른 허용/금지 판별
             boolean parkingAllowed = section.isParkingAllowed();
             boolean finalAllowed = parkingAllowed ? isInTimeRange : !isInTimeRange;
-            
-            log.debug("Time validation for section {}: timeRange={}~{}, current={}, inRange={}, allowed={}, result={}", 
+
+            log.debug("Time validation for section {}: timeRange={}~{}, current={}, inRange={}, allowed={}, result={}",
                      section.getId(), startTime, endTime, currentTime, isInTimeRange, parkingAllowed, finalAllowed);
-            
+
             return finalAllowed;
-            
+
         } catch (Exception e) {
             log.warn("Error validating time for section {}: {}", section.getId(), e.getMessage());
             return true; // 검증 실패시 허용으로 처리

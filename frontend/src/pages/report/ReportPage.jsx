@@ -110,53 +110,55 @@ function ReportPage() {
         setLongitude(lng);
 
         try {
-          const response = await axios.get('https://dapi.kakao.com/v2/local/geo/coord2address.json', {
-            params: { x: lng, y: lat },
-            headers: {
-              Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
+          const response = await axios.get(
+            'https://dapi.kakao.com/v2/local/geo/coord2address.json',
+            {
+              params: { x: lng, y: lat },
+              headers: { Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3` }
             }
-          });
-        const address = response.data.documents[0]?.address;
-        if (address) {
-          const fullAddress = address.address_name;   // 전체 주소 문자열
-          const region2 = address.region_2depth_name; // 구
-          const region3 = address.region_3depth_name; // 동/읍/면
-          setRoadAddress(address);
-          setRegion(`${region2} ${region3}`); // 👉 "강남구 역삼동" 처럼 저장 가능
-        } 
-        setError('');
-      }catch (err) {
+          );
+          const address = response.data.documents[0]?.address;
+          if (address) {
+            setRoadAddress(address.address_name); // 전체 주소
+            const region2 = result.address?.region_2depth_name?.split(' ').pop() || '';
+            const region3 = address.region_3depth_name || '';
+            setRegion(`${region2} ${region3}`);
+          }
+          setError('');
+        } catch (err) {
           console.error(err);
-          setRoadAddress('주소 조회 실패');
+          setError('주소 조회 실패');
         }
       },
-      err => {
+      (err) => {
         console.error(err);
         setError('위치 접근 실패: 권한을 허용했는지 확인하세요.');
       }
     );
   };
 
+  // 📌 Daum 우편번호 검색
   const handleDaumPostcode = () => {
     new window.daum.Postcode({
       oncomplete: async function (data) {
-        const fullAddress = data.jibunAddress || data.roadAddress || '';
+        const fullAddress = data.roadAddress || data.jibunAddress || '';
         setRoadAddress(fullAddress);
 
         try {
-          const res = await axios.get('https://dapi.kakao.com/v2/local/search/address.json', {
-            params: { query: fullAddress },
-            headers: {
-              Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3`
+          const res = await axios.get(
+            'https://dapi.kakao.com/v2/local/search/address.json',
+            {
+              params: { query: fullAddress },
+              headers: { Authorization: `KakaoAK 31190e0b91ccecdd1178d3525ef71da3` }
             }
-          });
-          const result = res.data.documents[0]?.address;
+          );
+          const result = res.data.documents[0];
           if (result) {
-            const region2 = result.region_2depth_name; // 구
-            const region3 = result.region_3depth_name; // 동/읍/면
-            setRegion(`${region2} ${region3}`); // "송파구 잠실동"
             setLatitude(result.y);
             setLongitude(result.x);
+            const region2 = result.address?.region_2depth_name?.split(' ').pop() || '';
+            const region3 = result.address?.region_3depth_name || '';
+            setRegion(`${region2} ${region3}`);
           }
         } catch (err) {
           console.error('좌표 변환 실패:', err);
