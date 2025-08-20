@@ -841,9 +841,10 @@ class EventReporter:
         self.event_queue = EventQueue(config.get('event_queue', {}))
         self.event_formatter = EventFormatter(config.get('event_formatting', {}))
         
-        # API endpoints
+        # API endpoints - Updated to match actual backend endpoints
         self.endpoints = config.get('endpoints', {
-            'violation_detected': '/api/violations',
+            'violation_detected': '/api/ai/v1/report-detection',  # Main violation reporting endpoint
+            'stream_sync': '/api/cctvs/sync',                      # CCTV stream synchronization endpoint
             'vehicle_entered': '/api/vehicles/enter',
             'vehicle_exited': '/api/vehicles/exit',
             'license_plate_detected': '/api/license-plates',
@@ -1070,6 +1071,94 @@ class EventReporter:
     def add_error_callback(self, callback: Callable):
         """Add callback for error events."""
         self.error_callbacks.append(callback)
+    
+    async def sync_cctv_streams(self, stream_list: List[Dict[str, Any]]) -> bool:
+        """
+        Synchronize CCTV stream information to backend database.
+        Called during AI system initialization to register available streams.
+        
+        Args:
+            stream_list: List of stream information dictionaries containing:
+                - streamId: Stream identifier (e.g., "cctv_001") 
+                - streamName: Human-readable name
+                - streamUrl: Stream URL for frontend playback
+                - location: Address/location description (optional)
+                - latitude: GPS latitude coordinate (optional)
+                - longitude: GPS longitude coordinate (optional)
+                - active: Stream availability status
+                
+        Returns:
+            bool: True if synchronization successful
+        """
+        try:
+            logger.info(f"Synchronizing {len(stream_list)} CCTV streams to backend...")
+            
+            # Format stream data for backend API
+            formatted_streams = []
+            for stream_info in stream_list:
+                # Extract coordinates
+                latitude = stream_info.get("latitude", 0.0)
+                longitude = stream_info.get("longitude", 0.0)
+                location = stream_info.get("location", "")
+                
+                # Perform reverse geocoding if coordinates are available but location is empty
+                if latitude != 0.0 and longitude != 0.0 and not location:
+                    try:
+                        geocoding_result = reverse_geocode_coordinates(latitude, longitude)
+                        if geocoding_result.is_geocoded:
+                            location = geocoding_result.formatted_address
+                            logger.debug(f"Enhanced stream {stream_info['streamId']} with geocoded address: {location}")
+                    except Exception as e:
+                        logger.warning(f"Geocoding failed for stream {stream_info['streamId']}: {e}")
+                        location = f"좌표: {latitude:.6f}, {longitude:.6f}"
+                
+                formatted_stream = {
+                    "streamId": stream_info["streamId"],
+                    "streamName": stream_info.get("streamName", stream_info["streamId"]),
+                    "streamUrl": stream_info["streamUrl"],
+                    "location": location,
+                    "latitude": latitude,
+                    "longitude": longitude,
+                    "streamSource": stream_info.get("streamSource", "korean_its_api"),
+                    "active": stream_info.get("active", True),
+                    "discoveredAt": datetime.now().isoformat()
+                }
+                formatted_streams.append(formatted_stream)
+            
+            # Send to backend via REST API
+            endpoint = self.endpoints.get('stream_sync')
+            if not endpoint:
+                logger.error("Stream sync endpoint not configured")
+                return False
+            
+            # Prepare request payload
+            url = f"{self.rest_client.base_url}{endpoint}"
+            
+            try:
+                # Use direct HTTP request for stream sync
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        url, 
+                        json=formatted_streams,
+                        timeout=aiohttp.ClientTimeout(total=30)
+                    ) as response:
+                        if response.status == 200:
+                            result = await response.json()
+                            logger.info(f"Successfully synchronized {len(formatted_streams)} streams to backend: {result}")
+                            return True
+                        else:
+                            error_text = await response.text()
+                            logger.error(f"Backend sync failed with status {response.status}: {error_text}")
+                            return False
+                            
+            except Exception as e:
+                logger.error(f"HTTP request failed for stream sync: {e}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error synchronizing CCTV streams: {e}")
+            return False
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get comprehensive reporting statistics."""
