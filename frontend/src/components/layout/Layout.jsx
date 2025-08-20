@@ -129,6 +129,36 @@ function Layout({ children }) {
             로그아웃
           </button>
         </div>
+      ) : role === null && !HIDDEN_PATHS.includes(location.pathname) ? (
+        // 로그인 안 했을 때: 로그인 버튼만
+        <div style={{
+            position: 'fixed',
+            top: 13,
+            left: 10,
+            right: 10,
+            zIndex: 1500,
+            display: 'flex',
+            justifyContent: 'flex-start',
+            gap: 12,
+            padding: '8px 16px',
+            borderRadius: 8,
+            color: 'white',
+            fontWeight: 'bold',
+          }}>
+          <button
+            onClick={() => navigate('/login')}
+            style={{
+              backgroundColor: 'transparent',
+              border: '1px solid white',
+              borderRadius: 4,
+              color: 'white',
+              cursor: 'pointer',
+              padding: '8px 20px',
+            }}
+          >
+            로그인
+          </button>
+        </div>
       ) : (
         !isSidebarHidden && (
           <NavBar isOpen={isSidebarOpen} toggle={() => setIsSidebarOpen(!isSidebarOpen)} />

@@ -36,12 +36,12 @@ function App() {
   const isUser = role === 'USER';
 
   // 인증 및 역할에 따른 페이지 접근 제어 컴포넌트
-  const AuthRoute = ({ children, requireUserOnly = false }) => {
-    if (!isAuthenticated) {
-      // 비로그인자는 로그인, 회원가입만 접근 가능
+  const AuthRoute = ({ children, requireAuth = true, requireNonUser = false }) => {
+    if (requireAuth && !isAuthenticated) {
+      // 로그인 필요 + 로그인 안 되어있으면 로그인 페이지로
       return <Navigate to="/login" replace />;
     }
-    if (!requireUserOnly && isUser) {
+    if (requireNonUser && role === 'USER') {
       // USER가 들어갈 수 없는 경로는 /report로 이동
       return <Navigate to="/report" replace />;
     }
@@ -86,7 +86,7 @@ function App() {
           <Route
             path="/report"
             element={
-              <AuthRoute requireUserOnly={true}>
+              <AuthRoute requireAuth={false}>
                 <ReportPage />
               </AuthRoute>
             }
@@ -128,7 +128,7 @@ function App() {
           <Route
             path="/admin"
             element={
-              <AuthRoute>
+              <AuthRoute requireAuth={true} requireNonUser={true}>
                 <AdminPage />
               </AuthRoute>
             }

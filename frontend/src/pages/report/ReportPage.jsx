@@ -42,14 +42,11 @@ function ReportPage() {
     e.preventDefault();
 
     const storedUser = JSON.parse(localStorage.getItem('user'));
-    if (!storedUser?.id) {
-      alert('사용자 정보가 없습니다. 다시 로그인해주세요.');
-      return;
-    }
+    const userID = storedUser?.email || '익명'; // 사용자 없으면 익명 처리
 
     const formData = new FormData();
     formData.append('file', photo); // 📷 사진
-    formData.append('userID', storedUser.email); // 사용자 ID는 추후 로그인 시스템 연동 시 대체
+    formData.append('userID', userID);
     formData.append('title', '사용자신고');
     formData.append('reason', reason);
     formData.append('latitude', latitude);
@@ -261,7 +258,9 @@ function ReportPage() {
 
     {/* 신고 내역 */}
     <h2 style={{ fontWeight: 700, fontSize: 20, marginBottom: 22 }}>신고 내역</h2>
-    {filteredReports.length === 0 ? (
+    {!storedUser ? (
+      <p style={{ textAlign: 'center', color: '#888' }}>신고 내역은 로그인 후 이용 가능합니다.</p>
+    ) : filteredReports.length === 0 ? (
       <p style={{ textAlign: 'center', color: '#888' }}>신고 내역이 없습니다.</p>
     ) : (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

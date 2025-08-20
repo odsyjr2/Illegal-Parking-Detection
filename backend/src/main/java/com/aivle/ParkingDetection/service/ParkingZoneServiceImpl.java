@@ -26,12 +26,14 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     private final ParkingZoneRepository zoneRepo;
     private final ParkingSectionRepository sectionRepo;
     private final VWorldGeocodingService vWorldGeocodingService;
+    private final ParkingMapper parkingMapper;
 
     public ParkingZoneServiceImpl(ParkingZoneRepository zoneRepo, ParkingSectionRepository sectionRepo,
-                                VWorldGeocodingService vWorldGeocodingService) {
+                                VWorldGeocodingService vWorldGeocodingService, ParkingMapper parkingMapper) {
         this.zoneRepo = zoneRepo;
         this.sectionRepo = sectionRepo;
         this.vWorldGeocodingService = vWorldGeocodingService;
+        this.parkingMapper = parkingMapper;
     }
 
     @Override @Transactional(readOnly = true)
@@ -97,6 +99,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                 s.setZone(zone);          // FK 세팅
                 zone.addSection(s);       // 양방향 연결
                 sectionRepo.saveAndFlush(s); // ✅ 즉시 INSERT
+
             }
         }
 
@@ -180,9 +183,9 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                 if (sreq.getId() != null) {
                     ParkingSection exist = current.get(sreq.getId());
                     if (exist == null) throw new NoSuchElementException("존재하지 않는 섹션 id=" + sreq.getId());
-                    ParkingMapper.applySectionUpdate(exist, sreq);
+                    parkingMapper.applySectionUpdate(exist, sreq);
                 } else {
-                    ParkingSection created = ParkingMapper.toSectionEntity(sreq);
+                    ParkingSection created = parkingMapper.toSectionEntity(sreq);
                     created.setZone(zone);
                     zone.addSection(created);
                     sectionRepo.save(created);
@@ -241,7 +244,8 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
         ParkingMapper.applySectionUpdate(target, req);
         // 필요 시 명시 저장으로 디버깅 편의 ↑
         // sectionRepo.save(target);
-        return ParkingMapper.toZoneDTO(z);
+
+      return ParkingMapper.toZoneDTO(z);
     }
 
 
