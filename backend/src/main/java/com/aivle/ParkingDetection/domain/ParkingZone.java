@@ -16,13 +16,13 @@ public class ParkingZone {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "zone_name", nullable = false, length = 100)
     private String zoneName;
 
-    @Column(nullable = false)
+    @Column(name = "allowed_start", nullable = false)
     private LocalTime allowedStart;
 
-    @Column(nullable = false)
+    @Column(name = "allowed_end", nullable = false)
     private LocalTime allowedEnd;
 
     @OneToMany(mappedBy = "zone",

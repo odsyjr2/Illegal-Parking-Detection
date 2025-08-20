@@ -1,19 +1,36 @@
 package com.aivle.ParkingDetection.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 public class ParkingSectionRequestDTO {
     private Long id; // 업데이트 시 존재, 생성 시 null
     
     // 도로명 주소 필드 (필수 - 프론트엔드에서 입력)
+    @NotBlank(message = "origin은 필수입니다.")
+    @Size(max = 100, message = "origin은 100자 이하여야 합니다.")
     private String origin;
+
+    @NotBlank(message = "destination은 필수입니다.")
+    @Size(max = 100, message = "destination은 100자 이하여야 합니다.")
     private String destination;
-    
+
+
     // GPS 좌표 필드 (선택적 - 백엔드에서 지오코딩으로 자동 생성)
     private Double originLatitude;
     private Double originLongitude;
     private Double destinationLatitude;
     private Double destinationLongitude;
-    
+
+    @NotBlank(message = "time은 'HH:mm~HH:mm' 형식이어야 합니다.")
+    @Pattern(
+            regexp = "^([01]\\d|2[0-3]):[0-5]\\d~([01]\\d|2[0-3]):[0-5]\\d$",
+            message = "time 형식은 HH:mm~HH:mm 입니다. 예) 09:00~18:30"
+    )
     private String time; // "HH:mm~HH:mm"
+    @NotNull(message = "parkingAllowed는 필수입니다.")
     private Boolean parkingAllowed;
 
     // Getters

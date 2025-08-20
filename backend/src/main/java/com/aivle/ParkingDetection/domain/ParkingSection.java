@@ -18,10 +18,10 @@ public class ParkingSection {
     private ParkingZone zone;
 
     // 도로명 주소 필드
-    @Column(nullable = false, length = 100)
+    @Column(name = "origin", nullable = false, length = 100)
     private String origin;
 
-    @Column(nullable = false, length = 100)
+    @Column(name = "destination", nullable = false, length = 100)
     private String destination;
 
     // GPS 좌표 필드 - 하이브리드 매칭을 위한 추가
@@ -38,13 +38,13 @@ public class ParkingSection {
     private Double destinationLongitude;
 
     // 시간 제한 필드
-    @Column(nullable = false)
+    @Column(name = "time_start", nullable = false)
     private LocalTime timeStart;
 
-    @Column(nullable = false)
+    @Column(name = "time_end", nullable = false)
     private LocalTime timeEnd;
 
-    @Column(nullable = false)
+    @Column(name = "parking_allowed", nullable = false)
     private boolean parkingAllowed;
     
     /**
