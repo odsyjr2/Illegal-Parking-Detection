@@ -55,6 +55,83 @@ class StreamStatus:
     last_error: Optional[str] = None
 
 
+class KoreanITSAPIClient:
+    """Client for fetching CCTV streams from Korean ITS Open API"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.base_url = config.get('base_url', '')
+        self.api_key = config.get('api_key', '')
+        self.timeout = config.get('timeout', 30)
+        self.retry_attempts = config.get('retry_attempts', 3)
+        self.retry_delay = config.get('retry_delay', 10)
+        self.session = requests.Session()
+        
+    def fetch_cctv_streams_by_bounds(self, min_lon: float, max_lon: float, 
+                                   min_lat: float, max_lat: float) -> List[Dict[str, Any]]:
+        """Fetch CCTV streams within geographic bounds from Korean ITS API"""
+        try:
+            params = {
+                'apiKey': self.api_key,
+                'type': self.config.get('type', 'its'),
+                'cctvType': self.config.get('cctv_type', 4),
+                'minX': min_lon,
+                'maxX': max_lon,
+                'minY': min_lat,
+                'maxY': max_lat,
+                'getType': self.config.get('get_type', 'json')
+            }
+            
+            response = self.session.get(
+                self.base_url,
+                params=params,
+                timeout=self.timeout
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                cctv_data = data.get('response', {}).get('data', [])
+                
+                # Convert to internal format
+                streams = []
+                for idx, cctv in enumerate(cctv_data):
+                    stream = {
+                        'id': f"its_cctv_{idx:03d}",
+                        'name': cctv.get('cctvname', f'ITS CCTV {idx}'),
+                        'source_type': 'hls' if cctv.get('cctvformat') == 'HLS' else 'http',
+                        'stream_url': cctv.get('cctvurl', ''),
+                        'fps': 15,  # Default FPS for live streams
+                        'enabled': True,
+                        'location': {
+                            'latitude': cctv.get('coordy', 0),
+                            'longitude': cctv.get('coordx', 0),
+                            'address': cctv.get('cctvname', ''),
+                            'zone_type': 'road'
+                        }
+                    }
+                    streams.append(stream)
+                
+                logger.info(f"Fetched {len(streams)} CCTV streams from Korean ITS API")
+                return streams
+            else:
+                logger.warning(f"Korean ITS API returned status {response.status_code}")
+                return []
+                
+        except requests.RequestException as e:
+            logger.error(f"Failed to fetch CCTV streams from Korean ITS API: {e}")
+            return []
+    
+    def fetch_default_streams(self) -> List[Dict[str, Any]]:
+        """Fetch CCTV streams using default geographic bounds"""
+        bounds = self.config.get('default_bounds', {})
+        return self.fetch_cctv_streams_by_bounds(
+            min_lon=bounds.get('min_longitude', 126.7),
+            max_lon=bounds.get('max_longitude', 127.2),
+            min_lat=bounds.get('min_latitude', 37.4),
+            max_lat=bounds.get('max_latitude', 37.7)
+        )
+
+
 class BackendClient:
     """Client for communicating with Spring Backend"""
     
@@ -351,6 +428,14 @@ class MonitoringService:
         # Backend integration
         self.backend_client = BackendClient(config.get('backend', {}).get('url', ''))
         
+        # Korean ITS API integration
+        self.its_client: Optional[KoreanITSAPIClient] = None
+        if self.streams_config.get('live_streams', {}).get('enabled', False):
+            its_config = self.streams_config.get('live_streams', {}).get('its_api', {})
+            if its_config:
+                self.its_client = KoreanITSAPIClient(its_config)
+                logger.info("Korean ITS API client initialized")
+        
         # Monitoring state
         self.active_streams: Dict[str, StreamMonitor] = {}
         self.stream_statuses: Dict[str, StreamStatus] = {}
@@ -415,6 +500,11 @@ class MonitoringService:
                 logger.error("No streams available for monitoring")
                 return False
             
+            # Load streams into CCTV manager using dynamic loading
+            if not self.cctv_manager.load_streams_from_list(streams):
+                logger.error("Failed to load streams into CCTV manager")
+                return False
+            
             # Create and start stream monitors
             success = True
             for stream_config in streams:
@@ -452,22 +542,43 @@ class MonitoringService:
             return False
     
     async def _get_stream_configurations(self, stream_ids: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-        """Get stream configurations from backend or local config"""
+        """Get stream configurations from Korean ITS API, backend, or local config"""
         streams = []
         
         try:
-            # Try to fetch from backend first
-            if self.streams_config.get('fetch_from_backend', False):
+            # Try Korean ITS API first if enabled
+            if self.its_client and self.streams_config.get('live_streams', {}).get('enabled', False):
+                its_streams = self.its_client.fetch_default_streams()
+                if its_streams:
+                    # Apply filtering options
+                    filters = self.streams_config.get('live_streams', {}).get('its_api', {}).get('filters', {})
+                    max_streams = filters.get('max_streams', 10)
+                    exclude_keywords = filters.get('exclude_keywords', [])
+                    
+                    # Filter out excluded keywords
+                    filtered_streams = []
+                    for stream in its_streams:
+                        stream_name = stream.get('name', '').lower()
+                        if not any(keyword in stream_name for keyword in exclude_keywords):
+                            filtered_streams.append(stream)
+                    
+                    # Limit number of streams
+                    streams = filtered_streams[:max_streams]
+                    logger.info(f"Using {len(streams)} streams from Korean ITS API")
+            
+            # Try to fetch from backend if no ITS streams
+            if not streams and self.streams_config.get('fetch_from_backend', False):
                 backend_streams = await self.backend_client.fetch_cctv_streams()
                 if backend_streams:
                     streams = backend_streams
                     logger.info(f"Using {len(streams)} streams from backend")
             
-            # Fallback to local configuration
-            if not streams and self.streams_config.get('fallback_enabled', True):
-                local_streams = self.streams_config.get('local_streams', [])
-                streams = [s for s in local_streams if s.get('enabled', True)]
-                logger.info(f"Using {len(streams)} local streams as fallback")
+            # Fallback to local configuration (commented out test videos)
+            if not streams and self.streams_config.get('local_streams', {}).get('fallback_enabled', False):
+                # local_streams = self.streams_config.get('local_streams', [])
+                # streams = [s for s in local_streams if s.get('enabled', True)]
+                logger.warning("Local test video streams are commented out, no fallback available")
+                streams = []
             
             # Filter by stream IDs if specified
             if stream_ids:

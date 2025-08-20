@@ -1,5 +1,6 @@
 package com.aivle.ParkingDetection.service;
 
+import org.springframework.transaction.annotation.Transactional;
 import com.aivle.ParkingDetection.domain.HumanDetectionReport;
 import com.aivle.ParkingDetection.repository.HumanDetectionReportRepository;
 import org.springframework.stereotype.Service;
@@ -42,4 +43,15 @@ public class HumanDetectionReportService {
         }
         return false;
     }
+
+    // 신고 읽음 처리
+    @Transactional
+    public boolean markAsRead(Long id) {
+        Optional<HumanDetectionReport> optional = repository.findById(id);
+        return repository.findById(id).map(report -> {
+            report.setRead(true);
+            return true;
+        }).orElse(false);
+    }
+
 }

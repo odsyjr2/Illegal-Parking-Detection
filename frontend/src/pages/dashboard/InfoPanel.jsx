@@ -27,45 +27,49 @@ ChartJS.register(
 
 const korWeekDays = ['일', '월', '화', '수', '목', '금', '토']
 
+// 👇[변경1] 선택한 location 문자열에서 구/동/읍/면 추출하는 함수 추가
+function extractRegionName(location) {
+  if (!location) return '';
+  // '구', '동', '읍', '면'으로 끝나는 문자열 추출 (마지막 값)
+  const match = location.match(/([가-힣]+[구|동|읍|면])/g);
+  return match ? match[match.length - 1] : '';
+}
+
 function InfoPanel({ selectedLocation }) {
-  // 신고 데이터 상태
   const [rawData, setRawData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // 감시 구역 목록
-  const regions = ['강남구', '관악구', '송파구']
+  // 👇[변경2] regions 하드코딩 배열 제거
+  // const regions = ['강남구', '관악구', '송파구']
 
-  // 오늘 날짜 문자열 (YYYY-MM-DD)
   const todayStr = new Date().toISOString().slice(0, 10)
 
-  // 오늘 날짜 기준 지역별 통계 계산
+  // 👇[변경3] 선택된 위치에서 구/동명 추출
+  const regionName = extractRegionName(selectedLocation?.location || '');
+
+  // 👇[변경4] 현황통계: 해당 지역만 필터
   const locationStatusFromReports = useMemo(() => {
-    if (!rawData) return {}
-
-    return regions.reduce((acc, region) => {
-      // 오늘 날짜 + 해당 지역 필터
-      const regionReports = rawData.filter(
-        r =>
-          r.location &&
-          r.location.includes(region) &&
-          r.createdAt?.slice(0, 10) === todayStr
-      )
-
-      acc[region] = [
-        { label: '감지 차량 수', value: regionReports.length },
-        {
-          label: '진행중',
-          value: regionReports.filter(r => r.status === '진행중').length
-        },
-        {
-          label: '완료',
-          value: regionReports.filter(r => r.status === '완료').length
-        }
-      ]
-      return acc
-    }, {})
-  }, [rawData, regions, todayStr])
+    if (!rawData || !regionName) return [];
+    // location에서 구/동명 일치 + 오늘 날짜
+    const regionReports = rawData.filter(
+      r =>
+        r.location &&
+        extractRegionName(r.location) === regionName &&
+        r.createdAt?.slice(0, 10) === todayStr
+    );
+    return [
+      { label: '감지 차량 수', value: regionReports.length },
+      {
+        label: '진행중',
+        value: regionReports.filter(r => r.status === '진행중').length
+      },
+      {
+        label: '완료',
+        value: regionReports.filter(r => r.status === '완료').length
+      }
+    ];
+  }, [rawData, regionName, todayStr]);
 
   // 최근 7일 날짜 생성
   const dates = useMemo(() => {
@@ -81,13 +85,11 @@ function InfoPanel({ selectedLocation }) {
     })
   }, [])
 
-  // 데이터 fetch 함수
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       setError(null)
       try {
-        // 실제 API 주소로 교체하세요
         const res = await fetch('http://localhost:8080/api/human-reports')
         const data = await res.json()
         setRawData(data)
@@ -103,7 +105,6 @@ function InfoPanel({ selectedLocation }) {
   // 7일간 날짜별 신고 건수 집계
   const dailyCounts = useMemo(() => {
     if (!rawData) return Array(7).fill(0)
-
     const dailyMap = {}
     dates.forEach(date => {
       dailyMap[date] = 0
@@ -119,23 +120,6 @@ function InfoPanel({ selectedLocation }) {
   const todayCount = dailyCounts[todayIndex] || 0
   const maxCount = Math.max(...dailyCounts)
   const avgCount = (dailyCounts.reduce((a, b) => a + b, 0) / dailyCounts.length).toFixed(1)
-
-  // 구역별 이번 주 데이터 통계 (그래프용)
-  const regionCounts = useMemo(() => {
-    if (!rawData) return { labels: [], data: [] }
-    const regionMap = {}
-    const validDates = new Set(dates)
-    rawData.forEach(({ region, createdAt }) => {
-      const date = createdAt.slice(0, 10)
-      if (validDates.has(date)) {
-        if (region) regionMap[region] = (regionMap[region] || 0) + 1
-      }
-    })
-    return {
-      labels: Object.keys(regionMap),
-      data: Object.values(regionMap)
-    }
-  }, [rawData, dates])
 
   // 시간대별 신고 건수 (4구간)
   const timeRanges = [
@@ -158,13 +142,11 @@ function InfoPanel({ selectedLocation }) {
     return counts
   }, [rawData, dates])
 
-  // 차트 라벨 (요일)
   const weekLabels = dates.map(d => {
     const dt = new Date(d)
     return `${dt.getDate()}(${korWeekDays[dt.getDay()]})`
   })
 
-  // 스타일
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: '1fr',
@@ -207,12 +189,9 @@ function InfoPanel({ selectedLocation }) {
   if (loading) return <div>로딩 중...</div>
   if (error) return <div>{error}</div>
 
-  // 선택된 지역 키, 없으면 null
-  const regionKey = selectedLocation?.label || null
-
-  // 보여줄 실시간 현황 데이터, 없으면 '-' 표시
-  const displayItems = regionKey
-    ? locationStatusFromReports[regionKey] || []
+  // 👇[변경5] displayItems 현황: 선택된 지역 통계 또는 기본
+  const displayItems = locationStatusFromReports.length > 0
+    ? locationStatusFromReports
     : [
         { label: '감지 차량 수', value: '-' },
         { label: '진행중', value: '-' },
@@ -224,7 +203,7 @@ function InfoPanel({ selectedLocation }) {
       {/* 실시간 현황 */}
       <section style={{ gridRow: '1' }}>
         <h3 style={{ margin: '0 0 10px 0', color: '#222', fontWeight: '700' }}>
-          실시간 현황{regionKey ? ` - ${regionKey}` : ''}
+          실시간 현황{regionName ? ` - ${regionName}` : ''}
         </h3>
         <ul
           style={{
@@ -343,7 +322,7 @@ function InfoPanel({ selectedLocation }) {
           />
         </div>
       </section>
-      <section style={{ gridRow: '4',padding:10 }}></section>
+      <section style={{ gridRow: '4', padding: 10 }}></section>
     </div>
   )
 }

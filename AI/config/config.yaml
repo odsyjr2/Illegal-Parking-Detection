@@ -19,7 +19,7 @@ application:
 # Backend Integration (Spring Boot)
 backend:
   # Connection settings  
-  url: "${BACKEND_URL}"                # Environment variable for backend URL
+  url: "http://localhost:8080"               # Environment variable for backend URL
   fallback_url: "http://localhost:8080" # Fallback if env var not set
   timeout: 30                          # seconds for API requests
   
@@ -190,16 +190,43 @@ health:
     alert_on_failure: true          # Alert on health check failures
     health_endpoint: "/health"       # Health check endpoint (if web interface added)
 
+# VWorld API Configuration (Korean Government Geocoding Service)
+vworld:
+  # API settings
+  api_key: "5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"      # Environment variable for VWorld API key
+  base_url: "https://api.vworld.kr/req/address"
+  
+  # Request settings
+  timeout: 10                       # seconds for API requests
+  retry_attempts: 3                 # number of retries for failed requests
+  retry_delay: 1.0                  # seconds between retry attempts
+  
+  # Caching
+  cache_size: 1000                  # number of geocoding results to cache
+  cache_enabled: true               # enable geocoding result caching
+  
+  # Address settings
+  address_type: "ROAD"              # "ROAD" for 도로명주소, "PARCEL" for 지번주소
+  coordinate_system: "epsg:4326"    # WGS84 coordinate system
+  
+  # Validation
+  validate_korean_bounds: true      # validate coordinates are within Korea
+  fallback_on_error: true           # use coordinate fallback when geocoding fails
+
 # Environment Configuration
 environment:
-  # Environment variables that should be set
-  required_env_vars:
-    - "BACKEND_URL"                  # Spring Boot backend URL
+  # Environment variables that should be set (currently none required for basic testing)
+  required_env_vars: []
+    # - "BACKEND_URL"                  # Spring Boot backend URL (optional, has default)
+    # - "VWORLD_API_KEY"              # VWorld Open API key (optional, has default)
     # - "BACKEND_API_KEY"            # API key (if authentication enabled)
     # - "CCTV_API_KEY"               # CCTV API key (if live streams enabled)
     
   # Optional environment variables with defaults
   optional_env_vars:
+    BACKEND_URL: "http://localhost:8080"  # Override backend URL
+    VWORLD_API_KEY: "5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"  # Override VWorld API key
+    BACKEND_API_KEY: ""             # Override API key (if authentication enabled)
     LOG_LEVEL: "INFO"               # Override default log level
     DEBUG_MODE: "false"             # Override debug mode
     MAX_MEMORY_MB: "4096"           # Override maximum memory usage

@@ -94,4 +94,15 @@ public class HumanDetectionReportController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // 신고 읽음 처리
+    @PatchMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(@PathVariable Long id) {
+        boolean updated = service.markAsRead(id);
+        if (updated) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

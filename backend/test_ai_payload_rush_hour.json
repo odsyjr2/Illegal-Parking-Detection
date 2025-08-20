@@ -1,0 +1,43 @@
+{
+  "event_id": "violation_detected_rush_hour_1703830800",
+  "event_type": "violation_detected",
+  "priority": "urgent",
+  "timestamp": 1703830800.000,
+  "timestamp_iso": "2023-12-29T07:00:00.000Z",
+  "stream_id": "cctv_001",
+  "correlation_id": "parking_event_rush_7am",
+  "data": {
+    "violation": {
+      "event_id": "parking_event_rush_7am",
+      "stream_id": "cctv_001",
+      "start_time": 1703830800.000,
+      "duration": 180.5,
+      "violation_severity": 0.92,
+      "is_confirmed": true,
+      "vehicle_type": "car",
+      "parking_zone_type": "no_parking"
+    },
+    "vehicle": {
+      "track_id": "vehicle_789",
+      "vehicle_type": "car",
+      "confidence": 0.95,
+      "bounding_box": [120, 160, 320, 420],
+      "last_position": [125.4, 37.5]
+    },
+    "license_plate": {
+      "plate_text": "서울12나5678",
+      "confidence": 0.91,
+      "bounding_box": [190, 330, 290, 360],
+      "is_valid_format": true
+    },
+    "ocr_result": {
+      "recognized_text": "서울12나5678",
+      "confidence": 0.91,
+      "is_valid_format": true
+    },
+    "stream_info": {
+      "stream_id": "cctv_001",
+      "location_name": "Main Street Intersection"
+    }
+  }
+}

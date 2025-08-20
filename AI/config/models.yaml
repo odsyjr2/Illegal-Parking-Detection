@@ -8,7 +8,7 @@ vehicle_detection:
   confidence_threshold: 0.5
   iou_threshold: 0.45
   max_detections: 1000
-  device: "auto"  # "auto", "cpu", "cuda", "cuda:0"
+  device: "cpu"  # "auto", "cpu", "cuda", "cuda:0"
   
   # Tracking specific parameters
   tracking:
@@ -21,7 +21,7 @@ illegal_parking:
   path: "../models/illegal_parking/yolo_illegal_v1.pt"
   confidence_threshold: 0.6
   iou_threshold: 0.45
-  device: "auto"
+  device: "cpu"
   
   # Classification specific parameters
   classes:
@@ -35,7 +35,7 @@ license_plate:
     path: "../models/license_plate/yolo_plate_detector_v1.pt"
     confidence_threshold: 0.7
     iou_threshold: 0.4
-    device: "auto"
+    device: "cpu"
     
   # OCR for license plate text recognition
   ocr:
