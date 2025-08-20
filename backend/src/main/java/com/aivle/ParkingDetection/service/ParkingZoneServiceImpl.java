@@ -95,7 +95,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
                     throw new IllegalArgumentException("section의 필수값(origin, destination, time, parkingAllowed)이 누락되었습니다.");
                 }
 
-                ParkingSection s = ParkingMapper.toSectionEntity(sreq); // 내부에서 time 파싱 검증
+                ParkingSection s = parkingMapper.toSectionEntity(sreq); // 내부에서 time 파싱 검증
                 s.setZone(zone);          // FK 세팅
                 zone.addSection(s);       // 양방향 연결
                 sectionRepo.saveAndFlush(s); // ✅ 즉시 INSERT
@@ -211,7 +211,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
         ParkingZone z = zoneRepo.findById(zoneId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 구역 id=" + zoneId));
 
-        ParkingSection s = ParkingMapper.toSectionEntity(req);
+        ParkingSection s = parkingMapper.toSectionEntity(req);
 
         // 양방향 연관관계 확실히 유지
         s.setZone(z);
@@ -241,7 +241,7 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
             throw new IllegalArgumentException("섹션이 해당 구역에 속하지 않습니다. sectionId=" + sectionId);
         }
 
-        ParkingMapper.applySectionUpdate(target, req);
+        parkingMapper.applySectionUpdate(target, req);
         // 필요 시 명시 저장으로 디버깅 편의 ↑
         // sectionRepo.save(target);
 
