@@ -51,47 +51,107 @@ public class ParkingZoneServiceImpl implements ParkingZoneService {
     }
 
     @Override
-    @Transactional
+    @Transactional // readOnly=false 보장
     public ParkingZoneDTO create(ParkingZoneRequestDTO req) {
-        if (req.getZoneName() == null)
+        // 0) zoneName 검증 + 트림
+        String zoneName = Optional.ofNullable(req.getZoneName()).map(String::trim)
+                .orElseThrow(() -> new IllegalArgumentException("zoneName은 필수입니다."));
+        if (zoneName.isEmpty()) {
             throw new IllegalArgumentException("zoneName은 필수입니다.");
-
-        // 1) 같은 zoneName 있으면 그 ZONE 재사용, 없으면 새로 생성
-        ParkingZone zone = zoneRepo.findTopByZoneNameOrderByIdAsc(req.getZoneName())
-                .orElseGet(() -> {
-                    // 새 Zone 생성
-                    ParkingZone z = new ParkingZone();
-                    z.setZoneName(req.getZoneName());
-
-                    // 새로 만들 때는 allowedTime이 꼭 있어야 함
-                    if (req.getAllowedTime() == null) {
-                        throw new IllegalArgumentException("새 Zone을 만들 때는 allowedTime이 필요합니다. (예: 08:00~20:00)");
-                    }
-                    var r = ParkingMapper.parseRange(req.getAllowedTime());
-                    z.setAllowedStart(r[0]);
-                    z.setAllowedEnd(r[1]);
-                    return zoneRepo.save(z);
-                });
-
-        // 2) 기존 Zone에 대한 allowedTime이 요청에 있으면 업데이트(선택)
-        if (req.getAllowedTime() != null) {
-            var r = ParkingMapper.parseRange(req.getAllowedTime());
-            zone.setAllowedStart(r[0]);
-            zone.setAllowedEnd(r[1]);
         }
 
-        // 3) 섹션 추가 (요청에 있으면)
-        if (req.getSections() != null) {
+        // 1) 같은 zoneName 있으면 재사용, 없으면 새로 생성(+즉시 INSERT)
+        ParkingZone zone = zoneRepo.findTopByZoneNameOrderByIdAsc(zoneName)
+                .orElseGet(() -> {
+                    String at = Optional.ofNullable(req.getAllowedTime()).map(String::trim)
+                            .orElseThrow(() -> new IllegalArgumentException("새 Zone을 만들 때는 allowedTime이 필요합니다. (예: 08:00~20:00)"));
+                    if (at.isEmpty()) {
+                        throw new IllegalArgumentException("새 Zone을 만들 때는 allowedTime이 필요합니다. (예: 08:00~20:00)");
+                    }
+                    var r = ParkingMapper.parseRange(at);
+                    ParkingZone z = new ParkingZone();
+                    z.setZoneName(zoneName);
+                    z.setAllowedStart(r[0]);
+                    z.setAllowedEnd(r[1]);
+                    return zoneRepo.saveAndFlush(z); // ✅ 즉시 INSERT
+                });
+
+        // 2) 기존 Zone이라도 allowedTime이 비어있지 않게 들어오면 업데이트(+즉시 UPDATE)
+        if (req.getAllowedTime() != null && !req.getAllowedTime().trim().isEmpty()) {
+            var r = ParkingMapper.parseRange(req.getAllowedTime().trim());
+            zone.setAllowedStart(r[0]);
+            zone.setAllowedEnd(r[1]);
+            zoneRepo.saveAndFlush(zone); // ✅ 즉시 UPDATE
+        }
+
+        // 3) 섹션 추가 (요청에 있으면) — 필수값 검증 + 즉시 INSERT
+        if (req.getSections() != null && !req.getSections().isEmpty()) {
             for (var sreq : req.getSections()) {
-                ParkingSection s = parkingMapper.toSectionEntity(sreq);
-                s.setZone(zone);
-                zone.addSection(s);          // 연관관계 설정
-                sectionRepo.save(s);         // Cascade 설정에 따라 생략 가능하지만 안전하게 저장
+                // 필수값 검증: 빈 문자열/누락 방지
+                if (sreq.getOrigin() == null || sreq.getOrigin().isBlank()
+                        || sreq.getDestination() == null || sreq.getDestination().isBlank()
+                        || sreq.getTime() == null || sreq.getTime().isBlank()
+                        || sreq.getParkingAllowed() == null) {
+                    throw new IllegalArgumentException("section의 필수값(origin, destination, time, parkingAllowed)이 누락되었습니다.");
+                }
+
+                ParkingSection s = ParkingMapper.toSectionEntity(sreq); // 내부에서 time 파싱 검증
+                s.setZone(zone);          // FK 세팅
+                zone.addSection(s);       // 양방향 연결
+                sectionRepo.saveAndFlush(s); // ✅ 즉시 INSERT
+
             }
         }
 
+        // 4) 부모/자식 상태 동기화 보장
+        zoneRepo.flush();
+
         return ParkingMapper.toZoneDTO(zone);
     }
+
+
+//    @Override
+//    @Transactional
+//    public ParkingZoneDTO create(ParkingZoneRequestDTO req) {
+//        if (req.getZoneName() == null)
+//            throw new IllegalArgumentException("zoneName은 필수입니다.");
+//
+//        // 1) 같은 zoneName 있으면 그 ZONE 재사용, 없으면 새로 생성
+//        ParkingZone zone = zoneRepo.findTopByZoneNameOrderByIdAsc(req.getZoneName())
+//                .orElseGet(() -> {
+//                    // 새 Zone 생성
+//                    ParkingZone z = new ParkingZone();
+//                    z.setZoneName(req.getZoneName());
+//
+//                    // 새로 만들 때는 allowedTime이 꼭 있어야 함
+//                    if (req.getAllowedTime() == null) {
+//                        throw new IllegalArgumentException("새 Zone을 만들 때는 allowedTime이 필요합니다. (예: 08:00~20:00)");
+//                    }
+//                    var r = ParkingMapper.parseRange(req.getAllowedTime());
+//                    z.setAllowedStart(r[0]);
+//                    z.setAllowedEnd(r[1]);
+//                    return zoneRepo.save(z);
+//                });
+//
+//        // 2) 기존 Zone에 대한 allowedTime이 요청에 있으면 업데이트(선택)
+//        if (req.getAllowedTime() != null) {
+//            var r = ParkingMapper.parseRange(req.getAllowedTime());
+//            zone.setAllowedStart(r[0]);
+//            zone.setAllowedEnd(r[1]);
+//        }
+//
+//        // 3) 섹션 추가 (요청에 있으면)
+//        if (req.getSections() != null) {
+//            for (var sreq : req.getSections()) {
+//                ParkingSection s = ParkingMapper.toSectionEntity(sreq);
+//                s.setZone(zone);
+//                zone.addSection(s);          // 연관관계 설정
+//                sectionRepo.save(s);         // Cascade 설정에 따라 생략 가능하지만 안전하게 저장
+//            }
+//        }
+//
+//        return ParkingMapper.toZoneDTO(zone);
+//    }
 
 
 
