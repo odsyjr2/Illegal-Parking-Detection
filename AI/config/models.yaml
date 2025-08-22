@@ -16,17 +16,58 @@ vehicle_detection:
     max_distance: 100         # pixels for track association
     track_history: 50         # frames to keep in history
 
-# Illegal Parking Classification Model  
+# Illegal Parking Classification Pipeline (YOLO-seg + timm ResNet)
 illegal_parking:
-  path: "../models/illegal_parking/yolo_illegal_v1.pt"
-  confidence_threshold: 0.6
-  iou_threshold: 0.45
-  device: "cpu"
+  # YOLO-seg model for vehicle and lane segmentation
+  yolo_seg:
+    path: "../models/illegal_parking/yolo_seg_illegal_v2.pt"
+    confidence_threshold: 0.6
+    iou_threshold: 0.45
+    device: "cpu"
+    
+    # 9-class segmentation classes
+    classes:
+      0: vehicle_car
+      1: vehicle_bus
+      2: vehicle_truck
+      3: vehicle_bike
+      4: lane_shoulder_single_solid
+      5: lane_shoulder_double_solid
+      6: lane_shoulder_single_dashed
+      7: lane_shoulder_left_dashed_double
+      8: lane_shoulder_right_dashed_double
   
-  # Classification specific parameters
-  classes:
-    - "legal_parking"
-    - "illegal_parking"
+  # timm ResNet model for final classification
+  resnet:
+    path: "../models/illegal_parking/resnet_classifier.pth"
+    model_name: "resnet18"  # timm model name
+    num_classes: 3  # danger, normal, violation
+    input_channels: 3  # VLO format (Vehicle, Lane, Overlap)
+    device: "cpu"
+    
+    # Classification classes
+    classes:
+      0: danger
+      1: normal
+      2: violation
+    
+  # Class mapping configuration
+  class_mapping:
+    vehicle_types: 
+      - vehicle_car
+      - vehicle_bus
+      - vehicle_truck
+      - vehicle_bike
+    lane_types:
+      - lane_shoulder_single_solid
+      - lane_shoulder_double_solid
+      - lane_shoulder_single_dashed
+      - lane_shoulder_left_dashed_double
+      - lane_shoulder_right_dashed_double
+    output_classes:
+      - danger
+      - normal
+      - violation
   
 # License Plate Detection & Recognition
 license_plate:

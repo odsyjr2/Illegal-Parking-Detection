@@ -161,18 +161,29 @@ class StandaloneDemo:
                 self.vehicle_model = None
             
             # Illegal parking model
-            illegal_model_path = self.model_base_path / "illegal_parking" / "yolo_illegal_v1.pt"
+            # YOLO-seg + ResNet pipeline (keeping for backward compatibility)
+            illegal_model_path = self.model_base_path / "illegal_parking" / "yolo_seg_model.pt"
             if illegal_model_path.exists():
-                print(f"Loading illegal parking model: {illegal_model_path}")
+                print(f"Loading YOLO-seg model: {illegal_model_path}")
                 self.illegal_model = YOLO(str(illegal_model_path))
                 if self.device != "auto":
                     self.illegal_model.to(self.device)
-                    print(f"✓ Illegal parking model loaded on {self.device}")
+                    print(f"✓ YOLO-seg model loaded on {self.device}")
                 else:
-                    print("✓ Illegal parking model loaded (auto device)")
+                    print("✓ YOLO-seg model loaded (auto device)")
+                print("⚠️ Note: Using YOLO-seg only - ResNet pipeline not implemented in demo")
             else:
-                print(f"⚠️ Illegal parking model not found: {illegal_model_path}")
-                self.illegal_model = None
+                # Fallback to old model for demo compatibility
+                legacy_path = self.model_base_path / "illegal_parking" / "yolo_illegal_v1.pt"
+                if legacy_path.exists():
+                    print(f"Loading legacy illegal parking model: {legacy_path}")
+                    self.illegal_model = YOLO(str(legacy_path))
+                    if self.device != "auto":
+                        self.illegal_model.to(self.device)
+                    print(f"✓ Legacy model loaded (consider upgrading to YOLO-seg + ResNet)")
+                else:
+                    print(f"⚠️ No illegal parking model found: {illegal_model_path}")
+                    self.illegal_model = None
             
             # License plate detection model
             plate_model_path = self.model_base_path / "license_plate" / "yolo_plate_detector_v1.pt"

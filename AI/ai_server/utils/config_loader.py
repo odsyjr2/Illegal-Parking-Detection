@@ -220,8 +220,28 @@ class ConfigLoader:
                     raise ConfigValidationError(file_name, model_name, "Missing 'detector' section")
                 if "ocr" not in model_config:
                     raise ConfigValidationError(file_name, model_name, "Missing 'ocr' section")
+            elif model_name == "illegal_parking":
+                # Special validation for new YOLO-seg + ResNet pipeline
+                if "yolo_seg" not in model_config:
+                    raise ConfigValidationError(file_name, model_name, "Missing 'yolo_seg' section")
+                if "resnet" not in model_config:
+                    raise ConfigValidationError(file_name, model_name, "Missing 'resnet' section")
+                
+                # Validate yolo_seg section
+                yolo_seg_config = model_config.get("yolo_seg", {})
+                if "path" not in yolo_seg_config:
+                    raise ConfigValidationError(file_name, f"{model_name}.yolo_seg", "Missing 'path' parameter")
+                if "confidence_threshold" not in yolo_seg_config:
+                    raise ConfigValidationError(file_name, f"{model_name}.yolo_seg", "Missing 'confidence_threshold' parameter")
+                
+                # Validate resnet section
+                resnet_config = model_config.get("resnet", {})
+                if "path" not in resnet_config:
+                    raise ConfigValidationError(file_name, f"{model_name}.resnet", "Missing 'path' parameter")
+                if "model_name" not in resnet_config:
+                    raise ConfigValidationError(file_name, f"{model_name}.resnet", "Missing 'model_name' parameter")
             else:
-                # Standard model validation
+                # Standard model validation for vehicle_detection
                 if "path" not in model_config:
                     raise ConfigValidationError(file_name, model_name, "Missing 'path' parameter")
                 if "confidence_threshold" not in model_config:
