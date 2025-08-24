@@ -1,22 +1,38 @@
 """
-PathFinding Service for Illegal Parking Detection System
-경로 최적화 서비스 - 1시간마다 순찰 경로 최적화 실행
+PathFinding Service Module for Illegal Parking Detection System
 
-Author: AI Development Team
-Date: 2024-12-19
+This module implements automated patrol route optimization and backend integration.
+It performs Vehicle Routing Problem (VRP) optimization based on violation density analysis
+and delivers optimized routes to the Spring backend via REST API.
+
+Key Features:
+- Automated patrol route optimization using Google OR-Tools VRP solver
+- Real-time violation data analysis with KDE (Kernel Density Estimation)
+- OpenStreetMap (OSM) road network integration via OSMnx
+- Asynchronous backend API communication for route delivery
+- Configurable scheduling with automatic route updates
+- Location name mapping from violation data CSV
+
+Architecture:
+- PathFindingService: Main service coordinator with scheduling
+- VRP Solver: Multi-vehicle route optimization with clustering
+- Location Mapper: Real location name extraction from violation data
+- Backend Client: Asynchronous REST API communication
 """
 
 import asyncio
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Tuple
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Dict, Any, List, Optional, Tuple
+
 import networkx as nx
-from backend_api_client import get_backend_client
-import pandas as pd
 import numpy as np
+import pandas as pd
+
+from backend_api_client import get_backend_client
 
 # PathFinding 설정은 main.py에서 직접 전달
 

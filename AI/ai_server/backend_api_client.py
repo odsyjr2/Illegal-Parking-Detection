@@ -1,17 +1,33 @@
 """
-Backend API Client for AI Server
-AI 서버에서 백엔드 API와 통신하기 위한 클라이언트
+Backend API Client Module for AI Server Communication
 
-Author: AI Development Team
-Date: 2024-12-19
+This module implements asynchronous HTTP client functionality for AI-to-Backend
+communication in the Illegal Parking Detection System. It provides secure,
+reliable REST API communication with connection pooling and error handling.
+
+Key Features:
+- Asynchronous HTTP client with aiohttp for optimal performance
+- Connection pooling and session management for efficiency
+- Retry mechanisms with exponential backoff for reliability
+- Patrol route data transmission to Spring backend
+- Connection health checks and monitoring
+- JSON payload formatting and validation
+- Error handling and logging integration
+
+Architecture:
+- BackendAPIClient: Main HTTP client with session management
+- Connection Management: Automatic session lifecycle handling
+- API Endpoints: RESTful communication with Spring backend
+- Error Handling: Comprehensive exception management and logging
 """
 
-import aiohttp
 import asyncio
-import logging
 import json
-from typing import Dict, Any, List, Optional
+import logging
 from datetime import datetime
+from typing import Dict, Any, List, Optional
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
