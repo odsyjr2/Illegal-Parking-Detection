@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/api/cctvs",
                                 "/api/cctvs/*",
                                 "/api/cctvs/**",
-                                "/api/ai/v1/**"  // AI INTEGRATION - Allow AI processor endpoints
+                                "/api/ai/v1/**",  // AI INTEGRATION - Allow AI processor endpoints
+                                "/api/patrol-routes",  // AI PATROL ROUTES - Allow patrol route endpoints
+                                "/api/patrol-routes/**"
                         ).permitAll()
 
                         // 관리자 전용
