@@ -97,7 +97,11 @@ class IllegalParkingResult:
     def __init__(self):
         self.is_illegal = False
         self.confidence = 0.0
-        self.bbox = None  # bbox within vehicle crop
+        self.bbox = None  # bbox within vehicle crop or vehicle mask bbox
+        
+        # Additional fields for new pipeline
+        self.model_version = "unknown"
+        self.decision_factors = []
 
 class OCRResult:
     """OCR recognition result"""
@@ -481,19 +485,34 @@ class IllegalParkingProcessor:
                 print(f"❌ Vehicle Detection model not found: {vehicle_path}")
                 return False
             
-            # 2. Illegal Parking Classification Model
-            print("🚫 Loading Illegal Parking Model...")
+            # 2. Illegal Parking Classification Pipeline (YOLO-seg + ResNet)
+            print("🚫 Loading Illegal Parking Pipeline...")
             illegal_config = self.models_config.get('illegal_parking', {})
-            illegal_path = illegal_config.get('path', '')
             
-            if Path(illegal_path).exists():
-                models['illegal'] = YOLO(illegal_path)
+            # Load YOLO-seg model
+            yolo_seg_config = illegal_config.get('yolo_seg', {})
+            yolo_seg_path = yolo_seg_config.get('path', '')
+            
+            if Path(yolo_seg_path).exists():
+                models['yolo_seg'] = YOLO(yolo_seg_path)
                 if device != 'auto':
-                    models['illegal'].to(device)
-                print(f"✅ Illegal Parking loaded: {illegal_path}")
-                print(f"   Device: {device}, Confidence: {illegal_config.get('confidence_threshold', 0.6)}")
+                    models['yolo_seg'].to(device)
+                print(f"✅ YOLO-seg loaded: {yolo_seg_path}")
+                print(f"   Device: {device}, Confidence: {yolo_seg_config.get('confidence_threshold', 0.6)}")
             else:
-                print(f"❌ Illegal Parking model not found: {illegal_path}")
+                print(f"❌ YOLO-seg model not found: {yolo_seg_path}")
+                return False
+            
+            # Load timm ResNet model
+            resnet_config = illegal_config.get('resnet', {})
+            resnet_path = resnet_config.get('path', '')
+            
+            if Path(resnet_path).exists():
+                # ResNet model will be loaded by the illegal_classifier module
+                print(f"✅ ResNet path verified: {resnet_path}")
+                print(f"   Model: {resnet_config.get('model_name', 'resnet50')}, Classes: {resnet_config.get('num_classes', 3)}")
+            else:
+                print(f"❌ ResNet model not found: {resnet_path}")
                 return False
             
             # 3. License Plate Detection Model
@@ -943,34 +962,53 @@ class IllegalParkingProcessor:
     #         logger.error(f"Direct backend test error: {e}")
 
     def _detect_illegal_parking(self, frame: np.ndarray, vehicle: VehicleDetection) -> IllegalParkingResult:
-        """Step 10: Detect illegal parking using YOLO classification model"""
+        """Step 10: Detect illegal parking using YOLO-seg + ResNet pipeline"""
         result = IllegalParkingResult()
         
         try:
-            # Extract vehicle region
-            x1, y1, x2, y2 = vehicle.bbox
-            vehicle_crop = frame[y1:y2, x1:x2]
+            # Use the new illegal_classifier module
+            from illegal_classifier import get_violation_classifier
             
-            if vehicle_crop.size == 0:
+            classifier = get_violation_classifier()
+            if not classifier or not classifier.is_ready():
+                logger.error("Violation classifier not ready")
                 return result
             
-            # Get illegal parking configuration
-            illegal_config = self.models_config.get('illegal_parking', {})
-            confidence_threshold = illegal_config.get('confidence_threshold', 0.6)
+            # Create parking event for classifier
+            from parking_monitor import ParkingEvent
+            from datetime import datetime
             
-            # Run illegal parking classification
-            if 'illegal' in self.models:
-                results = self.models['illegal'].predict(vehicle_crop, conf=confidence_threshold, verbose=False)
-                
-                if results and len(results[0].boxes) > 0:
-                    boxes = results[0].boxes.xyxy.cpu().numpy()
-                    confidences = results[0].boxes.conf.cpu().numpy()
-                    
-                    # Get best detection
-                    best_idx = np.argmax(confidences)
-                    result.confidence = float(confidences[best_idx])
-                    result.bbox = tuple(map(int, boxes[best_idx]))
-                    result.is_illegal = result.confidence > confidence_threshold
+            # Mock parking event with vehicle info
+            parking_event = ParkingEvent(
+                event_id=f"temp_{vehicle.track_id}_{int(datetime.now().timestamp())}",
+                track_id=str(vehicle.track_id),
+                stream_id=getattr(self, 'current_stream_id', 'unknown'),
+                vehicle_class='unknown',
+                start_time=datetime.now().timestamp(),
+                duration=0,
+                location=(0.0, 0.0)  # Will be filled by geocoding service
+            )
+            # Add bbox as additional attribute for our use
+            parking_event.bbox = vehicle.bbox
+            
+            # Run classification on full frame (not crop)
+            classification_result = classifier.classify_violation(frame, parking_event)
+            
+            # Convert to IllegalParkingResult format for API compatibility
+            result.is_illegal = classification_result.is_illegal
+            result.confidence = classification_result.overall_confidence
+            
+            # Use vehicle mask bbox if available, otherwise original bbox
+            if classification_result.vehicle_mask_bbox:
+                result.bbox = classification_result.vehicle_mask_bbox
+            else:
+                result.bbox = vehicle.bbox
+            
+            # Store additional info
+            result.model_version = classification_result.model_version
+            result.decision_factors = classification_result.decision_factors
+            
+            logger.debug(f"Illegal parking detection: {result.is_illegal}, confidence: {result.confidence:.3f}")
             
             return result
             

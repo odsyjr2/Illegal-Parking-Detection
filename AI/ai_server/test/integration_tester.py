@@ -337,7 +337,8 @@ class RealIntegrationDemo:
             # Load models from config paths (use absolute paths)
             base_model_path = Path(__file__).parent.parent.parent / "models"
             vehicle_path = base_model_path / "vehicle_detection" / "yolo_vehicle_v1.pt"
-            illegal_path = base_model_path / "illegal_parking" / "yolo_illegal_v1.pt" 
+            illegal_path = base_model_path / "illegal_parking" / "yolo_seg_model.pt"
+            legacy_illegal_path = base_model_path / "illegal_parking" / "yolo_illegal_v1.pt" 
             plate_path = base_model_path / "license_plate" / "yolo_plate_detector_v1.pt"
             
             # Vehicle detection model
@@ -349,13 +350,18 @@ class RealIntegrationDemo:
                 print(f"⚠️ Vehicle model not found: {vehicle_path}")
                 self.vehicle_model = None
             
-            # Illegal parking model
+            # Illegal parking model (YOLO-seg + ResNet pipeline)
             if Path(illegal_path).exists():
-                print(f"Loading illegal parking model: {illegal_path}")
+                print(f"Loading YOLO-seg model: {illegal_path}")
                 self.illegal_model = YOLO(str(illegal_path))
-                print("✅ Illegal parking model loaded")
+                print("✅ YOLO-seg model loaded")
+                print("⚠️ Note: Integration test uses YOLO-seg only - ResNet pipeline not implemented")
+            elif Path(legacy_illegal_path).exists():
+                print(f"Loading legacy illegal parking model: {legacy_illegal_path}")
+                self.illegal_model = YOLO(str(legacy_illegal_path))
+                print("✅ Legacy illegal parking model loaded (consider upgrading)")
             else:
-                print(f"⚠️ Illegal parking model not found: {illegal_path}")
+                print(f"⚠️ No illegal parking model found: {illegal_path}")
                 self.illegal_model = None
             
             # License plate detection model

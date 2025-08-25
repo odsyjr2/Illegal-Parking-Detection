@@ -1,9 +1,9 @@
 spring:
     datasource:
-        url: jdbc:mysql://localhost:3306/parking?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=utf8
-        username: parking_user
-        password: 1234
-        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:h2:mem:testdb
+        username: sa
+        password: 
+        driver-class-name: org.h2.Driver
         hikari:
             maximum-pool-size: 15
             minimum-idle: 5
@@ -16,9 +16,12 @@ spring:
         properties:
             hibernate:
                 format_sql: true
-                dialect: org.hibernate.dialect.MySQL8Dialect
+                dialect: org.hibernate.dialect.H2Dialect
                 jdbc.time_zone: Asia/Seoul
         open-in-view: false
+    h2:
+        console:
+            enabled: true
 
     jackson:
         time-zone: Asia/Seoul

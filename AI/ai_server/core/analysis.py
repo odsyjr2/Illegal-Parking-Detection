@@ -123,43 +123,42 @@ class ModelManager:
             return False
     
     def _load_illegal_classifier(self) -> bool:
-        """Load illegal parking classification model"""
+        """Load YOLO-seg + ResNet illegal parking classification pipeline"""
         model_name = "illegal_classifier"
         start_time = time.time()
         
         try:
-            self.illegal_classifier = get_violation_classifier()
+            # Import and initialize the new violation classifier
+            from illegal_classifier import initialize_violation_classifier
             
-            if self.illegal_classifier:
-                # Initialize with configuration
-                classifier_config = self.models_config.get('illegal_parking', {})
-                success = self.illegal_classifier.load_model(classifier_config)
+            # Initialize with full config
+            classifier_config = {
+                'illegal_parking': self.models_config.get('illegal_parking', {})
+            }
+            
+            success = initialize_violation_classifier(classifier_config)
+            
+            if success:
+                from illegal_classifier import get_violation_classifier
+                self.illegal_classifier = get_violation_classifier()
                 
-                if success:
-                    load_time = time.time() - start_time
-                    memory_usage = self._estimate_model_memory(model_name)
-                    
-                    self.loading_status[model_name] = ModelLoadingStatus(
-                        model_name=model_name,
-                        is_loaded=True,
-                        load_time=load_time,
-                        memory_usage_mb=memory_usage
-                    )
-                    
-                    logger.info(f"Illegal parking classifier loaded in {load_time:.2f}s")
-                    return True
-                else:
-                    self.loading_status[model_name] = ModelLoadingStatus(
-                        model_name=model_name,
-                        is_loaded=False,
-                        error_message="Failed to load model configuration"
-                    )
-                    return False
+                load_time = time.time() - start_time
+                memory_usage = self._estimate_model_memory(model_name)
+                
+                self.loading_status[model_name] = ModelLoadingStatus(
+                    model_name=model_name,
+                    is_loaded=True,
+                    load_time=load_time,
+                    memory_usage_mb=memory_usage
+                )
+                
+                logger.info(f"YOLO-seg + ResNet classifier loaded in {load_time:.2f}s")
+                return True
             else:
                 self.loading_status[model_name] = ModelLoadingStatus(
                     model_name=model_name,
                     is_loaded=False,
-                    error_message="Failed to get classifier instance"
+                    error_message="Failed to initialize YOLO-seg + ResNet pipeline"
                 )
                 return False
                 
@@ -169,7 +168,7 @@ class ModelManager:
                 is_loaded=False,
                 error_message=str(e)
             )
-            logger.error(f"Error loading illegal classifier: {e}")
+            logger.error(f"Error loading YOLO-seg + ResNet classifier: {e}")
             return False
     
     def _load_plate_detector(self) -> bool:
@@ -453,29 +452,34 @@ class AnalysisService:
     
     def _classify_parking_violation(self, frame: np.ndarray, 
                                   parking_event: ParkingEvent) -> Tuple[bool, float]:
-        """Classify parking situation as legal or illegal"""
+        """Classify parking situation using YOLO-seg + ResNet pipeline"""
         try:
             if not self.model_manager.illegal_classifier:
-                logger.warning("Illegal classifier not available")
+                logger.warning("YOLO-seg + ResNet classifier not available")
                 return False, 0.0
             
-            # Extract region around violation
-            result = self.model_manager.illegal_classifier.classify_violation(
+            # Use full frame (not crop) for new pipeline
+            classification_result = self.model_manager.illegal_classifier.classify_violation(
                 frame, parking_event
             )
             
-            is_illegal = result.get('is_illegal', False)
-            confidence = result.get('confidence', 0.0)
+            is_illegal = classification_result.is_illegal
+            confidence = classification_result.overall_confidence
             
             # Track performance
             self.model_manager.model_performance['classification'].append(
-                result.get('processing_time', 0.0)
+                classification_result.processing_time
             )
+            
+            # Log additional info for debugging
+            logger.debug(f"YOLO-seg + ResNet result: {is_illegal}, confidence: {confidence:.3f}")
+            if classification_result.decision_factors:
+                logger.debug(f"Decision factors: {classification_result.decision_factors}")
             
             return is_illegal, confidence
             
         except Exception as e:
-            logger.error(f"Error in parking violation classification: {e}")
+            logger.error(f"Error in YOLO-seg + ResNet classification: {e}")
             return False, 0.0
     
     def _detect_license_plates(self, frame: np.ndarray, 
