@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_90749fe579fc0b7885deb6716b6aad7f {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+     <div style="position: absolute; bottom: 50px; left: 50px; background-color: white; 
+                  border:2px solid grey; z-index:9999; font-size:14px; padding:10px;">
+       <b>차량 경로 색상</b><br><i style='background:red;width:10px;height:10px;display:inline-block;margin-right:5px;'></i>차량 1<br><i style='background:blue;width:10px;height:10px;display:inline-block;margin-right:5px;'></i>차량 2<br><i style='background:green;width:10px;height:10px;display:inline-block;margin-right:5px;'></i>차량 3<br>
+     </div>
+    
+            <div class="folium-map" id="map_90749fe579fc0b7885deb6716b6aad7f" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_90749fe579fc0b7885deb6716b6aad7f = L.map(
+                "map_90749fe579fc0b7885deb6716b6aad7f",
+                {
+                    center: [37.4835, 127.0322],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 12,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_fed5532907e81dd5e16936c4699cbdd6 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_fed5532907e81dd5e16936c4699cbdd6.addTo(map_90749fe579fc0b7885deb6716b6aad7f);
+        
+    
+            var marker_df0e58fce075dba40eb9c6380b544f94 = L.marker(
+                [37.4835, 127.0322],
+                {
+}
+            ).addTo(map_90749fe579fc0b7885deb6716b6aad7f);
+        
+    
+            var icon_b0c9838da76a5d988bd827f47d2cc9c8 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "black",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+            marker_df0e58fce075dba40eb9c6380b544f94.bindTooltip(
+                `<div>
+                     Start/Depot
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+                marker_df0e58fce075dba40eb9c6380b544f94.setIcon(icon_b0c9838da76a5d988bd827f47d2cc9c8);
+            
+    
+            var poly_line_050e9f990ea5dc61f7886789e3b102af = L.polyline(
+                [[37.4840808, 127.0315344], [37.4854699, 127.0316171], [37.4912602, 127.02974], [37.4905006, 127.0230502], [37.497806, 127.0269036], [37.5057453, 127.0238302], [37.5045471, 127.0182673], [37.5116876, 127.0173319], [37.5162035, 127.0193434], [37.5134396, 127.0101341], [37.5088814, 127.0113552], [37.5060413, 127.0043473], [37.5031647, 126.9952012], [37.4960753, 126.9988634], [37.48985, 127.0067665], [37.494049, 127.0106452], [37.4997092, 127.0116707], [37.5042899, 127.0099802], [37.4987469, 127.0175263], [37.4938982, 127.0179032], [37.4900964, 127.0136371], [37.4858131, 127.0157906], [37.4857688, 127.0214572], [37.4840808, 127.0315344]],
+                {"bubblingMouseEvents": true, "color": "red", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "red", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5}
+            ).addTo(map_90749fe579fc0b7885deb6716b6aad7f);
+        
+    
+            poly_line_050e9f990ea5dc61f7886789e3b102af.bindTooltip(
+                `<div>
+                     차량 1
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_1493817f9145874c4e0bcbba720b2590 = L.polyline(
+                [[37.4840808, 127.0315344], [37.4792229, 127.0399055], [37.4696964, 127.0390316], [37.4631757, 127.035512], [37.4650152, 127.0434919], [37.4517129, 127.05161], [37.4469673, 127.0561314], [37.4561538, 127.0591158], [37.4613982, 127.0500945], [37.4707965, 127.049181], [37.4768832, 127.045321], [37.4646358, 127.0259381], [37.4746683, 127.0324325], [37.4840808, 127.0315344]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5}
+            ).addTo(map_90749fe579fc0b7885deb6716b6aad7f);
+        
+    
+            poly_line_1493817f9145874c4e0bcbba720b2590.bindTooltip(
+                `<div>
+                     차량 2
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+    
+            var poly_line_d3cbda4a7c4b36c094bcbe527958b53b = L.polyline(
+                [[37.4840808, 127.0315344], [37.4804179, 127.0105683], [37.4758248, 127.0013429], [37.4740203, 126.9927345], [37.4768167, 126.9847911], [37.4823647, 126.9856137], [37.4864202, 126.9830915], [37.4916643, 126.9827787], [37.497473, 126.9836266], [37.4954379, 126.9887739], [37.4910431, 126.9915271], [37.4890104, 126.9985595], [37.4842521, 126.9919109], [37.4808105, 126.9956284], [37.4821243, 127.0047655], [37.4857253, 127.00982], [37.4566268, 127.0156209], [37.4663209, 127.0205596], [37.4712518, 127.0246111], [37.4840808, 127.0315344]],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "green", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5}
+            ).addTo(map_90749fe579fc0b7885deb6716b6aad7f);
+        
+    
+            poly_line_d3cbda4a7c4b36c094bcbe527958b53b.bindTooltip(
+                `<div>
+                     차량 3
+                 </div>`,
+                {
+  "sticky": true,
+}
+            );
+        
+</script>
+</html>

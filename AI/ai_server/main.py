@@ -49,6 +49,7 @@ from easyocr import Reader
 # Import existing modules
 from event_reporter import initialize_event_reporter, get_event_reporter
 from geocoding_service import VWorldGeocodingService, reverse_geocode_coordinates, initialize_geocoding_service
+from pathfinding_service import initialize_pathfinding_service, get_pathfinding_service
 
 # Configure logging to reduce noise from ultralytics
 import logging
@@ -133,6 +134,7 @@ class IllegalParkingProcessor:
         
         # Services
         self.geocoding_service: Optional[VWorldGeocodingService] = None
+        self.pathfinding_service = None
         
         # Statistics
         self.stats = {
@@ -594,6 +596,63 @@ class IllegalParkingProcessor:
             
         except Exception as e:
             logger.warning(f"Model warmup failed: {e}")
+
+    def _initialize_pathfinding_service(self) -> bool:
+        """Initialize PathFinding service with configuration"""
+        try:
+            print("🗺️ PathFinding 서비스 초기화 중...")
+            
+            # =============================================
+            # 📍 PathFinding 설정 (여기서 직접 수정)
+            # =============================================
+            pathfinding_config = {
+                # 지역 설정
+                'place_name': "Seocho-gu, Seoul, South Korea",
+                'violation_data_path': "../Data/CCTV기반단속개별건수.csv",
+                
+                # 시작 지점 좌표 (서울 서초구)
+                'start_latitude': 37.4835,
+                'start_longitude': 127.0322,
+                
+                # VRP 알고리즘 설정
+                'num_vehicles': 3,              # 순찰 차량 수
+                'coverage_ratio': 0.7,          # 커버리지 비율 (70%)
+                'min_nodes': 30,               # 최소 노드 수
+                'penalty_factor': 5.0,         # 페널티 팩터
+                'min_spacing': 500.0,          # 최소 간격 (미터)
+                'time_limit': 60,              # VRP 해결 시간 제한 (초)
+                
+                # 스케줄 설정 (테스트용으로 2분 간격, 운영시에는 60분으로 변경)
+                'update_interval_minutes': 2,  # 2분마다 실행 (테스트용)
+            }
+            
+            self.pathfinding_service = initialize_pathfinding_service(**pathfinding_config)
+            
+            print("✅ PathFinding 서비스 초기화 완료")
+            logger.info("PathFinding service initialized successfully")
+            return True
+            
+        except Exception as e:
+            print(f"❌ PathFinding 서비스 초기화 실패: {e}")
+            logger.error(f"PathFinding service initialization failed: {e}")
+            return False
+
+    async def start_pathfinding_scheduler(self) -> None:
+        """Start PathFinding scheduler as background task"""
+        try:
+            if not self.pathfinding_service:
+                logger.warning("PathFinding service not initialized")
+                return
+            
+            print(f"📅 PathFinding 스케줄러 시작 (2분 간격 - 테스트용)")
+            logger.info("Starting PathFinding scheduler")
+            
+            # Start the scheduler in background
+            await self.pathfinding_service.start_scheduler()
+            
+        except Exception as e:
+            print(f"❌ PathFinding 스케줄러 시작 실패: {e}")
+            logger.error(f"PathFinding scheduler failed: {e}")
 
     # =================================================================
     # STEP 8-9: Multi-stream Processing Engine
@@ -1800,15 +1859,39 @@ async def main(show_streams: bool = False, max_streams: int = 4):
             print("❌ AI model loading failed - aborting")
             return
         
-        # Step 8-13: Multi-stream Processing
+        # Step 7.5: PathFinding Service Initialization
+        if not processor._initialize_pathfinding_service():
+            print("❌ PathFinding 서비스 초기화 실패 - 계속 진행")
+        
+        # Step 8-13: Multi-stream Processing with PathFinding
         if show_streams:
             # Visualization mode: Run interactive OpenCV loop
             print(f"\n🎬 Starting Interactive Visualization Mode...")
             print("   Controls: 'q' to quit, 'space' to pause/resume")
             await processor.run_visualization_mode(cctv_list, visualizer)
         else:
-            # Background processing mode: Run continuous processing
-            await processor.start_multi_stream_processing(cctv_list)
+            # Background processing mode: Run continuous processing with PathFinding
+            print("\n🔄 Starting Background Processing Mode with PathFinding...")
+            
+            # Start both stream processing and PathFinding scheduler concurrently
+            try:
+                pathfinding_task = asyncio.create_task(
+                    processor.start_pathfinding_scheduler(), 
+                    name="PathFinding Scheduler"
+                )
+                
+                processing_task = asyncio.create_task(
+                    processor.start_multi_stream_processing(cctv_list),
+                    name="Stream Processing"
+                )
+                
+                # Run both tasks concurrently
+                await asyncio.gather(pathfinding_task, processing_task)
+                
+            except Exception as e:
+                pathfinding_task.cancel()
+                processing_task.cancel()
+                raise e
         
     except KeyboardInterrupt:
         print("\n🛑 User requested shutdown (Ctrl+C)")
@@ -1822,6 +1905,11 @@ async def main(show_streams: bool = False, max_streams: int = 4):
             visualizer.stop()
         
         if processor:
+            # PathFinding 서비스 정리
+            if processor.pathfinding_service:
+                print("🔄 Stopping PathFinding scheduler...")
+                # PathFinding cleanup (if needed)
+            
             processor.print_final_statistics()
             processor.cleanup()
         
