@@ -1,27 +1,30 @@
 spring:
     datasource:
-        url: jdbc:h2:mem:testdb
-        username: sa
-        password: 
-        driver-class-name: org.h2.Driver
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/parking?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+        username: root        # ← 사용중인 계정으로 바꿔도 OK (root 가능)
+        password: '0000'       # ← 실제 비밀번호 입력
         hikari:
             maximum-pool-size: 15
             minimum-idle: 5
             idle-timeout: 600000
             max-lifetime: 1800000
             connection-timeout: 30000
+
     jpa:
         hibernate:
-            ddl-auto: create      # 개발 중: update / 운영: validate 권장
+            ddl-auto: create            # 개발: update, 운영: validate 권장
         properties:
             hibernate:
+                dialect: org.hibernate.dialect.MySQL8Dialect
                 format_sql: true
-                dialect: org.hibernate.dialect.H2Dialect
-                jdbc.time_zone: Asia/Seoul
+                jdbc:
+                    time_zone: Asia/Seoul
         open-in-view: false
+
     h2:
         console:
-            enabled: true
+            enabled: false              # H2 콘솔 비활성화
 
     jackson:
         time-zone: Asia/Seoul
