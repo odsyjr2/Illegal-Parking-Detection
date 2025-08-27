@@ -193,7 +193,7 @@ health:
 # VWorld API Configuration (Korean Government Geocoding Service)
 vworld:
   # API settings
-  api_key: "5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"      # Environment variable for VWorld API key
+  api_key: "your_api_key"      # Environment variable for VWorld API key
   base_url: "https://api.vworld.kr/req/address"
   
   # Request settings
@@ -225,7 +225,7 @@ environment:
   # Optional environment variables with defaults
   optional_env_vars:
     BACKEND_URL: "http://localhost:8080"  # Override backend URL
-    VWORLD_API_KEY: "5ACE3CF0-069A-3B0E-91F0-B6E9BDB25760"  # Override VWorld API key
+    VWORLD_API_KEY: "your_api_key"  # Override VWorld API key
     BACKEND_API_KEY: ""             # Override API key (if authentication enabled)
     LOG_LEVEL: "INFO"               # Override default log level
     DEBUG_MODE: "false"             # Override debug mode
