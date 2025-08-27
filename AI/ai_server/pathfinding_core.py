@@ -25,10 +25,54 @@ def load_and_project_graph(place_name: str):
     logging.info("그래프 투영 완료 (CRS=%s)", G.graph['crs'])
     return G0, G
 
-def load_and_project_violations(csv_path: str, G_proj: nx.MultiDiGraph):
-    df = pd.read_csv(csv_path, encoding="cp949").dropna(subset=["위도","경도"])
-    gdf = gpd.GeoDataFrame(df,
-                           geometry=gpd.points_from_xy(df['경도'], df['위도']),
+def load_and_project_violations(csv_path: str, G_proj: nx.MultiDiGraph, backend_url: str = "http://localhost:8080"):
+    # 1. 기존 CSV 데이터 로드
+    df_csv = pd.read_csv(csv_path, encoding="cp949").dropna(subset=["위도","경도"])
+    logging.info("CSV 데이터 로드 완료: %d개 좌표", len(df_csv))
+    
+    # 2. 백엔드 DB 데이터 추가 로드
+    df_db = pd.DataFrame()
+    try:
+        import requests
+        response = requests.get(f"{backend_url}/api/detections", timeout=10)
+        if response.status_code == 200:
+            db_data = response.json()
+            
+            # DB 데이터를 CSV 형식에 맞게 변환
+            db_records = []
+            for record in db_data:
+                if record.get('latitude') and record.get('longitude'):
+                    db_records.append({
+                        '위도': record['latitude'],
+                        '경도': record['longitude'],
+                        '위치정보': record.get('location', ''),
+                        '단속일시': record.get('detectedAt', ''),
+                        '위반심각도': record.get('violationSeverity', 1.0)
+                    })
+            
+            if db_records:
+                df_db = pd.DataFrame(db_records)
+                logging.info("DB 데이터 로드 완료: %d개 좌표", len(df_db))
+            else:
+                logging.info("DB에 위반 데이터가 없음")
+                
+        else:
+            logging.warning("DB 접근 실패 (상태코드: %d), CSV만 사용", response.status_code)
+            
+    except Exception as e:
+        logging.warning("DB 접근 오류 (%s), CSV만 사용", str(e))
+    
+    # 3. 데이터 결합
+    if not df_db.empty:
+        df_combined = pd.concat([df_csv, df_db], ignore_index=True)
+        logging.info("데이터 결합 완료: 총 %d개 좌표 (CSV %d개 + DB %d개)", len(df_combined), len(df_csv), len(df_db))
+    else:
+        df_combined = df_csv
+        logging.info("CSV 데이터만 사용: %d개 좌표", len(df_combined))
+    
+    # 4. 기존과 동일한 투영 처리
+    gdf = gpd.GeoDataFrame(df_combined,
+                           geometry=gpd.points_from_xy(df_combined['경도'], df_combined['위도']),
                            crs="EPSG:4326")
     gdf2 = gdf.to_crs(G_proj.graph['crs'])
     coords = np.vstack([gdf2.geometry.x, gdf2.geometry.y]).T
@@ -201,9 +245,10 @@ def run_clustered_vrp(
     time_limit: int = 120,
     start_lat: float = 37.4835,
     start_lon: float = 127.0322,
+    backend_url: str = "http://localhost:8080",
 ):
     G0, G = load_and_project_graph(place_name)
-    xy = load_and_project_violations(csv_path, G)
+    xy = load_and_project_violations(csv_path, G, backend_url)
     kde = fit_kde(xy, bandwidths)
     nodes, dens = map_density_to_nodes(G, kde)
     selected = select_top_nodes_with_spacing(nodes, dens, coverage_ratio, min_nodes, G, min_spacing)

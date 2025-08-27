@@ -19,3 +19,6 @@ websockets==15.0.1
 
 # Optional Dependencies
 matplotlib==3.10.3
+
+aiohttp==3.9.5
+aiofiles==23.2.1 

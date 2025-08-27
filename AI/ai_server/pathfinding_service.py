@@ -106,6 +106,7 @@ class PathFindingService:
         # 기본 설정값
         self.place_name = config.get('place_name', "Seocho-gu, Seoul, South Korea")
         self.csv_path = config.get('violation_data_path', "../Data/CCTV기반단속개별건수.csv")
+        self.backend_url = config.get('backend_url', "http://localhost:8080")
         self.num_vehicles = config.get('num_vehicles', 3)
         self.coverage_ratio = config.get('coverage_ratio', 0.7)
         self.min_nodes = config.get('min_nodes', 50)
@@ -188,6 +189,7 @@ class PathFindingService:
             routes, map_file, G0 = run_clustered_vrp(
                 place_name=self.place_name,
                 csv_path=self.csv_path,
+                backend_url=self.backend_url,
                 num_vehicles=self.num_vehicles,
                 coverage_ratio=self.coverage_ratio,
                 min_nodes=self.min_nodes,

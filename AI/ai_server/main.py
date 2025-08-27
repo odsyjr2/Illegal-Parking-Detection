@@ -609,6 +609,7 @@ class IllegalParkingProcessor:
                 # 지역 설정
                 'place_name': "Seocho-gu, Seoul, South Korea",
                 'violation_data_path': "../Data/CCTV기반단속개별건수.csv",
+                'backend_url': "http://localhost:8080",  # 백엔드 DB 연동용
                 
                 # 시작 지점 좌표 (서울 서초구)
                 'start_latitude': 37.4835,
