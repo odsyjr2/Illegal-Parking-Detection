@@ -7,21 +7,19 @@
   background-color: #f8f9fa;
   padding: 0;
   box-sizing: border-box;
-  min-width: 300px; /* 너무 작아지는 것 방지 */
+  min-width: 300px;
 }
 
 
 /* 로그인/회원가입 폼 */
-/* 가로 크기를 고정 너비에서 % 단위로 변경, 혹은 vw 활용 */
-/* 최소/최대 너비 지정으로 크기 조절 유연하게 */
 .auth-box {
   background-color: #fff;
   padding: 40px 30px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  width: 800px;      /* 기본 넓이 고정 */
-  max-width: 80%;    /* 화면이 600px 미만이면 화면 90%까지 축소 */
-  min-width: 320px;        /* 최소 320px */
+  width: 800px;
+  max-width: 80%;
+  min-width: 320px; 
   box-sizing: border-box;
   transition: width 0.3s ease; /* 크기 변화 부드럽게 */
 }

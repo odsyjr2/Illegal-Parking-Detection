@@ -34,10 +34,10 @@ function ReportPage() {
   const [photo, setPhoto] = useState(null);
   const [reason, setReason] = useState('');
 
-  // 📌 사진 변경 핸들러
+  // 사진 변경 핸들러
   const handlePhotoChange = e => setPhoto(e.target.files[0]);
 
-  // 📌 신고 제출
+  // 신고 제출
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -73,7 +73,7 @@ function ReportPage() {
     }
   };
 
-  // ✅ 공통 상태 변경 함수 (ADMIN 전용 버튼에서 사용)
+  // 공통 상태 변경 함수 (ADMIN 전용 버튼에서 사용)
   const handleSetStatus = async (id, status) => {
     try {
       await axios.patch(`http://localhost:8080/api/human-reports/${id}/status`, { status });
@@ -84,15 +84,15 @@ function ReportPage() {
     }
   };
 
-  // 📌 단속완료 처리 (기존 유지, 내부적으로 공통 함수 사용)
+  // 단속완료 처리 (기존 유지, 내부적으로 공통 함수 사용)
   const handleComplete = async id => handleSetStatus(id, '완료');
 
-  // 📌 경로보기
+  // 경로보기
   const handlePath = id => {
     alert('경로 보기 기능은 추후 구현됩니다.');
   };
 
-  // 📌 GPS로 현재 위치 가져오기
+  // GPS로 현재 위치 가져오기
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       setError('위치 정보를 지원하지 않는 브라우저입니다.');
@@ -134,7 +134,7 @@ function ReportPage() {
     );
   };
 
-  // 📌 Daum 우편번호 검색
+  // Daum 우편번호 검색
   const handleDaumPostcode = () => {
     new window.daum.Postcode({
       oncomplete: async function (data) {
@@ -168,7 +168,7 @@ function ReportPage() {
   const currentUserID = storedUser?.email;
   const currentRole = storedUser?.role;
 
-  // ✅ 조건에 따라 보여줄 신고 내역 선택
+  // 조건에 따라 보여줄 신고 내역 선택
   const filteredReports = currentRole === 'ADMIN'
     ? reports
     : reports.filter(report => report.userID === currentUserID);
@@ -177,7 +177,7 @@ function ReportPage() {
     <div style={{ maxWidth: 1000, margin: '40px auto', padding: 20, borderRadius: 10, background: '#f9fafe', minHeight: '100vh' }}>
       <h1 style={{ marginBottom: 28, fontSize: 25, color: '#000' }}>신고 접수</h1>
 
-      {/* 📍 주소 입력 & 위치 버튼 */}
+      {/* 주소 입력 & 위치 버튼 */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <input
@@ -305,7 +305,7 @@ function ReportPage() {
                 <span> 등록일: {report.createdAt?.slice(0, 10)}</span>
               </div>
 
-              {/* ✅ ADMIN 전용 상태 변경 버튼 */}
+              {/* ADMIN 전용 상태 변경 버튼 */}
               {currentRole === 'ADMIN' && (
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button

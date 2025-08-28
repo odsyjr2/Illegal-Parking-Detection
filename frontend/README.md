@@ -22,22 +22,26 @@ frontend/
 │   │   └── layout/                    
 │   ├── pages/                         # 각 기능(도메인)별 화면 구성
 │   │   ├── auth/                      # 로그인 및 회원가입 관련 화면
-│   │   │   ├── LoginPage.jsx         
+│   │   │   ├── CheckModal.jsx
+│   │   │   ├── EditProfileModal.jsx
+│   │   │   ├── LoginPage.jsx      
 │   │   │   └── SignupPage.jsx        
 │   │   ├── dashboard/                 # 메인/지도 대시보드 관련 페이지
 │   │   │   ├── MainPage.jsx 
 │   │   │   ├── InfoPanel.jsx 
 │   │   │   ├── MapPage.jsx          
 │   │   │   └── DashboardPage.jsx     
-│   │   ├── report/                    # 신고 및 리포트 관련 페이지
-│   │   │   ├── ReportPage.jsx        
-│   │   │   └── ReportList.jsx        
-│   │   ├── admin/                     # 관리자 페이지 관련
-│   │   │   └── AdminPage.jsx         
-│   │   ├── search/                    # 통합 검색 기능 관련
-│   │   │   └── SearchPage.jsx        
-│   │   └── status/                    # 단속 상태 대시보드 관련
-│   │       └── StatusPage.jsx        
+│   │   ├── report/                    # 신고 및 리포트 관련 페이지 
+│   │   │   └── ReportPage.jsx       
+│   │   ├── admin/                     # 관리자 페이지 관련    
+│   │   │   ├── AdminPage.jsx
+│   │   │   ├── AdminRoutes.jsx
+│   │   │   ├── CctvManagement.jsx
+│   │   │   ├── ReportsPage.jsx
+│   │   │   ├── ZonesManagement.jsx
+│   │   │   └── UserManagement.jsx
+│   │   └── search/                    # 통합 검색 기능 관련
+│   │       └── SearchPage.jsx        
 │   ├── App.jsx                        # 루트 컴포넌트 (라우터 포함)
 │   └── main.jsx                       # 애플리케이션 진입점 (ReactDOM 렌더링)
 

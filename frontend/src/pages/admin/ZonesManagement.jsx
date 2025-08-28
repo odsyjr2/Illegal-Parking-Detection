@@ -240,7 +240,7 @@ function ZonesManagement() {
     });
   };
 
-  // 📌 도로명 주소 검색 팝업
+  // 도로명 주소 검색 팝업
   const openAddressPopup = (zoneId, type) => {
     setSelectedZoneId(zoneId); // 어느 구역에서 입력하는지 저장
 

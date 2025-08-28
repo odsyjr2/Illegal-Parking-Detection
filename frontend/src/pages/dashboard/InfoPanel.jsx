@@ -27,7 +27,6 @@ ChartJS.register(
 
 const korWeekDays = ['일', '월', '화', '수', '목', '금', '토']
 
-// 👇[변경1] 선택한 location 문자열에서 구/동/읍/면 추출하는 함수 추가
 function extractRegionName(location) {
   if (!location) return '';
   // '구', '동', '읍', '면'으로 끝나는 문자열 추출 (마지막 값)
@@ -40,15 +39,12 @@ function InfoPanel({ selectedLocation }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // 👇[변경2] regions 하드코딩 배열 제거
-  // const regions = ['강남구', '관악구', '송파구']
-
   const todayStr = new Date().toISOString().slice(0, 10)
 
-  // 👇[변경3] 선택된 위치에서 구/동명 추출
+  // 선택된 위치에서 구/동명 추출
   const regionName = extractRegionName(selectedLocation?.location || '');
 
-  // 👇[변경4] 현황통계: 해당 지역만 필터
+  // 현황통계: 해당 지역만 필터
   const locationStatusFromReports = useMemo(() => {
     if (!rawData || !regionName) return [];
     // location에서 구/동명 일치 + 오늘 날짜
@@ -189,7 +185,7 @@ function InfoPanel({ selectedLocation }) {
   if (loading) return <div>로딩 중...</div>
   if (error) return <div>{error}</div>
 
-  // 👇[변경5] displayItems 현황: 선택된 지역 통계 또는 기본
+  // 선택된 지역 통계 또는 기본
   const displayItems = locationStatusFromReports.length > 0
     ? locationStatusFromReports
     : [

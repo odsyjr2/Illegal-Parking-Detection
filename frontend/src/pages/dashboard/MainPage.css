@@ -16,7 +16,7 @@ body, html, #root {
   min-width: 0;
   height: 100%;
   position: relative;
-  overflow: hidden; /* 지도 영역 넘침 숨김 */
+  overflow: hidden; 
 }
 
 /* 사이드 패널 */
@@ -69,7 +69,6 @@ body, html, #root {
   flex-direction: column;
   overflow: hidden; /* 전체 화면 스크롤 제거 */
 }
-
 
 /* 탭과 레이아웃 분리해서 세로 배치 가능 */
 .main-content {

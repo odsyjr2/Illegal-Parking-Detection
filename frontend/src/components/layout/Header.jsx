@@ -6,7 +6,7 @@ const headerStyle = {
   left: 0,
   right: 0,
   height: '80px',
-  backgroundColor: '#1C3D90', // 어두운 배경 (원하는 색상으로 변경 가능)
+  backgroundColor: '#1C3D90',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
