@@ -15,8 +15,6 @@ public class DebugConfig {
     ApplicationRunner dsLogger(DataSource ds, Environment env) {
         return args -> {
             String url = (ds instanceof HikariDataSource h) ? h.getJdbcUrl() : ds.toString();
-            System.out.println("=== DEBUG: ACTIVE PROFILES = " + Arrays.toString(env.getActiveProfiles()));
-            System.out.println("=== DEBUG: DATASOURCE URL = " + url);
         };
     }
 }

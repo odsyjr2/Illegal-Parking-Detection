@@ -25,12 +25,6 @@ public class ParkingZoneController {
         return ResponseEntity.ok(service.findAll());
     }
 
-//    @GetMapping("/{id}")
-//    @PreAuthorize("hasAnyRole('INSPECTOR','ADMIN')")
-//    public ResponseEntity<ParkingZoneDTO> getOne(@PathVariable Long id) {
-//        return ResponseEntity.ok(service.findOne(id));
-//    }
-
     // ===== 생성/수정/삭제: ADMIN만 =====
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
