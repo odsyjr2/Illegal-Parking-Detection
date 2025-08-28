@@ -102,7 +102,7 @@ function MainPage() {
   useEffect(() => {
     const fetchCctvs = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/cctvs');
+        const response = await axios.get('/api/cctvs');
         const data = response.data.map(item => ({
           ...item,
           streamName: item.streamName || item.location || "(이름 없음)"
@@ -121,7 +121,7 @@ function MainPage() {
 
     const fetchAndCheckReports = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/human-reports");
+        const res = await axios.get("/api/human-reports");
         console.log("신규 신고 원본 데이터:", res.data);
 
         if (Array.isArray(res.data)) {
@@ -171,7 +171,7 @@ function MainPage() {
   // 알림 닫기
   const dismissAlert = async (id) => {
     try {
-      await axios.patch(`http://localhost:8080/api/human-reports/${id}/read`, {});
+      await axios.patch(`/api/human-reports/${id}/read`, {});
     } catch (error) {
       console.error('읽음 처리 실패:', error);
     } finally {

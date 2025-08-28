@@ -29,7 +29,7 @@ function ProfileEditModal({ isOpen, onClose }) {
     try {
       // 이름 변경
       if (name && name !== originalName) {
-        const nameRes = await fetch('http://localhost:8080/api/users/profile/name', {
+        const nameRes = await fetch('/api/users/profile/name', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ function ProfileEditModal({ isOpen, onClose }) {
 
       // 비밀번호 변경
       if (password && password !== originalPassword) {
-        const pwRes = await fetch('http://localhost:8080/api/users/profile/password', {
+        const pwRes = await fetch('/api/users/profile/password', {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

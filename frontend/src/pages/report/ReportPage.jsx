@@ -13,7 +13,7 @@ function ReportPage() {
 
   const fetchReports = async () => {
     try {
-      const res = await axios.get('http://localhost:8080/api/human-reports');
+      const res = await axios.get('/api/human-reports');
       setReports(res.data);
     } catch (err) {
       console.error('신고 목록 불러오기 실패:', err);
@@ -56,7 +56,7 @@ function ReportPage() {
     formData.append('status', '진행중');
 
     try {
-      await axios.post('http://localhost:8080/api/human-reports', formData, {
+      await axios.post('/api/human-reports', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       alert('신고가 등록되었습니다.');
@@ -76,7 +76,7 @@ function ReportPage() {
   // ✅ 공통 상태 변경 함수 (ADMIN 전용 버튼에서 사용)
   const handleSetStatus = async (id, status) => {
     try {
-      await axios.patch(`http://localhost:8080/api/human-reports/${id}/status`, { status });
+      await axios.patch(`/api/human-reports/${id}/status`, { status });
       await fetchReports();
     } catch (err) {
       console.error('상태 변경 실패:', err);
@@ -293,7 +293,7 @@ function ReportPage() {
             </div>
             {report.imageURL && (
               <img
-                src={`http://localhost:8080${report.imageURL}`}
+                src={`${report.imageURL}`}
                 alt="첨부사진"
                 style={{ width: 160, borderRadius: 8 }}
               />

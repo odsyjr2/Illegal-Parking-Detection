@@ -77,7 +77,7 @@ function MapPage({ selectedLocation, cctvData, onCctvSelect }) {
     let timer;
     const fetchOngoing = async () => {
       try {
-        const res = await axios.get('http://localhost:8080/api/human-reports');
+        const res = await axios.get('/api/human-reports');
         const list = Array.isArray(res.data) ? res.data : [];
         const onlyOngoing = list
           .filter(r => r.status === '진행중')

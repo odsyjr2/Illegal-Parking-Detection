@@ -13,7 +13,7 @@ const VEHICLE_MARKERS = [
 ];
 
 // 백엔드 API 기본 URL
-const BACKEND_API_URL = 'http://localhost:8080/api';
+const BACKEND_API_URL = '/api';
 
 function RoutePage() {
   const mapRef = useRef(null);

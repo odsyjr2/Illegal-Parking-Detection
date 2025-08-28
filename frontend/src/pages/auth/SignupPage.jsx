@@ -42,7 +42,7 @@ function SignupPage() {
 
     try {
       console.log('중복확인 API 호출: ', id)
-      const res = await fetch(`http://localhost:8080/api/users/check-email?email=${encodeURIComponent(id)}`)
+      const res = await fetch(`/api/users/check-email?email=${encodeURIComponent(id)}`)
       if (!res.ok) {
         throw new Error('중복 확인 서버 에러')
       }
@@ -94,7 +94,7 @@ function SignupPage() {
     setLoading(true)
 
     try {
-      const res = await fetch('http://localhost:8080/api/users/signup', {
+      const res = await fetch('/api/users/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

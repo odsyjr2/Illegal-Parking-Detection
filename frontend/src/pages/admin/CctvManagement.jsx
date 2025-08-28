@@ -69,7 +69,7 @@ function CctvManagement() {
     async function fetchCctvs() {
       setLoading(true)
       try {
-        const res = await fetch('http://localhost:8080/api/cctvs')
+        const res = await fetch('/api/cctvs')
         if (!res.ok) throw new Error('CCTV 목록 불러오기 실패')
         const data = await res.json()
         setCctvs(data)
@@ -166,7 +166,7 @@ function CctvManagement() {
         return
       }
       const payload = { location: locationTrim, latitude, longitude, installationDate: newInstallationDate, streamUrl: urlTrim,}
-      const res = await fetch('http://localhost:8080/api/cctvs', {
+      const res = await fetch('/api/cctvs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -198,7 +198,7 @@ function CctvManagement() {
     try {
       await Promise.all(
         selectedIds.map((id) =>
-          fetch(`http://localhost:8080/api/cctvs/${id}`, { method: 'DELETE' })
+          fetch(`/api/cctvs/${id}`, { method: 'DELETE' })
         )
       )
       setCctvs((prev) => prev.filter((c) => !selectedIds.includes(c.id)))

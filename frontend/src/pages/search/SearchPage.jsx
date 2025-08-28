@@ -48,7 +48,7 @@ function SearchPage() {
 
   useEffect(() => {
     setLoading(true);
-    axios.get('http://localhost:8080/api/human-reports')
+    axios.get('/api/human-reports')
       .then(res => {
         const mapped = res.data.map(item => ({
           id: item.id,
@@ -162,7 +162,7 @@ function SearchPage() {
                 </div>
                 {report.imageURL && (
                   <img
-                    src={`http://localhost:8080${report.imageURL}`}
+                    src={`${report.imageURL}`}
                     alt="신고 이미지"
                     style={{ width: 160, borderRadius: 8 }}
                   />

@@ -36,7 +36,7 @@ function UserManagement() {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch('http://localhost:8080/api/admin/users', { headers: authHeaders })
+        const res = await fetch('/api/admin/users', { headers: authHeaders })
         if (res.status === 401) throw new Error('인증이 필요합니다. 다시 로그인하세요.')
         if (!res.ok) throw new Error('사용자 목록을 불러오는데 실패했습니다.')
         const data = await res.json()
@@ -132,7 +132,7 @@ function UserManagement() {
       // 선택된 사용자 각각 삭제 요청 병렬 처리
       await Promise.all(
         selectedIds.map(id =>
-          fetch(`http://localhost:8080/api/admin/users/${id}`, {
+          fetch(`/api/admin/users/${id}`, {
             method: 'DELETE',
             headers: authHeaders,
           })

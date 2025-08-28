@@ -17,7 +17,7 @@ function ZonesManagement() {
   const [editingSectionId, setEditingSectionId] = useState(null);
   const [editingSectionInput, setEditingSectionInput] = useState({});
   const inputRefs = useRef({});
-  const API_BASE = "http://localhost:8080/api";
+  const API_BASE = "/api";
 
   const ensureZoneRefs = (zoneId) => {
     if (!inputRefs.current[zoneId]) {

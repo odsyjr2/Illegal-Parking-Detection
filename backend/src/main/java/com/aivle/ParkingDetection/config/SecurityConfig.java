@@ -47,6 +47,12 @@ public class SecurityConfig {
                         // Preflight
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // (추가) Actuator 헬스/인포는 누구나 접근 허용
+                        .requestMatchers(
+                                "/api/actuator/health", "/api/actuator/info",
+                                "/actuator/health", "/actuator/info"
+                        ).permitAll()
+
                         // 공개 엔드포인트
                         .requestMatchers(
                                 "/api/users/check-email",
@@ -100,7 +106,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("http://localhost:5173"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:5173",
+                "https://d38f0hu87r1hj.cloudfront.net"   // 또는 실제 배포 도메인 정확히 기입
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         config.setAllowedHeaders(List.of(
