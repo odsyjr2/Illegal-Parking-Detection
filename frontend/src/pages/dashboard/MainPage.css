@@ -1,11 +1,9 @@
-/* 최상위 wrapper: padding 때문에 높이 계산 보완 */
 body, html, #root {
   height: 100%;
   margin: 0;
   padding: 0;
 }
 
-/* MainPage 최상위 div가 아닌 .main-layout에 높이를 100%로 키우기 */
 .main-layout {
   display: flex;
   height: 100%; /* 100%로 키우고 부모도 높이 확실히 잡아야 함 */
@@ -83,7 +81,7 @@ body, html, #root {
 /* AlertBox 전체 래퍼 */
 .alert-box {
   display: flex;
-  width: 100%;           /* 전체 폭 */
+  width: 100%; 
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
@@ -97,7 +95,7 @@ body, html, #root {
   background-color: #fff9c4;
   color: #000;
   padding: 12px 16px;
-  border-radius: 16px;      /* 완전 직사각형 */
+  border-radius: 16px;
   font-weight: bold;
   text-align: center;
   animation: blink-bg 1s step-start infinite;
